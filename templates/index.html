@@ -28,20 +28,20 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   text-align: center; font-weight: bold; font-size: 12px; outline: none;
 }
 
-/* Info Koordinat Melayang (Pindah ke Kanan Bawah) */
+/* Info Koordinat Melayang */
 #coord-info {
-  position: absolute;
-  bottom: 20px;
-  right: 15px; /* Mengunci posisi ke kanan */
-  left: auto;  /* Mematikan perataan tengah */
-  transform: none; /* Menghapus offset transform */
+  position: absolute !important;
+  bottom: 12px !important;
+  right: 12px !important;
+  left: auto !important;
+  transform: none !important;
   background: rgba(0, 0, 0, 0.85);
   color: #fff;
-  padding: 5px 12px;
-  border-radius: 14px;
-  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 10px;
   font-family: monospace;
-  z-index: 2500 !important;
+  z-index: 3000 !important; /* Naikkan z-index melebihi dashboard */
   pointer-events: none;
   white-space: nowrap;
   box-shadow: 0 2px 6px rgba(0,0,0,0.5);
@@ -102,10 +102,11 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 .point-name-label { font-size: 9px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; white-space: nowrap; pointer-events: none; }
 
 @media (max-width: 480px) {
-  #dashboard-overlay { width: 170px; bottom: 28px; left: 8px; }
+  #dashboard-overlay { width: 150px; bottom: 28px; left: 8px; } /* Lebar dashboard dikecilkan agar tidak menutupi kanan */
   .search-box { width: 60%; top: 8px; }
   .action-buttons-group { top: 50px; right: 8px; }
   .btn-action { font-size: 10px; padding: 6px 10px; }
+  #coord-info { font-size: 9px !important; padding: 3px 8px !important; bottom: 10px !important; right: 8px !important; }
 }
 </style>
 </head>
