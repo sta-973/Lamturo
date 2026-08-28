@@ -31,17 +31,17 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 /* Info Koordinat Melayang */
 #coord-info {
   position: absolute !important;
-  bottom: 12px !important;
+  bottom: 15px !important;
   right: 12px !important;
   left: auto !important;
   transform: none !important;
   background: rgba(0, 0, 0, 0.85);
-  color: #fff;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 10px;
+  color: #ffffff;
+  padding: 5px 10px;
+  border-radius: 10px;
+  font-size: 11px;
   font-family: monospace;
-  z-index: 3000 !important; /* Naikkan z-index melebihi dashboard */
+  z-index: 9999 !important; /* Dipaksa paling atas di atas layer peta & UI HP */
   pointer-events: none;
   white-space: nowrap;
   box-shadow: 0 2px 6px rgba(0,0,0,0.5);
@@ -490,9 +490,26 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         `Lat: ${latlng.lat.toFixed(5)}, Lon: ${latlng.lng.toFixed(5)}`;
     }
 
-    map.on("mousemove", function(e) { updateCoordDisplay(e.latlng); });
-    map.on("move", function() { updateCoordDisplay(map.getCenter()); });
-    map.on("click", function(e) { updateCoordDisplay(e.latlng); });
+    // Function update koordinat + paksa tampilkan di HP
+function updateCoordDisplay(latlng) {
+  const coordEl = document.getElementById("coord-info");
+  if (coordEl && latlng) {
+    coordEl.style.display = "block"; // Dipaksa muncul di layar HP
+    coordEl.innerHTML = `Lat: ${latlng.lat.toFixed(5)}, Lon: ${latlng.lng.toFixed(5)}`;
+  }
+}
+
+// 1. Saat kursor bergerak (Laptop)
+map.on("mousemove", function(e) { updateCoordDisplay(e.latlng); });
+
+// 2. Saat peta digeser/drag (HP) -> Mengambil titik tengah layar
+map.on("move", function() { updateCoordDisplay(map.getCenter()); });
+
+// 3. Saat layar HP ditap
+map.on("click", function(e) { updateCoordDisplay(e.latlng); });
+
+// 4. Tampilkan koordinat awal langsung saat peta pertama kali terbuka di HP
+map.whenReady(function() { updateCoordDisplay(map.getCenter()); });
   
     // Export GeoJSON
     document.getElementById("btn-export-digitasi").addEventListener("click", () => {
