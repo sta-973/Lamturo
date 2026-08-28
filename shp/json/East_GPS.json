@@ -1,0 +1,277 @@
+{
+  "type" : "FeatureCollection",
+  "crs" : {
+    "type" : "name",
+    "properties" : {
+      "name" : "EPSG:32749"
+    }
+  },
+  "features" : [
+    {
+      "type" : "Feature",
+      "id" : 0,
+      "geometry" : {
+        "type" : "Point",
+        "coordinates" : [
+          630361.31000000006,
+          9200813.3760000002
+        ]
+      },
+      "properties" : {
+        "FID" : 0,
+        "ID" : "GPS PTM-7024",
+        "Easting" : 630361.31000000006,
+        "Northing" : 9200813.3760000002,
+        "Elevation" : 62.5,
+        "F5" : "circle 630361.31,9200813.376 0.5 -text @ 1 0 GPS PTM-7024"
+      }
+    },
+    {
+      "type" : "Feature",
+      "id" : 1,
+      "geometry" : {
+        "type" : "Point",
+        "coordinates" : [
+          630304.58600000001,
+          9200796.7080000006
+        ]
+      },
+      "properties" : {
+        "FID" : 1,
+        "ID" : "GPS PTM-7025",
+        "Easting" : 630304.58600000001,
+        "Northing" : 9200796.7080000006,
+        "Elevation" : 60.073,
+        "F5" : "circle 630304.586,9200796.708 0.5 -text @ 1 0 GPS PTM-7025"
+      }
+    },
+    {
+      "type" : "Feature",
+      "id" : 2,
+      "geometry" : {
+        "type" : "Point",
+        "coordinates" : [
+          639559.49899999995,
+          9199763.3670000006
+        ]
+      },
+      "properties" : {
+        "FID" : 2,
+        "ID" : "GPS PTM-7034",
+        "Easting" : 639559.49899999995,
+        "Northing" : 9199763.3670000006,
+        "Elevation" : 55.783999999999999,
+        "F5" : "circle 639559.499,9199763.367 0.5 -text @ 1 0 GPS PTM-7034"
+      }
+    },
+    {
+      "type" : "Feature",
+      "id" : 3,
+      "geometry" : {
+        "type" : "Point",
+        "coordinates" : [
+          639543.11600000004,
+          9199792.7740000002
+        ]
+      },
+      "properties" : {
+        "FID" : 3,
+        "ID" : "GPS PTM-7035",
+        "Easting" : 639543.11600000004,
+        "Northing" : 9199792.7740000002,
+        "Elevation" : 52.551000000000002,
+        "F5" : "circle 639543.116,9199792.774 0.5 -text @ 1 0 GPS PTM-7035"
+      }
+    },
+    {
+      "type" : "Feature",
+      "id" : 4,
+      "geometry" : {
+        "type" : "Point",
+        "coordinates" : [
+          630680.53000000003,
+          9216783.3430000003
+        ]
+      },
+      "properties" : {
+        "FID" : 4,
+        "ID" : "GPS PTM-8030",
+        "Easting" : 630680.53000000003,
+        "Northing" : 9216783.3430000003,
+        "Elevation" : 8.7129999999999992,
+        "F5" : "circle 630680.53,9216783.343 0.5 -text @ 1 0 GPS PTM-8030"
+      }
+    },
+    {
+      "type" : "Feature",
+      "id" : 5,
+      "geometry" : {
+        "type" : "Point",
+        "coordinates" : [
+          630730.973,
+          9216694.1980000008
+        ]
+      },
+      "properties" : {
+        "FID" : 5,
+        "ID" : "GPS PTM-8031",
+        "Easting" : 630730.973,
+        "Northing" : 9216694.1980000008,
+        "Elevation" : 9.4700000000000006,
+        "F5" : "circle 630730.973,9216694.198 0.5 -text @ 1 0 GPS PTM-8031"
+      }
+    },
+    {
+      "type" : "Feature",
+      "id" : 6,
+      "geometry" : {
+        "type" : "Point",
+        "coordinates" : [
+          641493,
+          9226816.5480000004
+        ]
+      },
+      "properties" : {
+        "FID" : 6,
+        "ID" : "GPS PTM-8032",
+        "Easting" : 641493,
+        "Northing" : 9226816.5480000004,
+        "Elevation" : 7.0890000000000004,
+        "F5" : "circle 641493,9226816.548 0.5 -text @ 1 0 GPS PTM-8032"
+      }
+    },
+    {
+      "type" : "Feature",
+      "id" : 7,
+      "geometry" : {
+        "type" : "Point",
+        "coordinates" : [
+          641402.728,
+          9226846.3190000001
+        ]
+      },
+      "properties" : {
+        "FID" : 7,
+        "ID" : "GPS PTM-8033",
+        "Easting" : 641402.728,
+        "Northing" : 9226846.3190000001,
+        "Elevation" : 7.5039999999999996,
+        "F5" : "circle 641402.728,9226846.319 0.5 -text @ 1 0 GPS PTM-8033"
+      }
+    },
+    {
+      "type" : "Feature",
+      "id" : 8,
+      "geometry" : {
+        "type" : "Point",
+        "coordinates" : [
+          649680.98499999999,
+          9218573.1439999994
+        ]
+      },
+      "properties" : {
+        "FID" : 8,
+        "ID" : "GPS PTM-8034",
+        "Easting" : 649680.98499999999,
+        "Northing" : 9218573.1439999994,
+        "Elevation" : 1.8420000000000001,
+        "F5" : "circle 649680.985,9218573.144 0.5 -text @ 1 0 GPS PTM-8034"
+      }
+    },
+    {
+      "type" : "Feature",
+      "id" : 9,
+      "geometry" : {
+        "type" : "Point",
+        "coordinates" : [
+          649713.52099999995,
+          9218679.6860000007
+        ]
+      },
+      "properties" : {
+        "FID" : 9,
+        "ID" : "GPS PTM-8035",
+        "Easting" : 649713.52099999995,
+        "Northing" : 9218679.6860000007,
+        "Elevation" : 2.6139999999999999,
+        "F5" : "circle 649713.521,9218679.686 0.5 -text @ 1 0 GPS PTM-8035"
+      }
+    },
+    {
+      "type" : "Feature",
+      "id" : 10,
+      "geometry" : {
+        "type" : "Point",
+        "coordinates" : [
+          642406.67000000004,
+          9212725.1549999993
+        ]
+      },
+      "properties" : {
+        "FID" : 10,
+        "ID" : "GPS PTM-8036",
+        "Easting" : 642406.67000000004,
+        "Northing" : 9212725.1549999993,
+        "Elevation" : 11.807,
+        "F5" : "circle 642406.67,9212725.155 0.5 -text @ 1 0 GPS PTM-8036"
+      }
+    },
+    {
+      "type" : "Feature",
+      "id" : 11,
+      "geometry" : {
+        "type" : "Point",
+        "coordinates" : [
+          642463.27899999998,
+          9212657.0659999996
+        ]
+      },
+      "properties" : {
+        "FID" : 11,
+        "ID" : "GPS PTM-8037",
+        "Easting" : 642463.27899999998,
+        "Northing" : 9212657.0659999996,
+        "Elevation" : 11.811,
+        "F5" : "circle 642463.279,9212657.066 0.5 -text @ 1 0 GPS PTM-8037"
+      }
+    },
+    {
+      "type" : "Feature",
+      "id" : 12,
+      "geometry" : {
+        "type" : "Point",
+        "coordinates" : [
+          649447.57299999997,
+          9209709.7210000008
+        ]
+      },
+      "properties" : {
+        "FID" : 12,
+        "ID" : "GPS PTM-8038",
+        "Easting" : 649447.57299999997,
+        "Northing" : 9209709.7210000008,
+        "Elevation" : 7.9340000000000002,
+        "F5" : "circle 649447.573,9209709.721 0.5 -text @ 1 0 GPS PTM-8038"
+      }
+    },
+    {
+      "type" : "Feature",
+      "id" : 13,
+      "geometry" : {
+        "type" : "Point",
+        "coordinates" : [
+          649484.78899999999,
+          9209767.2489999998
+        ]
+      },
+      "properties" : {
+        "FID" : 13,
+        "ID" : "GPS PTM-8039",
+        "Easting" : 649484.78899999999,
+        "Northing" : 9209767.2489999998,
+        "Elevation" : 8.4740000000000002,
+        "F5" : "circle 649484.789,9209767.249 0.5 -text @ 1 0 GPS PTM-8039"
+      }
+    }
+  ]
+}
