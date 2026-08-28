@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>WebGIS Titik Seismik</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+html, body { height: 100%; margin: 0; padding: 0; }
+#map { height: 100vh; width: 100vw; background: #e0e0e0; }
+
+.search-box {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  background: #ffffff; width: 85%; max-width: 260px; z-index: 1000;
+  padding: 6px 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  font-family: Arial, sans-serif;
+}
+.search-box input {
+  width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 5px;
+  box-sizing: border-box; text-align: center; font-weight: bold;
+}
+
+.bottom-panel {
+  position: absolute; right: 12px; bottom: 12px; display: flex; flex-direction: column;
+  gap: 8px; align-items: flex-end; z-index: 1000; font-family: Arial, sans-serif;
+}
+#coord-info {
+  background: rgba(255,255,255,0.92); padding: 6px 12px; border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25); font-size: 13px; font-weight: bold; color: #333;
+}
+.current-pos {
+  background: #007bff; color: #ffffff; padding: 8px 14px; border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3); font-size: 13px; font-weight: bold;
+  cursor: pointer; user-select: none;
+}
+.current-pos:hover { background: #0056b3; }
+</style>
+</head>
+<body>
+
+<div class="search-box">
+  <input id="searchBox" type="text" placeholder="Ketik ID2 (misal: 11480.5)">
+</div>
+
+<div class="bottom-panel">
+  <div id="coord-info">Lat: -, Lon: -</div>
+  <div class="current-pos" id="btn-current">📍 Lokasi Saya</div>
+</div>
+
+<div id="map"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Mode preferCanvas aktif untuk kecepatan tinggi
+  const map = L.map("map", { preferCanvas: true }).setView([-7.15, 111.88], 13);
+
+  // Basemap
+  const baseOSM = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "OSM" }).addTo(map);
+  const baseSat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, attribution: "Esri" });
+
+  const groupSource = L.layerGroup().addTo(map);
+  const groupReceiver = L.layerGroup().addTo(map);
+
+  // Control Layer Peta Satelit & Centang S/R (Kanan Atas)
+  L.control.layers(
+    { "Peta Jalan": baseOSM, "Satelit (Esri)": baseSat },
+    { "Source Point (S)": groupSource, "Receiver Point (R)": groupReceiver },
+    { position: "topright" }
+  ).addTo(map);
+
+  let loadedLayers = [];
+
+  // Load Data GeoJSON
+  Promise.all([
+    fetch("/static/S.geojson").then(r => r.json()).catch(() => null),
+    fetch("/static/R.geojson").then(r => r.json()).catch(() => null)
+  ]).then(([dataS, dataR]) => {
+    
+    if (dataS && dataS.features) {
+      const layerS = L.geoJSON(dataS, {
+        pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 4, fillColor: "#ff0000", color: "#ffffff", weight: 1, fillOpacity: 0.85 }),
+        onEachFeature: (feature, layer) => {
+          bindPopup(feature, layer);
+          groupSource.addLayer(layer);
+        }
+      });
+      loadedLayers.push(layerS);
+      if (dataS.features.length > 0) map.fitBounds(layerS.getBounds());
+    }
+
+    if (dataR && dataR.features) {
+      const layerR = L.geoJSON(dataR, {
+        pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 4, fillColor: "#0055ff", color: "#ffffff", weight: 1, fillOpacity: 0.85 }),
+        onEachFeature: (feature, layer) => {
+          bindPopup(feature, layer);
+          groupReceiver.addLayer(layer);
+        }
+      });
+      loadedLayers.push(layerR);
+    }
+  });
+
+  function bindPopup(feature, layer) {
+    const p = feature.properties || {};
+    layer.bindPopup(`
+      <b>ID2:</b> ${p.ID2 || p.ID || '-'}<br>
+      <b>Line:</b> ${p.Line || '-'}<br>
+      <b>Point:</b> ${p.Point || '-'}<br>
+      <b>X:</b> ${p.X || '-'}<br>
+      <b>Y:</b> ${p.Y || '-'}
+    `);
+  }
+
+  // Fitur Cari berdasarkan ID2
+  const searchInput = document.getElementById("searchBox");
+  searchInput.addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+      const query = searchInput.value.trim().toLowerCase();
+      if (!query) return;
+
+      let found = false;
+      loadedLayers.forEach(gl => {
+        gl.eachLayer(layer => {
+          const p = layer.feature.properties || {};
+          const valID2 = String(p.ID2 || p.ID || "").toLowerCase();
+          if (valID2 === query) {
+            map.setView(layer.getLatLng(), 18);
+            layer.openPopup();
+            found = true;
+          }
+        });
+      });
+      if (!found) alert("ID2 '" + query + "' tidak ditemukan!");
+    }
+  });
+
+  // Event Mouse Movement Lat/Lon
+  map.on("mousemove", function(e) {
+    document.getElementById("coord-info").innerHTML = `Lat: ${e.latlng.lat.toFixed(6)}, Lon: ${e.latlng.lng.toFixed(6)}`;
+  });
+
+  // Tombol Lokasi Saya
+  let myPosMarker = null;
+  document.getElementById("btn-current").addEventListener("click", function() {
+    map.locate({ setView: true, maxZoom: 18 });
+  });
+
+  map.on("locationfound", function(e) {
+    if (myPosMarker) map.removeLayer(myPosMarker);
+    myPosMarker = L.marker(e.latlng).addTo(map).bindPopup("Posisi Anda").openPopup();
+  });
+
+  map.on("locationerror", function() {
+    alert("Gagal mengambil posisi GPS. Pastikan GPS/Izin Lokasi Browser aktif.");
+  });
+});
+</script>
+</body>
+</html>
