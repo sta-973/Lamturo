@@ -13,7 +13,8 @@
 
 <style>
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
+/* PERBAIKAN 1: Hapus overflow: hidden agar body tidak terkunci mati layaknya desktop kaku */
+html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 
 #map { height: 100vh; width: 100vw; background: #222; position: relative; }
 
@@ -41,10 +42,11 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   border-radius: 10px;
   font-size: 11px;
   font-family: monospace;
-  z-index: 9999 !important; /* Dipaksa paling atas di atas layer peta & UI HP */
+  z-index: 9999 !important;
   pointer-events: none;
   white-space: nowrap;
   box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  display: block;
 }
 
 /* Group Tombol Aksi Kanan Atas */
@@ -101,12 +103,13 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 /* Label Nama Poin pada Zoom Tinggi */
 .point-name-label { font-size: 9px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; white-space: nowrap; pointer-events: none; }
 
+/* PERBAIKAN 2: Media Query optimal khusus layar HP kecil */
 @media (max-width: 480px) {
-  #dashboard-overlay { width: 150px; bottom: 28px; left: 8px; } /* Lebar dashboard dikecilkan agar tidak menutupi kanan */
-  .search-box { width: 60%; top: 8px; }
-  .action-buttons-group { top: 50px; right: 8px; }
-  .btn-action { font-size: 10px; padding: 6px 10px; }
-  #coord-info { font-size: 9px !important; padding: 3px 8px !important; bottom: 10px !important; right: 8px !important; }
+  #dashboard-overlay { width: 140px; bottom: 25px; left: 5px; padding: 5px; max-height: 35vh; } 
+  .search-box { width: 55%; top: 6px; }
+  .action-buttons-group { top: 45px; right: 6px; gap: 5px; }
+  .btn-action { font-size: 9px; padding: 5px 8px; }
+  #coord-info { font-size: 8px !important; padding: 3px 6px !important; bottom: 8px !important; right: 6px !important; }
 }
 </style>
 </head>
@@ -114,18 +117,18 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
 <div id="map">
   <div class="search-box">
-    <input id="searchBox" type="text" placeholder="🔍 Cari ID Poin (cth: 001-1006)">
+    <input id="searchBox" type="text" placeholder="🔍 Cari ID Poin">
   </div>
 
   <div class="action-buttons-group">
-    <button class="btn-action" id="btn-pick-point">📍 Pick Point GPS</button>
-    <button class="btn-action btn-export" id="btn-export-digitasi">💾 Export GeoJSON</button>
+    <button class="btn-action" id="btn-pick-point">📍 Pick GPS</button>
+    <button class="btn-action btn-export" id="btn-export-digitasi">💾 Export</button>
   </div>
 
   <div id="dashboard-overlay">
     <div class="dashboard-header">
       <div class="dashboard-title-bar" id="toggleDashboard">
-        <span class="dashboard-title">📊 Progress Seismik</span>
+        <span class="dashboard-title">📊 Progress</span>
         <button class="btn-toggle-dashboard" id="btnToggleIcon">▼</button>
       </div>
       <select id="selectBlock" class="block-select">
@@ -143,7 +146,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    // Inisialisasi Peta (Mendukung Sentuhan Layar HP)
     const map = L.map("map", { 
       preferCanvas: true, 
       zoomControl: false,
@@ -170,7 +172,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       { position: "topright" }
     ).addTo(map);
   
-    // Geoman Digitasi
     map.pm.addControls({
       position: 'topleft',
       drawMarker: true,
@@ -182,7 +183,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       removalMode: true
     });
 
-    // Form Popup Marker Digitasi
     function attachDigitasiPopup(layer) {
       if (!layer.feature) layer.feature = { type: "Feature", properties: {} };
       const p = layer.feature.properties;
@@ -243,7 +243,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       }
     };
 
-    // 1. PICK POINT (Tatap Layar / GPS HP + Klik Manual)
     document.getElementById("btn-pick-point").addEventListener("click", () => {
       map.locate({ setView: true, maxZoom: 18, enableHighAccuracy: true });
     });
@@ -259,7 +258,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       alert("Gagal mengambil lokasi GPS! Akses lokasi ditolak atau GPS mati.");
     });
 
-    // 2. TOGGLE DROPDOWN PROGRESS MENU (Layar HP & Laptop)
     const toggleHeader = document.getElementById("toggleDashboard");
     const dashContent = document.getElementById("dashboard-content");
     const toggleIcon = document.getElementById("btnToggleIcon");
@@ -288,11 +286,9 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       return p.ID2 || p.ID || p.Point || p.POINT || p.Station || p.STATION || p.Label || p.NAME || p.Name || "Poin";
     }
   
-    // Fetch Data Pendukung
     fetch("/static/jalan.geojson").then(r => r.json()).then(d => d && L.geoJSON(d, { style: { color: "#d9534f", weight: 2 } }).addTo(groupJalan)).catch(() => {});
     fetch("/static/sungai.geojson").then(r => r.json()).then(d => d && L.geoJSON(d, { style: { color: "#00aaff", weight: 2 } }).addTo(groupSungai)).catch(() => {});
   
-    // Fetch Data Seismik
     Promise.all([
       fetch("/static/S_East_leaflet.geojson").then(r => r.ok ? r.json() : null).catch(() => null),
       fetch("/static/R_East_leaflet.geojson").then(r => r.ok ? r.json() : null).catch(() => null),
@@ -461,7 +457,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       `);
     }
   
-    // Pencarian Poin
     const searchInput = document.getElementById("searchBox");
     searchInput.addEventListener("keypress", function(e) {
       if (e.key === "Enter") {
@@ -484,34 +479,20 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       }
     });
   
-    // UPDATE KOORDINAT UNTUK HP DAN LAPTOP (SUDAH DIPERBAIKI)
+    // PERBAIKAN 3: Satukan fungsi updateCoordDisplay agar tidak duplikat & responsif sentuhan HP
     function updateCoordDisplay(latlng) {
-      document.getElementById("coord-info").innerHTML = 
-        `Lat: ${latlng.lat.toFixed(5)}, Lon: ${latlng.lng.toFixed(5)}`;
+      const coordEl = document.getElementById("coord-info");
+      if (coordEl && latlng) {
+        coordEl.style.display = "block";
+        coordEl.innerHTML = `Lat: ${latlng.lat.toFixed(5)}, Lon: ${latlng.lng.toFixed(5)}`;
+      }
     }
 
-    // Function update koordinat + paksa tampilkan di HP
-function updateCoordDisplay(latlng) {
-  const coordEl = document.getElementById("coord-info");
-  if (coordEl && latlng) {
-    coordEl.style.display = "block"; // Dipaksa muncul di layar HP
-    coordEl.innerHTML = `Lat: ${latlng.lat.toFixed(5)}, Lon: ${latlng.lng.toFixed(5)}`;
-  }
-}
-
-// 1. Saat kursor bergerak (Laptop)
-map.on("mousemove", function(e) { updateCoordDisplay(e.latlng); });
-
-// 2. Saat peta digeser/drag (HP) -> Mengambil titik tengah layar
-map.on("move", function() { updateCoordDisplay(map.getCenter()); });
-
-// 3. Saat layar HP ditap
-map.on("click", function(e) { updateCoordDisplay(e.latlng); });
-
-// 4. Tampilkan koordinat awal langsung saat peta pertama kali terbuka di HP
-map.whenReady(function() { updateCoordDisplay(map.getCenter()); });
+    map.on("mousemove", function(e) { updateCoordDisplay(e.latlng); });
+    map.on("move", function() { updateCoordDisplay(map.getCenter()); });
+    map.on("click", function(e) { updateCoordDisplay(e.latlng); });
+    map.whenReady(function() { updateCoordDisplay(map.getCenter()); });
   
-    // Export GeoJSON
     document.getElementById("btn-export-digitasi").addEventListener("click", () => {
       const data = featureGroupDigitasi.toGeoJSON();
       if (!data.features || data.features.length === 0) {
