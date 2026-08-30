@@ -121,12 +121,16 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     <input id="searchBox" type="text" placeholder="🔍 Cari ID Poin">
   </div>
 
-  <!-- Group Tombol Aksi Kanan Atas + Koordinat jika di Desktop/Laptop -->
+  <!-- Group Tombol Aksi Kanan Atas -->
   <div class="action-buttons-group">
     <button class="btn-action" id="btn-pick-point">📍 Pick GPS</button>
     <button class="btn-action btn-export" id="btn-export-digitasi">💾 Export</button>
-    <div id="coord-info">Lat: -, Lon: -</div>
+    <!-- Khusus Desktop tampil di sini -->
+    <div id="coord-info" class="desktop-coord">Lat: -, Lon: -</div>
   </div>
+
+  <!-- Khusus HP melayang di bawah tombol Export -->
+  <div id="coord-info" class="mobile-coord">Lat: -, Lon: -</div>
 
   <div id="dashboard-overlay">
     <div class="dashboard-header">
