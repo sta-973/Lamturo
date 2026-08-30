@@ -13,7 +13,6 @@
 
 <style>
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-/* PERBAIKAN 1: Hapus overflow: hidden agar body tidak terkunci mati layaknya desktop kaku */
 html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 
 #map { height: 100vh; width: 100vw; background: #222; position: relative; }
@@ -29,29 +28,23 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   text-align: center; font-weight: bold; font-size: 12px; outline: none;
 }
 
-/* Info Koordinat Melayang */
+/* Info Koordinat (Default Desktop: Masuk ke bawah tombol Export) */
 #coord-info {
-  position: absolute !important;
-  bottom: 15px !important;
-  right: 12px !important;
-  left: auto !important;
-  transform: none !important;
   background: rgba(0, 0, 0, 0.85);
   color: #ffffff;
-  padding: 5px 10px;
-  border-radius: 10px;
-  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 10px;
   font-family: monospace;
-  z-index: 9999 !important;
-  pointer-events: none;
+  z-index: 1000;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.4);
   white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-  display: block;
+  text-align: right;
 }
 
-/* Group Tombol Aksi Kanan Atas */
+/* Group Tombol Aksi Kanan Atas (Diturunkan agar tidak numpuk) */
 .action-buttons-group {
-  position: absolute; top: 55px; right: 10px; display: flex; flex-direction: column;
+  position: absolute; top: 95px; right: 10px; display: flex; flex-direction: column;
   gap: 8px; z-index: 1000; align-items: flex-end;
 }
 .btn-action {
@@ -62,7 +55,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 .btn-action:active { transform: scale(0.95); }
 .btn-export { background: #007bff; }
 
-/* Panel Progress Seismik (Dropdown Support) */
+/* Panel Progress Seismik */
 #dashboard-overlay {
   position: absolute; left: 10px; bottom: 30px; width: 220px;
   max-height: 40vh; background: rgba(255, 255, 255, 0.95); border-radius: 8px;
@@ -100,16 +93,24 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 .form-popup-digitasi .checkbox-group div { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
 .btn-save-popup { width: 100%; background: #007bff; color: #fff; border: none; padding: 5px; margin-top: 6px; border-radius: 3px; font-weight: bold; cursor: pointer; }
 
-/* Label Nama Poin pada Zoom Tinggi */
 .point-name-label { font-size: 9px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; white-space: nowrap; pointer-events: none; }
 
-/* PERBAIKAN 2: Media Query optimal khusus layar HP kecil */
+/* KHUSUS TAMPILAN HP (MOBILE) */
 @media (max-width: 480px) {
   #dashboard-overlay { width: 140px; bottom: 25px; left: 5px; padding: 5px; max-height: 35vh; } 
   .search-box { width: 55%; top: 6px; }
-  .action-buttons-group { top: 45px; right: 6px; gap: 5px; }
+  .action-buttons-group { top: 75px; right: 6px; gap: 5px; }
   .btn-action { font-size: 9px; padding: 5px 8px; }
-  #coord-info { font-size: 8px !important; padding: 3px 6px !important; bottom: 8px !important; right: 6px !important; }
+  
+  /* Koordinat jadi Melayang di Pojok Kanan Bawah khusus HP */
+  #coord-info {
+    position: absolute !important;
+    bottom: 15px !important;
+    right: 10px !important;
+    font-size: 8px !important;
+    padding: 4px 8px !important;
+    pointer-events: none;
+  }
 }
 </style>
 </head>
@@ -120,9 +121,11 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     <input id="searchBox" type="text" placeholder="🔍 Cari ID Poin">
   </div>
 
+  <!-- Group Tombol Aksi Kanan Atas + Koordinat jika di Desktop/Laptop -->
   <div class="action-buttons-group">
     <button class="btn-action" id="btn-pick-point">📍 Pick GPS</button>
     <button class="btn-action btn-export" id="btn-export-digitasi">💾 Export</button>
+    <div id="coord-info">Lat: -, Lon: -</div>
   </div>
 
   <div id="dashboard-overlay">
@@ -140,8 +143,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     </div>
     <div id="dashboard-content" style="font-size:10px;">Memuat data...</div>
   </div>
-
-  <div id="coord-info">Lat: -, Lon: -</div>
 </div>
 
 <script>
@@ -479,12 +480,39 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       }
     });
   
-    // PERBAIKAN 3: Satukan fungsi updateCoordDisplay agar tidak duplikat & responsif sentuhan HP
+    // Konversi Lat/Lon kasar ke UTM Zona 49S (Jawa/Bojonegoro)
+    function latLonToUTM(lat, lon) {
+      const a = 6378137;
+      const k0 = 0.9996;
+      const e = 0.08181919;
+      const zone = Math.floor((lon + 180) / 6) + 1;
+      const lonRad = lon * Math.PI / 180;
+      const latRad = lat * Math.PI / 180;
+      const lonOrigin = (zone - 1) * 6 - 180 + 3;
+      const lonOriginRad = lonOrigin * Math.PI / 180;
+      
+      const N = a / Math.sqrt(1 - Math.pow(e * Math.sin(latRad), 2));
+      const T = Math.pow(Math.tan(latRad), 2);
+      const C = Math.pow(e, 2) * Math.pow(Math.cos(latRad), 2) / (1 - Math.pow(e, 2));
+      const A = Math.cos(latRad) * (lonRad - lonOriginRad);
+      
+      const M = a * ((1 - Math.pow(e, 2)/4 - 3*Math.pow(e, 4)/64 - 5*Math.pow(e, 6)/256) * latRad -
+                (3*Math.pow(e, 2)/8 + 3*Math.pow(e, 4)/32 + 45*Math.pow(e, 6)/1024) * Math.sin(2*latRad) +
+                (15*Math.pow(e, 4)/256 + 45*Math.pow(e, 6)/1024) * Math.sin(4*latRad) -
+                (35*Math.pow(e, 6)/3072) * Math.sin(6*latRad));
+      
+      let easting = k0 * N * (A + (1 - T + C) * Math.pow(A, 3) / 6 + (5 - 18 * T + Math.pow(T, 2) + 72 * C - 58 * Math.pow(e, 2)) * Math.pow(A, 5) / 120) + 500000;
+      let northing = k0 * (M + N * Math.tan(latRad) * (Math.pow(A, 2) / 2 + (5 - T + 9 * C + 4 * Math.pow(C, 2)) * Math.pow(A, 4) / 24 + (61 - 58 * T + Math.pow(T, 2) + 600 * C - 330 * Math.pow(e, 2)) * Math.pow(A, 6) / 720));
+      
+      if (lat < 0) northing += 10000000; // Southern hemisphere offset
+      return { easting: easting.toFixed(1), northing: northing.toFixed(1), zone: zone + 'S' };
+    }
+
     function updateCoordDisplay(latlng) {
       const coordEl = document.getElementById("coord-info");
       if (coordEl && latlng) {
-        coordEl.style.display = "block";
-        coordEl.innerHTML = `Lat: ${latlng.lat.toFixed(5)}, Lon: ${latlng.lng.toFixed(5)}`;
+        const utm = latLonToUTM(latlng.lat, latlng.lng);
+        coordEl.innerHTML = `Lat: ${latlng.lat.toFixed(5)}, Lon: ${latlng.lng.toFixed(5)}<br>X: ${utm.easting} | Y: ${utm.northing} (${utm.zone})`;
       }
     }
 
