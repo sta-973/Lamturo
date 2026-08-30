@@ -99,21 +99,35 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 @media (max-width: 480px) {
   #dashboard-overlay { width: 140px; bottom: 25px; left: 5px; padding: 5px; max-height: 35vh; } 
   .search-box { width: 55%; top: 6px; }
-  .action-buttons-group { top: 95px; right: 10px; gap: 5px; }
+  
+  /* Tombol aksi kanan atas */
+  .action-buttons-group { 
+    position: absolute; 
+    top: 90px; 
+    right: 10px; 
+    gap: 5px; 
+  }
   .btn-action { font-size: 9px; padding: 5px 8px; }
   
   /* Sembunyikan versi desktop di HP */
   .desktop-coord { display: none; }
 
-  /* Tampilkan dan atur posisi persis di bawah tombol Export */
+  /* Tampilkan versi mobile: diposisikan otomatis di bawah tombol Export menggunakan margin relatif */
   .mobile-coord {
     display: block !important;
-    position: absolute !important;
-    top: 175px !important; /* Posisinya pas di bawah tombol Export */
-    right: 10px !important;
+    position: relative !important; /* Mengikuti aliran flexbox di bawah tombol Export */
+    margin-top: 5px !important;
+    right: 0 !important;
     font-size: 8px !important;
     padding: 4px 8px !important;
     pointer-events: none;
+    background: rgba(0, 0, 0, 0.85);
+    color: #ffffff;
+    border-radius: 8px;
+    font-family: monospace;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    white-space: nowrap;
+    text-align: right;
   }
 }
 </style>
