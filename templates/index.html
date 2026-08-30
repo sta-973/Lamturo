@@ -96,16 +96,51 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 .point-name-label { font-size: 9px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; white-space: nowrap; pointer-events: none; }
 
 /* KHUSUS TAMPILAN HP (MOBILE) */
+/* Info Koordinat (Default Desktop) */
+#coord-info {
+  background: rgba(0, 0, 0, 0.85);
+  color: #ffffff;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-family: monospace;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+  white-space: nowrap;
+  text-align: right;
+  z-index: 1000;
+}
+
+/* Sembunyikan versi mobile di desktop */
+.mobile-coord { display: none; }
+
+/* Group Tombol Aksi Kanan Atas */
+.action-buttons-group {
+  position: absolute; top: 95px; right: 10px; display: flex; flex-direction: column;
+  gap: 8px; z-index: 1000; align-items: flex-end;
+}
+.btn-action {
+  background: #28a745; color: #ffffff; padding: 8px 12px; border-radius: 20px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.4); font-size: 11px; font-weight: bold; cursor: pointer;
+  border: none; outline: none; transition: 0.2s; white-space: nowrap;
+}
+.btn-action:active { transform: scale(0.95); }
+.btn-export { background: #007bff; }
+
+/* KHUSUS TAMPILAN HP (MOBILE) */
 @media (max-width: 480px) {
   #dashboard-overlay { width: 140px; bottom: 25px; left: 5px; padding: 5px; max-height: 35vh; } 
   .search-box { width: 55%; top: 6px; }
-  .action-buttons-group { top: 75px; right: 6px; gap: 5px; }
+  .action-buttons-group { top: 95px; right: 10px; gap: 5px; }
   .btn-action { font-size: 9px; padding: 5px 8px; }
   
-  /* Koordinat jadi Melayang di Pojok Kanan Bawah khusus HP */
-  #coord-info {
+  /* Sembunyikan versi desktop di HP */
+  .desktop-coord { display: none; }
+
+  /* Tampilkan dan atur posisi persis di bawah tombol Export */
+  .mobile-coord {
+    display: block !important;
     position: absolute !important;
-    bottom: 15px !important;
+    top: 175px !important; /* Posisinya pas di bawah tombol Export */
     right: 10px !important;
     font-size: 8px !important;
     padding: 4px 8px !important;
