@@ -91,7 +91,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 <body>
 
 <div id="map">
-  <!-- Kontainer Atas: Selector Blok & Kotak Pencarian Sejajar/Aman dari Tombol Zoom -->
   <div class="top-controls-container">
     <div class="block-selector-box">
       <select id="mainSelectBlock">
@@ -293,22 +292,41 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       });
     }
 
+    // Fungsi fetch aman yang mencoba berbagai variasi path file sekaligus
+    async function loadGeoJsonFile(filename) {
+      const possiblePaths = [
+        filename,                           // Langsung di root: "East_Block.geojson"
+        `./${filename}`,                    // Dengan relative path: "./East_Block.geojson"
+        `static/${filename}`,               // Dalam folder static: "static/East_Block.geojson"
+        `./static/${filename}`              // "./static/East_Block.geojson"
+      ];
+
+      for (let path of possiblePaths) {
+        try {
+          const res = await fetch(path);
+          if (res.ok) {
+            const text = await res.text();
+            // Pastikan bukan mengembalikan halaman HTML (misal kena 404 custom Vercel)
+            if (text.trim().startsWith("{") || text.trim().startsWith("[")) {
+              return JSON.parse(text);
+            }
+          }
+        } catch (e) {
+          // Lanjut coba path berikutnya
+        }
+      }
+      throw new Error(`File ${filename} tidak ditemukan di semua path yang dicoba.`);
+    }
+
     async function initAppData() {
       await fetchCloudProgress();
 
       try {
         const [eastData, centData, westData] = await Promise.all([
-          fetch("static/East_Block.geojson").then(r => { if(!r.ok) throw new Error(); return r.json(); }),
-          fetch("static/Central_Block.geojson").then(r => { if(!r.ok) throw new Error(); return r.json(); }),
-          fetch("static/West_Block.geojson").then(r => { if(!r.ok) throw new Error(); return r.json(); })
-        ]).catch(() => {
-          // Fallback path kalau format foldernya langsung di root
-          return Promise.all([
-            fetch("East_Block.geojson").then(r => r.json()),
-            fetch("Central_Block.geojson").then(r => r.json()),
-            fetch("West_Block.geojson").then(r => r.json())
-          ]);
-        });
+          loadGeoJsonFile("East_Block.geojson"),
+          loadGeoJsonFile("Central_Block.geojson"),
+          loadGeoJsonFile("West_Block.geojson")
+        ]);
 
         rawData.East_Block = eastData;
         rawData.Central_Block = centData;
@@ -317,8 +335,8 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         applyCloudDataToGeoJSON();
         renderBlockOnMap(document.getElementById("mainSelectBlock").value);
       } catch (err) {
-        console.error("Gagal memuat file GeoJSON:", err);
-        alert("⚠️ Gagal memuat file GeoJSON. Pastikan file East_Block.geojson, Central_Block.geojson, dan West_Block.geojson tersedia di direktori proyek Anda.");
+        console.error("Detail Error GeoJSON:", err);
+        alert("⚠️ Gagal memuat file GeoJSON. Pastikan file East_Block.geojson, Central_Block.geojson, dan West_Block.geojson sudah di-upload ke Vercel di direktori yang sama dengan index.html.");
       }
     }
 
