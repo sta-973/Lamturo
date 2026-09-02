@@ -294,28 +294,23 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
     // Fungsi fetch aman yang mencoba berbagai variasi path file sekaligus
     async function loadGeoJsonFile(filename) {
-      const possiblePaths = [
-        filename,                           // Langsung di root: "East_Block.geojson"
-        `./${filename}`,                    // Dengan relative path: "./East_Block.geojson"
-        `static/${filename}`,               // Dalam folder static: "static/East_Block.geojson"
-        `./static/${filename}`              // "./static/East_Block.geojson"
-      ];
+      // Base URL Supabase Storage sesuai dengan link publik Anda
+      const supabaseStorageBaseUrl = "https://kimzyjcuqbyxmcixojke.supabase.co/storage/v1/object/public/peta_seismic/";
+      const fileUrl = supabaseStorageBaseUrl + filename;
 
-      for (let path of possiblePaths) {
-        try {
-          const res = await fetch(path);
-          if (res.ok) {
-            const text = await res.text();
-            // Pastikan bukan mengembalikan halaman HTML (misal kena 404 custom Vercel)
-            if (text.trim().startsWith("{") || text.trim().startsWith("[")) {
-              return JSON.parse(text);
-            }
+      try {
+        const res = await fetch(fileUrl);
+        if (res.ok) {
+          const text = await res.text();
+          if (text.trim().startsWith("{") || text.trim().startsWith("[")) {
+            return JSON.parse(text);
           }
-        } catch (e) {
-          // Lanjut coba path berikutnya
         }
+        throw new Error(`Gagal memuat file dari Supabase Storage.`);
+      } catch (err) {
+        console.error(`Error memuat ${filename}:`, err);
+        throw err;
       }
-      throw new Error(`File ${filename} tidak ditemukan di semua path yang dicoba.`);
     }
 
     async function initAppData() {
