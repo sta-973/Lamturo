@@ -40,8 +40,8 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 }
 
 .action-buttons-group {
-  position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column;
-  gap: 8px; z-index: 1000; align-items: flex-end;
+  position: absolute; top: 60px; right: 10px; display: flex; flex-direction: column;
+  gap: 8px; z-index: 1000;
 }
 .btn-action {
   background: #28a745; color: #ffffff; padding: 8px 12px; border-radius: 20px;
@@ -275,24 +275,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       }
     }
 
-    // --- LOAD GEOJSON ASLI + SYNC CLOUD PROGRESS ---
-    async function initAppData() {
-      await fetchCloudProgress();
-
-      Promise.all([
-        fetch("/static/East_Block.geojson").then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch("/static/Central_Block.geojson").then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch("/static/West_Block.geojson").then(r => r.ok ? r.json() : null).catch(() => null)
-      ]).then(([eastData, centData, westData]) => {
-        rawData.East_Block = eastData;
-        rawData.Central_Block = centData;
-        rawData.West_Block = westData;
-        
-        applyCloudDataToGeoJSON();
-        renderBlockOnMap("ALL");
-      });
-    }
-
+    // --- FUNGSI APPLY DATA CLOUD KE GEOJSON ---
     function applyCloudDataToGeoJSON() {
       ["East_Block", "Central_Block", "West_Block"].forEach(blockName => {
         if (rawData[blockName] && Array.isArray(rawData[blockName].features)) {
@@ -319,6 +302,28 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
           });
         }
       });
+    }
+
+    // --- LOAD GEOJSON ASLI + SYNC CLOUD PROGRESS ---
+    async function initAppData() {
+      await fetchCloudProgress();
+
+      try {
+        const [eastData, centData, westData] = await Promise.all([
+          fetch("/static/East_Block.geojson").then(r => r.json()),
+          fetch("/static/Central_Block.geojson").then(r => r.json()),
+          fetch("/static/West_Block.geojson").then(r => r.json())
+        ]);
+
+        rawData.East_Block = eastData;
+        rawData.Central_Block = centData;
+        rawData.West_Block = westData;
+
+        applyCloudDataToGeoJSON();
+        renderBlockOnMap(document.getElementById("mainSelectBlock").value);
+      } catch (err) {
+        console.error("Gagal memuat file GeoJSON:", err);
+      }
     }
 
     initAppData();
