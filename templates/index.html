@@ -16,36 +16,41 @@
 
 <style>
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
 
 #map { height: 100vh; width: 100vw; background: #222; position: relative; }
 
-.search-box {
-  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-  background: #ffffff; width: 65%; max-width: 250px; z-index: 1000;
-  padding: 2px; border-radius: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-}
-.search-box input {
-  width: 100%; padding: 6px 10px; border: none; border-radius: 20px;
-  text-align: center; font-weight: bold; font-size: 11px; outline: none;
+/* Perbaikan Layout Atas untuk Mobile */
+.top-controls-container {
+  position: absolute; top: 10px; left: 55px; right: 60px; z-index: 1000;
+  display: flex; gap: 6px; align-items: center; justify-content: space-between;
 }
 
 .block-selector-box {
-  position: absolute; top: 10px; left: 10px; z-index: 1000;
-  background: #ffffff; padding: 6px 10px; border-radius: 8px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.3); font-size: 11px; font-weight: bold;
+  background: #ffffff; padding: 4px 6px; border-radius: 8px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3); font-size: 10px; font-weight: bold;
+  white-space: nowrap; flex-shrink: 0;
 }
 .block-selector-box select {
-  padding: 4px 6px; font-weight: bold; border-radius: 4px; border: 1px solid #007bff; color: #007bff; font-size: 11px;
+  padding: 3px; font-weight: bold; border-radius: 4px; border: 1px solid #007bff; color: #007bff; font-size: 10px;
+}
+
+.search-box {
+  background: #ffffff; flex-grow: 1; max-width: 180px;
+  padding: 2px; border-radius: 20px; box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}
+.search-box input {
+  width: 100%; padding: 5px 8px; border: none; border-radius: 20px;
+  text-align: center; font-weight: bold; font-size: 10px; outline: none;
 }
 
 .action-buttons-group {
   position: absolute; top: 60px; right: 10px; display: flex; flex-direction: column;
-  gap: 8px; z-index: 1000;
+  gap: 6px; z-index: 1000;
 }
 .btn-action {
-  background: #28a745; color: #ffffff; padding: 8px 12px; border-radius: 20px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.4); font-size: 11px; font-weight: bold; cursor: pointer;
+  background: #28a745; color: #ffffff; padding: 6px 10px; border-radius: 16px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.4); font-size: 10px; font-weight: bold; cursor: pointer;
   border: none; outline: none; transition: 0.2s; white-space: nowrap;
 }
 .btn-action:active { transform: scale(0.95); }
@@ -55,10 +60,10 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 .btn-upload { background: #ffc107; color: #333; }
 
 #coord-info {
-  position: absolute; bottom: 15px; right: 15px;
-  background: rgba(0, 0, 0, 0.85); color: #ffffff; padding: 6px 10px;
-  border-radius: 12px; font-size: 10px; font-family: monospace; z-index: 1000;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.4); text-align: right; pointer-events: none;
+  position: absolute; bottom: 45px; right: 10px;
+  background: rgba(0, 0, 0, 0.85); color: #ffffff; padding: 5px 8px;
+  border-radius: 10px; font-size: 9px; font-family: monospace; z-index: 1000;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.4); text-align: right; pointer-events: none;
 }
 
 .point-name-label { font-size: 9px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; white-space: nowrap; pointer-events: none; }
@@ -68,42 +73,45 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   background: #f8f9fa; z-index: 99999; flex-direction: column; overflow-y: auto; font-family: sans-serif;
 }
 .modal-header {
-  background: #343a40; color: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+  background: #343a40; color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;
 }
-.modal-header h2 { font-size: 15px; margin: 0; }
-.btn-close { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-.modal-body { padding: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
+.modal-header h2 { font-size: 13px; margin: 0; }
+.btn-close { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; }
+.modal-body { padding: 15px; max-width: 1200px; margin: 0 auto; width: 100%; }
 
-.stats-summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
-.stat-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); border-left: 5px solid #007bff; }
-.stat-card h4 { margin: 0 0 5px 0; font-size: 12px; color: #666; text-transform: uppercase; }
-.stat-card .value { font-size: 18px; font-weight: bold; color: #333; }
-.chart-container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative; height: 320px; }
-.form-card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+.stats-summary-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px; margin-bottom: 15px; }
+@media(min-width: 600px) { .stats-summary-grid { grid-template-columns: repeat(2, 1fr); } }
+.stat-card { background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); border-left: 5px solid #007bff; }
+.stat-card h4 { margin: 0 0 5px 0; font-size: 11px; color: #666; text-transform: uppercase; }
+.stat-card .value { font-size: 16px; font-weight: bold; color: #333; }
+.chart-container { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative; height: 280px; }
+.form-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; }
 </style>
 </head>
 <body>
 
 <div id="map">
-  <div class="block-selector-box">
-    <label>Pilih Blok: </label>
-    <select id="mainSelectBlock">
-      <option value="East_Block">East_Block</option>
-      <option value="Central_Block">Central_Block</option>
-      <option value="West_Block">West_Block</option>
-      <option value="ALL" selected>Semua Blok</option>
-    </select>
-  </div>
-
-  <div class="search-box">
-    <input id="searchBox" type="text" placeholder="🔍 Cari ID (cth: 0011001.0)">
+  <!-- Kontainer Atas: Selector Blok & Kotak Pencarian Sejajar/Aman dari Tombol Zoom -->
+  <div class="top-controls-container">
+    <div class="block-selector-box">
+      <select id="mainSelectBlock">
+        <option value="East_Block">East</option>
+        <option value="Central_Block">Central</option>
+        <option value="West_Block">West</option>
+        <option value="ALL" selected>Semua Blok</option>
+      </select>
+    </div>
+    
+    <div class="search-box">
+      <input id="searchBox" type="text" placeholder="🔍 Cari ID...">
+    </div>
   </div>
   
   <div class="action-buttons-group">
-    <button class="btn-action btn-dash" id="btn-open-dashboard">📊 Dashboard & Grafik</button>
-    <button class="btn-action btn-upload" id="btn-open-upload">📂 Upload File Progress</button>
-    <button class="btn-action btn-admin" id="btn-open-admin">🔐 Mode Admin (Input)</button>
-    <button class="btn-action btn-export" id="btn-export-geojson">💾 Export Backup</button>
+    <button class="btn-action btn-dash" id="btn-open-dashboard">📊 Dashboard</button>
+    <button class="btn-action btn-upload" id="btn-open-upload">📂 Upload</button>
+    <button class="btn-action btn-admin" id="btn-open-admin">🔐 Admin</button>
+    <button class="btn-action btn-export" id="btn-export-geojson">💾 Export</button>
   </div>
 
   <div id="coord-info">Lat: -, Lon: -</div>
@@ -112,14 +120,14 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 <!-- DASHBOARD MODAL -->
 <div id="dashboard-page" class="modal-page">
   <div class="modal-header">
-    <h2>📊 Dashboard & Grafik Progress Pemetaan Seismik (Supabase Cloud)</h2>
+    <h2>📊 Dashboard Progress Seismik</h2>
     <button id="btn-close-dashboard" class="btn-close">✕ Tutup</button>
   </div>
   <div class="modal-body">
-    <div style="display: flex; flex-direction: column; gap: 15px;">
-      <div style="background:#fff; padding:12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
-        <b>Pilih Blok Ditinjau:</b>
-        <select id="dashboardSelectBlock" style="padding:6px; font-weight:bold; border-radius:4px; border:1px solid #007bff; color:#007bff;">
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="background:#fff; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; font-size: 12px;">
+        <b>Blok Ditinjau:</b>
+        <select id="dashboardSelectBlock" style="padding:5px; font-weight:bold; border-radius:4px; border:1px solid #007bff; color:#007bff; font-size: 12px;">
           <option value="East_Block">East_Block</option>
           <option value="Central_Block">Central_Block</option>
           <option value="West_Block">West_Block</option>
@@ -137,24 +145,24 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 <!-- UPLOAD PROGRESS MODAL -->
 <div id="upload-page" class="modal-page">
   <div class="modal-header" style="background: #e0a800; color: #212529;">
-    <h2>📂 Upload File Rekap Progress Harian ke Supabase</h2>
+    <h2>📂 Upload File Progress Harian</h2>
     <button id="btn-close-upload" class="btn-close" style="background:#343a40;">✕ Tutup</button>
   </div>
-  <div class="modal-body" style="max-width: 700px;">
+  <div class="modal-body">
     <div class="form-card" style="border-left: 6px solid #ffc107;">
-      <h3 style="margin-top: 0; font-size: 14px; color: #333;">📄 Format File Teks / CSV (.txt atau .csv)</h3>
-      <p style="font-size: 11px; color: #666; line-height: 1.5; margin-bottom: 15px;">
-        Urutan baris dalam file: <code style="background:#eee; padding:3px 6px;">Tanggal, Kru, Line, Dari_SP, Sampai_SP, Kode_Status</code>
+      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📄 Format File (.txt / .csv)</h3>
+      <p style="font-size: 10px; color: #666; line-height: 1.4; margin-bottom: 12px;">
+        Urutan: <code style="background:#eee; padding:2px 4px;">Tanggal, Kru, Line, Dari_SP, Sampai_SP, Status</code>
       </p>
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <select id="uploadTargetBlock" style="padding: 8px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 12px;">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <select id="uploadTargetBlock" style="padding: 8px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
           <option value="East_Block">East_Block</option>
           <option value="Central_Block" selected>Central_Block</option>
           <option value="West_Block">West_Block</option>
-          <option value="ALL">Semua Blok Sekaligus</option>
+          <option value="ALL">Semua Blok</option>
         </select>
-        <input type="file" id="fileReportInput" accept=".txt,.csv" style="padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; background: #fafafa;">
-        <button id="btnExecuteUploadFile" style="background: #ffc107; color: #212529; border: none; padding: 10px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px;">🚀 Proses & Sync ke Cloud Supabase</button>
+        <input type="file" id="fileReportInput" accept=".txt,.csv" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px; background: #fafafa;">
+        <button id="btnExecuteUploadFile" style="background: #ffc107; color: #212529; border: none; padding: 9px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Proses & Sync Supabase</button>
       </div>
     </div>
   </div>
@@ -163,50 +171,39 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 <!-- ADMIN MODAL -->
 <div id="admin-page" class="modal-page">
   <div class="modal-header" style="background: #dc3545;">
-    <h2>🔐 Panel Administrator: Input Produksi Lapangan</h2>
+    <h2>🔐 Panel Administrator</h2>
     <button id="btn-close-admin" class="btn-close">✕ Tutup</button>
   </div>
-  <div class="modal-body" style="max-width: 700px;">
-    
-    <!-- FORM 1: INPUT MASSAL / RANGE TR -->
+  <div class="modal-body">
     <div class="form-card" style="border-left: 6px solid #007bff;">
-      <h3 style="margin-top: 0; font-size: 14px; color: #333;">📦 1. Input Massal (Range TR)</h3>
-      <p style="font-size: 11px; color: #666; margin-bottom: 12px;">
-        Format: <code style="background:#eee; padding:2px 5px;">Tanggal-Kru-Line-TRAwal-TRAkhir-Status(1-5)</code>
-      </p>
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <select id="adminRangeTargetBlock" style="padding: 8px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 12px;">
+      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📦 1. Input Massal (Range TR)</h3>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+        <select id="adminRangeTargetBlock" style="padding: 7px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
           <option value="East_Block">East_Block</option>
           <option value="Central_Block" selected>Central_Block</option>
           <option value="West_Block">West_Block</option>
         </select>
-        <input type="text" id="adminRangeInputString" placeholder="01/09/2026-Kru1-001-1001-1500-5" style="padding: 10px; font-weight: bold; font-size: 12px; border: 1px solid #ccc; border-radius: 4px;">
-        <button id="btnExecuteRangeInput" style="background: #007bff; color: white; border: none; padding: 10px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px;">🚀 Update Massal ke Cloud</button>
+        <input type="text" id="adminRangeInputString" placeholder="01/09/2026-Kru1-001-1001-1500-5" style="padding: 8px; font-size: 11px; border: 1px solid #ccc; border-radius: 4px;">
+        <button id="btnExecuteRangeInput" style="background: #007bff; color: white; border: none; padding: 8px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Update Massal</button>
       </div>
     </div>
 
-    <!-- FORM 2: INPUT SATUAN / OFFSET -->
     <div class="form-card" style="border-left: 6px solid #28a745;">
-      <h3 style="margin-top: 0; font-size: 14px; color: #333;">📍 2. Input Satuan / Geser (Offset)</h3>
-      <p style="font-size: 11px; color: #666; margin-bottom: 12px;">
-        Format: <code style="background:#eee; padding:2px 5px;">Tanggal-Kru-Line-IDStasiun-Status</code>
-      </p>
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <select id="adminTargetBlock" style="padding: 8px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 12px;">
+      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📍 2. Input Satuan</h3>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+        <select id="adminTargetBlock" style="padding: 7px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
           <option value="East_Block">East_Block</option>
           <option value="Central_Block" selected>Central_Block</option>
           <option value="West_Block">West_Block</option>
         </select>
-        <input type="text" id="adminInputString" placeholder="01/09/2026-Kru1-001-0011001.0-5" style="padding: 10px; font-weight: bold; font-size: 12px; border: 1px solid #ccc; border-radius: 4px;">
-        <button id="btnExecuteAdminInput" style="background: #28a745; color: white; border: none; padding: 10px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px;">🚀 Rekam ke Cloud</button>
+        <input type="text" id="adminInputString" placeholder="01/09/2026-Kru1-001-0011001.0-5" style="padding: 8px; font-size: 11px; border: 1px solid #ccc; border-radius: 4px;">
+        <button id="btnExecuteAdminInput" style="background: #28a745; color: white; border: none; padding: 8px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Rekam Satuan</button>
       </div>
     </div>
-
   </div>
 </div>
 
 <script>
-  // --- KONFIGURASI SUPABASE ANDA ---
   const SUPABASE_URL = "https://kimzyjcuqbyxmcixojke.supabase.co";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbXp5amN1cWJ5eG1jaXhvamtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjg5NzcsImV4cCI6MjEwMzg0NDk3N30.dpyM0bPeUExLWR9d0CsIRU7C5B1ZD4EN1VY4eNd_KYc";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -224,12 +221,11 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     const groupSource = L.layerGroup().addTo(map);
     const groupReceiver = L.layerGroup().addTo(map);
     const groupPointLabels = L.layerGroup().addTo(map);
-    const featureGroupDigitasi = new L.FeatureGroup().addTo(map);
 
     let loadedLayers = [];
     let allFeatures = [];
     let rawData = { East_Block: null, Central_Block: null, West_Block: null };
-    let cloudProgressMap = {}; // Menyimpan status progress dari Supabase
+    let cloudProgressMap = {};
 
     const dashboardPage = document.getElementById("dashboard-page");
     const adminPage = document.getElementById("admin-page");
@@ -249,7 +245,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       if (pwd === "admin123") {
         adminPage.style.display = "flex";
       } else if (pwd !== null) {
-        alert("Password salah! Akses ditolak.");
+        alert("Password salah!");
       }
     });
     document.getElementById("btn-close-admin").addEventListener("click", () => adminPage.style.display = "none");
@@ -257,17 +253,14 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     document.getElementById("mainSelectBlock").addEventListener("change", (e) => renderBlockOnMap(e.target.value));
     document.getElementById("dashboardSelectBlock").addEventListener("change", (e) => renderChartsAndStats(e.target.value));
 
-    // --- FUNGSI AMBIL DATA PROGRESS DARI SUPABASE ---
     async function fetchCloudProgress() {
       try {
         const { data, error } = await supabaseClient.from("progress_seismik").select("*");
         if (error) { console.error("Gagal ambil cloud:", error); return; }
-        
         cloudProgressMap = {};
         if (data) {
           data.forEach(row => {
-            const key = `${row.block}_${row.line}_${row.tr}`;
-            cloudProgressMap[key] = row;
+            cloudProgressMap[`${row.block}_${row.line}_${row.tr}`] = row;
           });
         }
       } catch (err) {
@@ -275,16 +268,12 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       }
     }
 
-    // --- FUNGSI APPLY DATA CLOUD KE GEOJSON ---
     function applyCloudDataToGeoJSON() {
       ["East_Block", "Central_Block", "West_Block"].forEach(blockName => {
         if (rawData[blockName] && Array.isArray(rawData[blockName].features)) {
           rawData[blockName].features.forEach(f => {
             const p = f.properties || {};
-            const lineVal = String(p.Line || "").trim();
-            const trVal = parseFloat(p.Tr);
-            const key = `${blockName}_${lineVal}_${trVal}`;
-
+            const key = `${blockName}_${String(p.Line || "").trim()}_${parseFloat(p.Tr)}`;
             if (cloudProgressMap[key]) {
               const cp = cloudProgressMap[key];
               p.Tanggal = cp.tanggal;
@@ -304,16 +293,22 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       });
     }
 
-    // --- LOAD GEOJSON ASLI + SYNC CLOUD PROGRESS ---
     async function initAppData() {
       await fetchCloudProgress();
 
       try {
         const [eastData, centData, westData] = await Promise.all([
-          fetch("/static/East_Block.geojson").then(r => r.json()),
-          fetch("/static/Central_Block.geojson").then(r => r.json()),
-          fetch("/static/West_Block.geojson").then(r => r.json())
-        ]);
+          fetch("static/East_Block.geojson").then(r => { if(!r.ok) throw new Error(); return r.json(); }),
+          fetch("static/Central_Block.geojson").then(r => { if(!r.ok) throw new Error(); return r.json(); }),
+          fetch("static/West_Block.geojson").then(r => { if(!r.ok) throw new Error(); return r.json(); })
+        ]).catch(() => {
+          // Fallback path kalau format foldernya langsung di root
+          return Promise.all([
+            fetch("East_Block.geojson").then(r => r.json()),
+            fetch("Central_Block.geojson").then(r => r.json()),
+            fetch("West_Block.geojson").then(r => r.json())
+          ]);
+        });
 
         rawData.East_Block = eastData;
         rawData.Central_Block = centData;
@@ -323,6 +318,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         renderBlockOnMap(document.getElementById("mainSelectBlock").value);
       } catch (err) {
         console.error("Gagal memuat file GeoJSON:", err);
+        alert("⚠️ Gagal memuat file GeoJSON. Pastikan file East_Block.geojson, Central_Block.geojson, dan West_Block.geojson tersedia di direktori proyek Anda.");
       }
     }
 
@@ -343,24 +339,20 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         }
       });
 
-      let statS = calculateProgress({ features: featuresS }, "Source (S)");
-      let statR = calculateProgress({ features: featuresR }, "Receiver (R)");
+      let statS = calculateProgress({ features: featuresS });
+      let statR = calculateProgress({ features: featuresR });
 
       document.getElementById("modal-stats-summary").innerHTML = `
         <div class="stat-card" style="border-left-color: #8b0000;">
-          <h4>Total Source (S)</h4>
-          <div class="value">${statS.total} Poin</div>
-          <div style="font-size:11px; color:#555; margin-top:5px;">
-            Topo(1): ${statS.topo} | Rintis(2): ${statS.rintis}<br>
-            Bridging(3): ${statS.bridging} | <b>Drill(4): ${statS.drilling}</b>
+          <h4>Total Source (S): ${statS.total} Poin</h4>
+          <div style="font-size:10px; color:#555; margin-top:3px;">
+            Topo: ${statS.topo} | Rintis: ${statS.rintis} | Bridge: ${statS.bridging} | <b>Drill: ${statS.drilling}</b>
           </div>
         </div>
         <div class="stat-card" style="border-left-color: #0055ff;">
-          <h4>Total Receiver (R)</h4>
-          <div class="value">${statR.total} Poin</div>
-          <div style="font-size:11px; color:#555; margin-top:5px;">
-            Topo(1): ${statR.topo} | Rintis(2): ${statR.rintis}<br>
-            Bridging(3): ${statR.bridging} | <b>Recording(5): ${statR.recording}</b>
+          <h4>Total Receiver (R): ${statR.total} Poin</h4>
+          <div style="font-size:10px; color:#555; margin-top:3px;">
+            Topo: ${statR.topo} | Rintis: ${statR.rintis} | Bridge: ${statR.bridging} | <b>Rec: ${statR.recording}</b>
           </div>
         </div>
       `;
@@ -370,7 +362,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       myChart = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['Topo (1)', 'Rintis (2)', 'Bridging (3)', 'Drilling (4 - Source)', 'Recording (5 - Receiver)'],
+          labels: ['Topo (1)', 'Rintis (2)', 'Bridge (3)', 'Drill (4-S)', 'Rec (5-R)'],
           datasets: [
             { label: 'Source (S)', data: [statS.topo, statS.rintis, statS.bridging, statS.drilling, 0], backgroundColor: '#8b0000' },
             { label: 'Receiver (R)', data: [statR.topo, statR.rintis, statR.bridging, 0, statR.recording], backgroundColor: '#0055ff' }
@@ -381,8 +373,8 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     }
   
     L.control.layers(
-      { "Peta Jalan": baseOSM, "Satelit (Esri)": baseSat },
-      { "Source (S)": groupSource, "Receiver (R)": groupReceiver, "Label Poin": groupPointLabels, "Hasil Digitasi": featureGroupDigitasi },
+      { "Peta Jalan": baseOSM, "Satelit": baseSat },
+      { "Source (S)": groupSource, "Receiver (R)": groupReceiver, "Label Poin": groupPointLabels },
       { position: "topright" }
     ).addTo(map);
   
@@ -398,8 +390,8 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     }
 
     function getPointName(p) {
-      if (!p) return "Tanpa ID";
-      return p.NEWID && p.NEWID.trim() !== "" ? p.NEWID : (p.ID || "Poin");
+      if (!p) return "";
+      return p.NEWID && p.NEWID.trim() !== "" ? p.NEWID : (p.ID || "");
     }
   
     function renderBlockOnMap(selectedBlock) {
@@ -426,7 +418,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
       if (featuresS.length > 0) {
         const layerS = L.geoJSON({ type: "FeatureCollection", features: featuresS }, {
-          pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 3.5, fillColor: getPointColor(f.properties || {}, "#8b0000"), stroke: false, fillOpacity: 0.85 }),
+          pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 3, fillColor: getPointColor(f.properties || {}, "#8b0000"), stroke: false, fillOpacity: 0.85 }),
           onEachFeature: (f, l) => { bindPopup(f, l); groupSource.addLayer(l); }
         });
         loadedLayers.push(layerS);
@@ -435,14 +427,14 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   
       if (featuresR.length > 0) {
         const layerR = L.geoJSON({ type: "FeatureCollection", features: featuresR }, {
-          pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 3.5, fillColor: getPointColor(f.properties || {}, "#0055ff"), stroke: false, fillOpacity: 0.85 }),
+          pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 3, fillColor: getPointColor(f.properties || {}, "#0055ff"), stroke: false, fillOpacity: 0.85 }),
           onEachFeature: (f, l) => { bindPopup(f, l); groupReceiver.addLayer(l); }
         });
         loadedLayers.push(layerR);
         bounds.extend(layerR.getBounds());
       }
   
-      if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
+      if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30] });
       updatePointLabels();
     }
   
@@ -466,8 +458,8 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     }
     map.on("zoomend moveend", updatePointLabels);
   
-    function calculateProgress(geojson, name) {
-      let s = { name, total: geojson.features.length, topo: 0, rintis: 0, bridging: 0, drilling: 0, recording: 0 };
+    function calculateProgress(geojson) {
+      let s = { total: geojson.features.length, topo: 0, rintis: 0, bridging: 0, drilling: 0, recording: 0 };
       geojson.features.forEach(f => {
         const p = f.properties || {};
         if (String(p.topo) === "1") s.topo++;
@@ -481,64 +473,47 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   
     function bindPopup(feature, layer) {
       const p = feature.properties || {};
-      const pointName = getPointName(p);
+      const pointName = getPointName(p) || p.ID || "Poin";
       const infoKru = p.Kru && p.Kru.trim() !== "" ? `${p.Kru} (${p.Tanggal})` : '- Belum ada data -';
 
       layer.bindPopup(`
-        <div style="font-size:12px; font-family:sans-serif;">
-          <b style="color:#007bff; font-size:13px;">ID: ${pointName}</b> <span style="background:#eee; padding:2px 4px; border-radius:3px;">${p.Desc_ || 'R'}</span><br>
+        <div style="font-size:11px; font-family:sans-serif;">
+          <b style="color:#007bff; font-size:12px;">ID: ${pointName}</b> (${p.Desc_ || 'R'})<br>
           <b>Line:</b> ${p.Line || '-'} | <b>Tr:</b> ${p.Tr || '-'}<br>
-          <b>Kru Pelaksana:</b> <span style="color: #28a745; font-weight: bold;">${infoKru}</span><br>
-          <hr style="margin:4px 0">
-          <b>Status (1-5):</b> Topo(${p.topo||0}) | Rintis(${p.rintis||0}) | Bridge(${p.bridging||0}) | Drill(${p.drilling||0}) | Rec(${p.recording||0})
+          <b>Pelaksana:</b> <span style="color: #28a745; font-weight: bold;">${infoKru}</span><br>
+          <hr style="margin:3px 0">
+          <b>Status:</b> Topo(${p.topo||0}) | Rintis(${p.rintis||0}) | Bridge(${p.bridging||0}) | Drill(${p.drilling||0}) | Rec(${p.recording||0})
         </div>
       `);
     }
 
-    // --- FUNGSI SIMPAN KE SUPABASE (UPSERT) ---
     async function saveProgressToCloud(recordsArray) {
       const { error } = await supabaseClient.from("progress_seismik").upsert(recordsArray, { onConflict: 'block,line,tr' });
       if (error) {
-        console.error("Gagal simpan ke Supabase:", error);
-        alert("⚠️ Gagal menyinkronkan ke Cloud Supabase: " + error.message);
+        alert("⚠️ Gagal sync ke Cloud: " + error.message);
         return false;
       }
       return true;
     }
 
-    // --- UPLOAD FILE REKAP (.TXT / .CSV) ---
     document.getElementById("btnExecuteUploadFile").addEventListener("click", async () => {
       const fileInput = document.getElementById("fileReportInput");
       const targetBlock = document.getElementById("uploadTargetBlock").value;
+      if (fileInput.files.length === 0) { alert("Pilih file terlebih dahulu!"); return; }
 
-      if (fileInput.files.length === 0) {
-        alert("Pilih file rekap (.txt atau .csv) terlebih dahulu!");
-        return;
-      }
-
-      const file = fileInput.files[0];
       const reader = new FileReader();
-
-      reader.readAsText(file);
+      reader.readAsText(fileInput.files[0]);
       reader.onload = async function(e) {
-        const content = e.target.result;
-        const lines = content.split(/\r\n|\n/);
+        const lines = e.target.result.split(/\r\n|\n/);
         let cloudBatch = [];
 
         lines.forEach(lineStr => {
           const cleanLine = lineStr.trim();
           if (!cleanLine || cleanLine.startsWith("#")) return;
-
           const parts = cleanLine.split(/,|\t|;/).map(item => item.trim());
           if (parts.length < 6) return;
 
-          const tgl = parts[0];
-          const kru = parts[1];
-          const targetLine = parts[2];
-          const trAwal = parseFloat(parts[3]);
-          const trAkhir = parseFloat(parts[4]);
-          const statusCode = parts[5];
-
+          const [tgl, kru, targetLine, trAwal, trAkhir, statusCode] = [parts[0], parts[1], parts[2], parseFloat(parts[3]), parseFloat(parts[4]), parts[5]];
           const blocksToSearch = targetBlock === "ALL" ? ["East_Block", "Central_Block", "West_Block"] : [targetBlock];
 
           blocksToSearch.forEach(b => {
@@ -546,121 +521,76 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
             if (blockData && Array.isArray(blockData.features)) {
               blockData.features.forEach(f => {
                 const p = f.properties || {};
-                const lineVal = String(p.Line || "").trim();
-                const trVal = parseFloat(p.Tr);
-
-                if (lineVal === targetLine && trVal >= trAwal && trVal <= trAkhir) {
-                  p.Tanggal = tgl;
-                  p.Kru = kru;
+                if (String(p.Line || "").trim() === targetLine && parseFloat(p.Tr) >= trAwal && parseFloat(p.Tr) <= trAkhir) {
+                  p.Tanggal = tgl; p.Kru = kru;
                   p.topo = (statusCode >= "1") ? "1" : "0";
                   p.rintis = (statusCode >= "2") ? "2" : "0";
                   p.bridging = (statusCode >= "3") ? "3" : "0";
                   p.drilling = (statusCode === "4") ? "4" : "0";
                   p.recording = (statusCode === "5") ? "5" : "0";
 
-                  cloudBatch.push({
-                    block: b,
-                    line: lineVal,
-                    tr: trVal,
-                    tanggal: tgl,
-                    kru: kru,
-                    topo: p.topo,
-                    rintis: p.rintis,
-                    bridging: p.bridging,
-                    drilling: p.drilling,
-                    recording: p.recording
-                  });
+                  cloudBatch.push({ block: b, line: String(p.Line || "").trim(), tr: parseFloat(p.Tr), tanggal: tgl, kru, topo: p.topo, rintis: p.rintis, bridging: p.bridging, drilling: p.drilling, recording: p.recording });
                 }
               });
             }
           });
         });
 
-        if (cloudBatch.length > 0) {
-          const success = await saveProgressToCloud(cloudBatch);
-          if (success) {
-            alert(`✅ Berhasil sync ${cloudBatch.length} titik ke Supabase Cloud!`);
-            uploadPage.style.display = "none";
-            renderBlockOnMap(document.getElementById("mainSelectBlock").value);
-          }
-        } else {
-          alert("Tidak ada data yang cocok dengan line/TR di file.");
+        if (cloudBatch.length > 0 && await saveProgressToCloud(cloudBatch)) {
+          alert(`✅ Berhasil sync ${cloudBatch.length} titik!`);
+          uploadPage.style.display = "none";
+          renderBlockOnMap(document.getElementById("mainSelectBlock").value);
         }
       };
     });
 
-    // --- INPUT MASSAL / RANGE TR ---
     document.getElementById("btnExecuteRangeInput").addEventListener("click", async () => {
       const targetBlock = document.getElementById("adminRangeTargetBlock").value;
       const rawInput = document.getElementById("adminRangeInputString").value.trim();
-      if (!rawInput) { alert("Masukkan string format range!"); return; }
-
       const parts = rawInput.split("-");
-      if (parts.length < 6) { alert("Format kurang lengkap!"); return; }
+      if (parts.length < 6) { alert("Format salah!"); return; }
 
-      const tgl = parts[0].trim(), kru = parts[1].trim(), targetLine = parts[2].trim();
-      const trAwal = parseFloat(parts[3]), trAkhir = parseFloat(parts[4]), statusCode = parts[5].trim();
-
+      const [tgl, kru, targetLine, trAwal, trAkhir, statusCode] = [parts[0].trim(), parts[1].trim(), parts[2].trim(), parseFloat(parts[3]), parseFloat(parts[4]), parts[5].trim()];
       let cloudBatch = [];
       const blockData = rawData[targetBlock];
 
       if (blockData && Array.isArray(blockData.features)) {
         blockData.features.forEach(f => {
           const p = f.properties || {};
-          const lineVal = String(p.Line || "").trim();
-          const trVal = parseFloat(p.Tr);
-
-          if (lineVal === targetLine && trVal >= trAwal && trVal <= trAkhir) {
+          if (String(p.Line || "").trim() === targetLine && parseFloat(p.Tr) >= trAwal && parseFloat(p.Tr) <= trAkhir) {
             p.Tanggal = tgl; p.Kru = kru;
             p.topo = (statusCode >= "1") ? "1" : "0";
             p.rintis = (statusCode >= "2") ? "2" : "0";
             p.bridging = (statusCode >= "3") ? "3" : "0";
             p.drilling = (statusCode === "4") ? "4" : "0";
             p.recording = (statusCode === "5") ? "5" : "0";
-
-            cloudBatch.push({
-              block: targetBlock, line: lineVal, tr: trVal,
-              tanggal: tgl, kru: kru,
-              topo: p.topo, rintis: p.rintis, bridging: p.bridging, drilling: p.drilling, recording: p.recording
-            });
+            cloudBatch.push({ block: targetBlock, line: String(p.Line || "").trim(), tr: parseFloat(p.Tr), tanggal: tgl, kru, topo: p.topo, rintis: p.rintis, bridging: p.bridging, drilling: p.drilling, recording: p.recording });
           }
         });
       }
 
-      if (cloudBatch.length > 0) {
-        const success = await saveProgressToCloud(cloudBatch);
-        if (success) {
-          alert(`✅ Berhasil update massal ${cloudBatch.length} titik ke Cloud!`);
-          document.getElementById("adminRangeInputString").value = "";
-          adminPage.style.display = "none";
-          renderBlockOnMap(document.getElementById("mainSelectBlock").value);
-        }
-      } else {
-        alert("Line atau rentang TR tidak ditemukan.");
+      if (cloudBatch.length > 0 && await saveProgressToCloud(cloudBatch)) {
+        alert(`✅ Update massal sukses!`);
+        document.getElementById("adminRangeInputString").value = "";
+        adminPage.style.display = "none";
+        renderBlockOnMap(document.getElementById("mainSelectBlock").value);
       }
     });
 
-    // --- INPUT SATUAN & OFFSET ---
     document.getElementById("btnExecuteAdminInput").addEventListener("click", async () => {
       const targetBlock = document.getElementById("adminTargetBlock").value;
       const rawInput = document.getElementById("adminInputString").value.trim();
-      if (!rawInput) { alert("Masukkan string laporan!"); return; }
-
       const parts = rawInput.split("-");
-      if (parts.length < 5) { alert("Format kurang lengkap!"); return; }
+      if (parts.length < 5) { alert("Format salah!"); return; }
 
-      const tgl = parts[0].trim(), kru = parts[1].trim(), targetLine = parts[2].trim(), targetId = parts[3].trim(), statusCode = parts[4].trim();
-      let hasOffset = parts.length >= 9;
-
+      const [tgl, kru, targetLine, targetId, statusCode] = [parts[0].trim(), parts[1].trim(), parts[2].trim(), parts[3].trim(), parts[4].trim()];
       let targetFeature = null;
       const blockData = rawData[targetBlock];
 
       if (blockData && Array.isArray(blockData.features)) {
         blockData.features.forEach(f => {
           const p = f.properties || {};
-          if (String(p.Line || "").trim() === targetLine && String(p.ID || "").trim() === targetId) {
-            targetFeature = f;
-          }
+          if (String(p.Line || "").trim() === targetLine && String(p.ID || "").trim() === targetId) targetFeature = f;
         });
       }
 
@@ -673,48 +603,29 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         p.drilling = (statusCode === "4") ? "4" : "0";
         p.recording = (statusCode === "5") ? "5" : "0";
 
-        let rowData = {
-          block: targetBlock,
-          line: String(p.Line || "").trim(),
-          tr: parseFloat(p.Tr),
-          tanggal: tgl,
-          kru: kru,
-          topo: p.topo,
-          rintis: p.rintis,
-          bridging: p.bridging,
-          drilling: p.drilling,
-          recording: p.recording
-        };
-
-        if (hasOffset) {
+        let rowData = { block: targetBlock, line: String(p.Line || "").trim(), tr: parseFloat(p.Tr), tanggal: tgl, kru, topo: p.topo, rintis: p.rintis, bridging: p.bridging, drilling: p.drilling, recording: p.recording };
+        if (parts.length >= 9) {
           p.NewX = parseFloat(parts[5]); p.NewY = parseFloat(parts[6]); p.NewZ = parseFloat(parts[7]); p.NEWID = parts[8].trim();
-          rowData.new_x = p.NewX; rowData.new_y = p.NewY; rowData.new_z = p.NewZ; rowData.new_id = p.NEWID;
+          Object.assign(rowData, { new_x: p.NewX, new_y: p.NewY, new_z: p.NewZ, new_id: p.NEWID });
         }
 
-        const success = await saveProgressToCloud([rowData]);
-        if (success) {
-          alert(`✅ Berhasil Rekam ID: ${targetId} ke Cloud Supabase!`);
+        if (await saveProgressToCloud([rowData])) {
+          alert(`✅ Rekam data sukses!`);
           document.getElementById("adminInputString").value = "";
           adminPage.style.display = "none";
           renderBlockOnMap(document.getElementById("mainSelectBlock").value);
         }
       } else {
-        alert("Line atau ID Stasiun tidak ditemukan.");
+        alert("ID Stasiun tidak ditemukan.");
       }
     });
 
-    // --- TOMBOL EXPORT BACKUP ---
     document.getElementById("btn-export-geojson").addEventListener("click", () => {
-      const selectedBlock = document.getElementById("mainSelectBlock").value;
-      let exportData = { type: "FeatureCollection", features: allFeatures };
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `Progress_Seismik_Cloud_${selectedBlock}_${new Date().toISOString().slice(0,10)}.geojson`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-      alert("✅ Berhasil Export Backup GeoJSON.");
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ type: "FeatureCollection", features: allFeatures }, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", `Progress_Seismik_${new Date().toISOString().slice(0,10)}.geojson`);
+      document.body.appendChild(a); a.click(); a.remove();
     });
 
     const searchInput = document.getElementById("searchBox");
@@ -733,7 +644,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
             }
           });
         });
-        if (!found) alert("ID Poin '" + query + "' tidak ditemukan!");
+        if (!found) alert("ID Poin tidak ditemukan!");
         searchInput.blur();
       }
     });
