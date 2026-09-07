@@ -263,6 +263,21 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbXp5amN1cWJ5eG1jaXhvamtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjg5NzcsImV4cCI6MjEwMzg0NDk3N30.dpyM0bPeUExLWR9d0CsIRU7C5B1ZD4EN1VY4eNd_KYc";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+  // FUNGSI NORMALISASI KUNCI MATCHING
+  function normalizeBlockName(name) {
+    if (!name) return "";
+    let clean = String(name).trim().toLowerCase();
+    if (clean.includes("east")) return "east";
+    if (clean.includes("central") || clean.includes("tengah")) return "central";
+    if (clean.includes("west") || clean.includes("barat")) return "west";
+    return clean;
+  }
+
+  function normalizeLine(line) {
+    if (line === undefined || line === null) return "";
+    return String(line).trim().replace(/^0+/, "") || "0";
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
     const map = L.map("map", { 
       preferCanvas: true, zoomControl: false, tap: true, touchZoom: true 
@@ -324,19 +339,18 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       exportMenuPopup.style.display = "none";
     });
 
-    // Helper Penentuan Status Bertingkat
     function parseStatusFlags(statusCode) {
       const st = parseInt(statusCode, 10) || 0;
       return {
         topo: (st >= 1) ? "1" : "0",
         rintis: (st >= 2) ? "2" : "0",
         bridging: (st >= 3) ? "3" : "0",
-        drilling: (st === 4 || st === 5) ? "4" : "0", // Stasiun recording otomatis terhitung drilling
+        drilling: (st === 4 || st === 5) ? "4" : "0",
         recording: (st === 5) ? "5" : "0"
       };
     }
 
-    // AMBIL DATA BERTAHAP (BYPASS LIMIT 1.000 BARIS SUPABASE)
+    // AMBIL DATA BERTAHAP (PENYESUAIAN NORMALISASI KUNCI)
     async function fetchCloudProgress() {
       try {
         let allData = [];
@@ -366,7 +380,12 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
         cloudProgressMap = {};
         allData.forEach(row => {
-          cloudProgressMap[`${row.block}_${row.line}_${row.tr}`] = row;
+          const normBlock = normalizeBlockName(row.block);
+          const normLine = normalizeLine(row.line);
+          const normTr = parseFloat(row.tr);
+          
+          const key = `${normBlock}_${normLine}_${normTr}`;
+          cloudProgressMap[key] = row;
         });
 
         window.cachedProgressData = allData;
@@ -376,14 +395,27 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       }
     }
 
+    // TEMPEL DATA SUPABASE KE GEOJSON (PENYESUAIAN NORMALISASI KUNCI)
     function applyCloudDataToGeoJSON() {
-      ["East_Block", "Central_Block", "West_Block"].forEach(blockName => {
-        if (rawData[blockName] && Array.isArray(rawData[blockName].features)) {
-          rawData[blockName].features.forEach(f => {
+      const blockMapping = [
+        { keyName: "East_Block", norm: "east" },
+        { keyName: "Central_Block", norm: "central" },
+        { keyName: "West_Block", norm: "west" }
+      ];
+
+      blockMapping.forEach(b => {
+        if (rawData[b.keyName] && Array.isArray(rawData[b.keyName].features)) {
+          rawData[b.keyName].features.forEach(f => {
             const p = f.properties || {};
-            const key = `${blockName}_${String(p.Line || "").trim()}_${parseFloat(p.Tr)}`;
-            if (cloudProgressMap[key]) {
-              const cp = cloudProgressMap[key];
+            
+            p.BlockName = b.keyName;
+
+            const normLine = normalizeLine(p.Line);
+            const normTr = parseFloat(p.Tr);
+            const matchKey = `${b.norm}_${normLine}_${normTr}`;
+
+            if (cloudProgressMap[matchKey]) {
+              const cp = cloudProgressMap[matchKey];
               p.Tanggal = cp.tanggal;
               p.Kru = cp.kru;
               p.topo = cp.topo;
@@ -545,7 +577,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       });
     }
 
-    // FUNGSI FIX: RENDER REKAP TOTAL DENGAN TANGGAL
     function renderCrewSummaryTable(selectedBlock) {
       const tbody = document.getElementById("crewSummaryTableBody");
       const dbData = window.cachedProgressData || [];
@@ -556,8 +587,11 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       }
 
       let crewMap = {};
+      const normSelectedBlock = normalizeBlockName(selectedBlock);
+
       dbData.forEach(row => {
-        if (selectedBlock !== "ALL" && row.block !== selectedBlock) return;
+        const normRowBlock = normalizeBlockName(row.block);
+        if (selectedBlock !== "ALL" && normRowBlock !== normSelectedBlock) return;
 
         let kru = row.kru ? String(row.kru).trim() : "Kru Undefined";
         let line = row.line ? String(row.line).trim() : "-";
@@ -582,7 +616,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       keys.sort((a, b) => crewMap[a].kru.localeCompare(crewMap[b].kru) || crewMap[a].line.localeCompare(crewMap[b].line));
 
       let rowsHtml = "";
-      const spIntervalKm = 0.050; // 50 meter
+      const spIntervalKm = 0.050;
 
       keys.forEach(k => {
         let item = crewMap[k];
@@ -610,7 +644,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       tbody.innerHTML = rowsHtml;
     }
 
-    // Export Excel (.csv) Laporan Produksi
     document.getElementById("btn-export-excel").addEventListener("click", async () => {
       const btnExport = document.getElementById("btn-export-excel");
       btnExport.innerText = "⏳ Mengunduh Data...";
@@ -807,7 +840,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     document.getElementById("btnExecuteUploadFile").addEventListener("click", async () => {
       const fileInput = document.getElementById("fileReportInput");
       const targetBlock = document.getElementById("uploadTargetBlock").value;
-      
+  
       if (fileInput.files.length === 0) { 
         alert("Pilih file terlebih dahulu!"); 
         return; 
@@ -820,23 +853,33 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
       const reader = new FileReader();
       reader.readAsText(fileInput.files[0]);
-      
+  
       reader.onload = async function(e) {
         try {
           const lines = e.target.result.split(/\r\n|\n/);
           let cloudBatch = [];
 
-          lines.forEach(lineStr => {
+          lines.forEach((lineStr, index) => {
             const cleanLine = lineStr.trim();
-            if (!cleanLine || cleanLine.startsWith("#")) return;
-            
+        
+            // Skip baris kosong, baris komentar, atau BARIS HEADER (baris pertama)
+            if (!cleanLine || cleanLine.startsWith("#") || cleanLine.toLowerCase().startsWith("tanggal")) return;
+        
             const parts = cleanLine.split(/,|\t|;/).map(item => item.trim());
             if (parts.length < 6) return;
 
             const [tgl, kru, targetLine, trAwal, trAkhir, statusCode] = [
-              parts[0], parts[1], parts[2], parseFloat(parts[3]), parseFloat(parts[4]), parts[5]
+              parts[0], 
+              parts[1], 
+              parts[2], 
+              parseFloat(parts[3]), 
+              parseFloat(parts[4]), 
+              parts[5]
             ];
-            
+        
+            // Abaikan jika conversion angka gagal
+            if (isNaN(trAwal) || isNaN(trAkhir)) return;
+
             const flags = parseStatusFlags(statusCode);
             const blocksToSearch = targetBlock === "ALL" ? ["East_Block", "Central_Block", "West_Block"] : [targetBlock];
 
@@ -845,9 +888,9 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
               if (blockData && Array.isArray(blockData.features)) {
                 blockData.features.forEach(f => {
                   const p = f.properties || {};
-                  const lineMatch = String(p.Line || "").trim().toLowerCase() === String(targetLine).toLowerCase();
+                  const lineMatch = normalizeLine(p.Line) === normalizeLine(targetLine);
                   const trVal = parseFloat(p.Tr);
-                  
+              
                   if (lineMatch && trVal >= Math.min(trAwal, trAkhir) && trVal <= Math.max(trAwal, trAkhir)) {
                     p.Tanggal = tgl; 
                     p.Kru = kru;
@@ -871,40 +914,40 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
             });
           });
 
-          if (cloudBatch.length === 0) {
-            alert("⚠️ Tidak ada data titik yang cocok antara file CSV dan Line/TR di peta!");
-            btn.innerText = originalText;
-            btn.disabled = false;
-            return;
-          }
+      if (cloudBatch.length === 0) {
+        alert("⚠️ Tidak ada data titik yang cocok antara file CSV dan Line/TR di peta!");
+        btn.innerText = originalText;
+        btn.disabled = false;
+        return;
+      }
 
-          let success = true;
-          for (let i = 0; i < cloudBatch.length; i += 500) {
-            const chunk = cloudBatch.slice(i, i + 500);
-            const resOk = await saveProgressToCloud(chunk);
-            if (!resOk) {
-              success = false;
-              break;
-            }
-          }
-
-          if (success) {
-            alert(`✅ Berhasil sync ${cloudBatch.length} titik ke Supabase!`);
-            uploadPage.style.display = "none";
-            fileInput.value = "";
-            await fetchCloudProgress();
-            applyCloudDataToGeoJSON();
-            renderBlockOnMap(document.getElementById("mainSelectBlock").value);
-          }
-        } catch (err) {
-          console.error("Error parsing file:", err);
-          alert("Terjadi kesalahan saat membaca file.");
-        } finally {
-          btn.innerText = originalText;
-          btn.disabled = false;
+      let success = true;
+      for (let i = 0; i < cloudBatch.length; i += 500) {
+        const chunk = cloudBatch.slice(i, i + 500);
+        const resOk = await saveProgressToCloud(chunk);
+        if (!resOk) {
+          success = false;
+          break;
         }
-      };
-    });
+      }
+
+      if (success) {
+        alert(`✅ Berhasil sync ${cloudBatch.length} titik ke Supabase!`);
+        uploadPage.style.display = "none";
+        fileInput.value = "";
+        await fetchCloudProgress();
+        applyCloudDataToGeoJSON();
+        renderBlockOnMap(document.getElementById("mainSelectBlock").value);
+      }
+    } catch (err) {
+      console.error("Error parsing file:", err);
+      alert("Terjadi kesalahan saat membaca file.");
+    } finally {
+      btn.innerText = originalText;
+      btn.disabled = false;
+    }
+  };
+});
 
     document.getElementById("btnExecuteRangeInput").addEventListener("click", async () => {
       const targetBlock = document.getElementById("adminRangeTargetBlock").value;
@@ -921,7 +964,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         blockData.features.forEach(f => {
           const p = f.properties || {};
           const trVal = parseFloat(p.Tr);
-          if (String(p.Line || "").trim() === targetLine && trVal >= Math.min(trAwal, trAkhir) && trVal <= Math.max(trAwal, trAkhir)) {
+          if (normalizeLine(p.Line) === normalizeLine(targetLine) && trVal >= Math.min(trAwal, trAkhir) && trVal <= Math.max(trAwal, trAkhir)) {
             p.Tanggal = tgl; p.Kru = kru;
             Object.assign(p, flags);
             cloudBatch.push({ block: targetBlock, line: String(p.Line || "").trim(), tr: trVal, tanggal: tgl, kru, ...flags });
@@ -955,7 +998,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       if (blockData && Array.isArray(blockData.features)) {
         blockData.features.forEach(f => {
           const p = f.properties || {};
-          if (String(p.Line || "").trim() === targetLine && String(p.ID || "").trim() === targetId) targetFeature = f;
+          if (normalizeLine(p.Line) === normalizeLine(targetLine) && String(p.ID || "").trim() === targetId) targetFeature = f;
         });
       }
 
@@ -983,7 +1026,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       }
     });
 
-    // Fitur Cari Stasiun ID (Mencakup Semua Blok)
     const searchInput = document.getElementById("searchBox");
     searchInput.addEventListener("keypress", function(e) {
       if (e.key === "Enter") {
@@ -1005,7 +1047,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
           map.setView(foundLayer.getLatLng(), 18);
           foundLayer.openPopup();
         } else {
-          // Cari di seluruh fitur jika tidak ada di filter map saat ini
           let globalMatch = allFeatures.find(f => {
             const p = f.properties || {};
             return String(p.ID || "").trim().toLowerCase() === query || String(p.NEWID || "").trim().toLowerCase() === query;
