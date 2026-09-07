@@ -2,6 +2,11 @@
 <html lang="id">
 <head>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<<<<<<< HEAD
+=======
+<!-- Plugin Chart DataLabels untuk menampilkan persentase di atas grafik -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+>>>>>>> f64ce45 (clean up)
 <!-- Library Supabase JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="UTF-8">
@@ -20,7 +25,11 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
 #map { height: 100vh; width: 100vw; background: #222; position: relative; }
 
+<<<<<<< HEAD
 /* Perbaikan Layout Atas untuk Mobile */
+=======
+/* Layout Atas untuk Mobile */
+>>>>>>> f64ce45 (clean up)
 .top-controls-container {
   position: absolute; top: 10px; left: 55px; right: 60px; z-index: 1000;
   display: flex; gap: 6px; align-items: center; justify-content: space-between;
@@ -59,6 +68,21 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 .btn-dash { background: #6f42c1; }
 .btn-upload { background: #ffc107; color: #333; }
 
+<<<<<<< HEAD
+=======
+/* Menu Popup Export */
+.export-menu-popup {
+  display: none; position: absolute; top: 185px; right: 10px; z-index: 1001;
+  background: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  overflow: hidden; flex-direction: column; width: 150px;
+}
+.export-menu-popup button {
+  padding: 10px; border: none; background: white; text-align: left; font-size: 11px;
+  font-weight: bold; color: #333; cursor: pointer; border-bottom: 1px solid #eee;
+}
+.export-menu-popup button:hover { background: #f0f0f0; }
+
+>>>>>>> f64ce45 (clean up)
 #coord-info {
   position: absolute; bottom: 45px; right: 10px;
   background: rgba(0, 0, 0, 0.85); color: #ffffff; padding: 5px 8px;
@@ -83,9 +107,21 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 @media(min-width: 600px) { .stats-summary-grid { grid-template-columns: repeat(2, 1fr); } }
 .stat-card { background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); border-left: 5px solid #007bff; }
 .stat-card h4 { margin: 0 0 5px 0; font-size: 11px; color: #666; text-transform: uppercase; }
+<<<<<<< HEAD
 .stat-card .value { font-size: 16px; font-weight: bold; color: #333; }
 .chart-container { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative; height: 280px; }
 .form-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; }
+=======
+.chart-container { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative; height: 280px; margin-bottom: 15px; }
+.form-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; }
+
+/* Styling Tabel Ringkasan Kru */
+.crew-summary-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.crew-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; text-align: left; }
+.crew-table th { background: #343a40; color: #fff; padding: 7px 10px; font-weight: 600; }
+.crew-table td { padding: 7px 10px; border-bottom: 1px solid #eee; }
+.crew-table tr:nth-child(even) { background-color: #f9f9f9; }
+>>>>>>> f64ce45 (clean up)
 </style>
 </head>
 <body>
@@ -110,7 +146,17 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     <button class="btn-action btn-dash" id="btn-open-dashboard">📊 Dashboard</button>
     <button class="btn-action btn-upload" id="btn-open-upload">📂 Upload</button>
     <button class="btn-action btn-admin" id="btn-open-admin">🔐 Admin</button>
+<<<<<<< HEAD
     <button class="btn-action btn-export" id="btn-export-geojson">💾 Export</button>
+=======
+    <button class="btn-action btn-export" id="btn-toggle-export">💾 Export ▾</button>
+  </div>
+
+  <!-- Popup Opsi Export -->
+  <div id="exportMenuPopup" class="export-menu-popup">
+    <button id="btn-export-excel">📊 Export Excel (.csv)</button>
+    <button id="btn-export-geojson">🗺️ Export GeoJSON</button>
+>>>>>>> f64ce45 (clean up)
   </div>
 
   <div id="coord-info">Lat: -, Lon: -</div>
@@ -133,10 +179,41 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
           <option value="ALL" selected>Semua Blok</option>
         </select>
       </div>
+<<<<<<< HEAD
       <div class="stats-summary-grid" id="modal-stats-summary"></div>
       <div class="chart-container">
         <canvas id="progressChart"></canvas>
       </div>
+=======
+      
+      <div class="stats-summary-grid" id="modal-stats-summary"></div>
+      
+      <div class="chart-container">
+        <canvas id="progressChart"></canvas>
+      </div>
+
+      <!-- REKAP PRODUKSI KRU & LINE -->
+      <div class="crew-summary-card">
+        <h3 style="margin: 0 0 5px 0; font-size: 13px; color: #333;">📋 Rekap Total Produksi Per Kru & Line</h3>
+        <p style="margin: 0 0 10px 0; font-size: 10px; color: #666;">Interval stasiun standar: 25 Meter (0.025 km / SP)</p>
+        <div style="overflow-x: auto;">
+          <table class="crew-table">
+            <thead>
+              <tr>
+                <th>Nama Kru</th>
+                <th>Line</th>
+                <th style="text-align: center;">Total SP</th>
+                <th style="text-align: right;">Total Panjang (km)</th>
+              </tr>
+            </thead>
+            <tbody id="crewSummaryTableBody">
+              <tr><td colspan="4" style="text-align:center; color:#888;">Memuat data rekap...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+>>>>>>> f64ce45 (clean up)
     </div>
   </div>
 </div>
@@ -151,7 +228,12 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     <div class="form-card" style="border-left: 6px solid #ffc107;">
       <h3 style="margin-top: 0; font-size: 13px; color: #333;">📄 Format File (.txt / .csv)</h3>
       <p style="font-size: 10px; color: #666; line-height: 1.4; margin-bottom: 12px;">
+<<<<<<< HEAD
         Urutan: <code style="background:#eee; padding:2px 4px;">Tanggal, Kru, Line, Dari_SP, Sampai_SP, Status</code>
+=======
+        Urutan: <code style="background:#eee; padding:2px 4px;">Tanggal, Kru, Line, Dari_SP, Sampai_SP, Status</code><br>
+        <small style="color:#888;">Contoh Status: 1=Topo, 2=Rintis, 3=Bridging, 4=Drilling, 5=Recording</small>
+>>>>>>> f64ce45 (clean up)
       </p>
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <select id="uploadTargetBlock" style="padding: 8px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
@@ -170,39 +252,69 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 <!-- ADMIN MODAL -->
 <div id="admin-page" class="modal-page">
   <div class="modal-header" style="background: #dc3545;">
+<<<<<<< HEAD
     <h2>🔐 Panel Administrator</h2>
+=======
+    <h2>🔐 Panel Administrator (Update Harian)</h2>
+>>>>>>> f64ce45 (clean up)
     <button id="btn-close-admin" class="btn-close">✕ Tutup</button>
   </div>
   <div class="modal-body">
     <div class="form-card" style="border-left: 6px solid #007bff;">
+<<<<<<< HEAD
       <h3 style="margin-top: 0; font-size: 13px; color: #333;">📦 1. Input Massal (Range TR)</h3>
       <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+=======
+      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📦 1. Input Massal (Range TR per Update Harian)</h3>
+      <p style="font-size: 10px; color: #666; margin-bottom: 8px;">Format: <code>TANGGAL-KRU-LINE-TRAWAL-TRAKHIR-STATUS</code></p>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+>>>>>>> f64ce45 (clean up)
         <select id="adminRangeTargetBlock" style="padding: 7px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
           <option value="East_Block">East_Block</option>
           <option value="Central_Block" selected>Central_Block</option>
           <option value="West_Block">West_Block</option>
         </select>
+<<<<<<< HEAD
         <input type="text" id="adminRangeInputString" placeholder="01/09/2026-Kru1-001-1001-1500-5" style="padding: 8px; font-size: 11px; border: 1px solid #ccc; border-radius: 4px;">
         <button id="btnExecuteRangeInput" style="background: #007bff; color: white; border: none; padding: 8px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Update Massal</button>
+=======
+        <input type="text" id="adminRangeInputString" placeholder="01/09/2026-Kru1-001-1500-1-5" style="padding: 8px; font-size: 11px; border: 1px solid #ccc; border-radius: 4px;">
+        <button id="btnExecuteRangeInput" style="background: #007bff; color: white; border: none; padding: 8px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Update Massal Harian</button>
+>>>>>>> f64ce45 (clean up)
       </div>
     </div>
 
     <div class="form-card" style="border-left: 6px solid #28a745;">
+<<<<<<< HEAD
       <h3 style="margin-top: 0; font-size: 13px; color: #333;">📍 2. Input Satuan</h3>
       <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+=======
+      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📍 2. Input Satuan Titik</h3>
+      <p style="font-size: 10px; color: #666; margin-bottom: 8px;">Format: <code>TANGGAL-KRU-LINE-ID-STATUS</code> (Opsional Koordinat Baru di belakang)</p>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+>>>>>>> f64ce45 (clean up)
         <select id="adminTargetBlock" style="padding: 7px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
           <option value="East_Block">East_Block</option>
           <option value="Central_Block" selected>Central_Block</option>
           <option value="West_Block">West_Block</option>
         </select>
         <input type="text" id="adminInputString" placeholder="01/09/2026-Kru1-001-0011001.0-5" style="padding: 8px; font-size: 11px; border: 1px solid #ccc; border-radius: 4px;">
+<<<<<<< HEAD
         <button id="btnExecuteAdminInput" style="background: #28a745; color: white; border: none; padding: 8px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Rekam Satuan</button>
+=======
+        <button id="btnExecuteAdminInput" style="background: #28a745; color: white; border: none; padding: 8px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Rekam Satuan Harian</button>
+>>>>>>> f64ce45 (clean up)
       </div>
     </div>
   </div>
 </div>
 
 <script>
+<<<<<<< HEAD
+=======
+  Chart.register(ChartDataLabels);
+
+>>>>>>> f64ce45 (clean up)
   const SUPABASE_URL = "https://kimzyjcuqbyxmcixojke.supabase.co";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbXp5amN1cWJ5eG1jaXhvamtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjg5NzcsImV4cCI6MjEwMzg0NDk3N30.dpyM0bPeUExLWR9d0CsIRU7C5B1ZD4EN1VY4eNd_KYc";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -220,6 +332,10 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     const groupSource = L.layerGroup().addTo(map);
     const groupReceiver = L.layerGroup().addTo(map);
     const groupPointLabels = L.layerGroup().addTo(map);
+<<<<<<< HEAD
+=======
+    const groupExtraLayers = L.layerGroup().addTo(map);
+>>>>>>> f64ce45 (clean up)
 
     let loadedLayers = [];
     let allFeatures = [];
@@ -229,10 +345,20 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     const dashboardPage = document.getElementById("dashboard-page");
     const adminPage = document.getElementById("admin-page");
     const uploadPage = document.getElementById("upload-page");
+<<<<<<< HEAD
 
     document.getElementById("btn-open-dashboard").addEventListener("click", () => {
       dashboardPage.style.display = "flex";
       renderChartsAndStats(document.getElementById("dashboardSelectBlock").value);
+=======
+    const exportMenuPopup = document.getElementById("exportMenuPopup");
+
+    document.getElementById("btn-open-dashboard").addEventListener("click", () => {
+      dashboardPage.style.display = "flex";
+      const currentBlock = document.getElementById("dashboardSelectBlock").value;
+      renderChartsAndStats(currentBlock);
+      renderCrewSummaryTable(currentBlock);
+>>>>>>> f64ce45 (clean up)
     });
     document.getElementById("btn-close-dashboard").addEventListener("click", () => dashboardPage.style.display = "none");
 
@@ -250,6 +376,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     document.getElementById("btn-close-admin").addEventListener("click", () => adminPage.style.display = "none");
 
     document.getElementById("mainSelectBlock").addEventListener("change", (e) => renderBlockOnMap(e.target.value));
+<<<<<<< HEAD
     document.getElementById("dashboardSelectBlock").addEventListener("change", (e) => renderChartsAndStats(e.target.value));
 
     async function fetchCloudProgress() {
@@ -262,6 +389,69 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
             cloudProgressMap[`${row.block}_${row.line}_${row.tr}`] = row;
           });
         }
+=======
+    document.getElementById("dashboardSelectBlock").addEventListener("change", (e) => {
+      renderChartsAndStats(e.target.value);
+      renderCrewSummaryTable(e.target.value);
+    });
+
+    document.getElementById("btn-toggle-export").addEventListener("click", (e) => {
+      e.stopPropagation();
+      exportMenuPopup.style.display = exportMenuPopup.style.display === "flex" ? "none" : "flex";
+    });
+
+    document.addEventListener("click", () => {
+      exportMenuPopup.style.display = "none";
+    });
+
+    // Helper Penentuan Status Bertingkat
+    function parseStatusFlags(statusCode) {
+      const st = parseInt(statusCode, 10) || 0;
+      return {
+        topo: (st >= 1) ? "1" : "0",
+        rintis: (st >= 2) ? "2" : "0",
+        bridging: (st >= 3) ? "3" : "0",
+        drilling: (st === 4 || st === 5) ? "4" : "0", // Stasiun recording otomatis terhitung drilling
+        recording: (st === 5) ? "5" : "0"
+      };
+    }
+
+    // AMBIL DATA BERTAHAP (BYPASS LIMIT 1.000 BARIS SUPABASE)
+    async function fetchCloudProgress() {
+      try {
+        let allData = [];
+        let from = 0;
+        let step = 1000;
+        let keepFetching = true;
+
+        while (keepFetching) {
+          const { data, error } = await supabaseClient
+            .from("progress_seismik")
+            .select("tanggal, kru, block, line, tr, topo, rintis, bridging, drilling, recording, new_x, new_y, new_z, new_id")
+            .range(from, from + step - 1);
+
+          if (error) { 
+            console.error("Gagal ambil cloud:", error); 
+            break; 
+          }
+
+          if (data && data.length > 0) {
+            allData = allData.concat(data);
+            from += step;
+            if (data.length < step) keepFetching = false;
+          } else {
+            keepFetching = false;
+          }
+        }
+
+        cloudProgressMap = {};
+        allData.forEach(row => {
+          cloudProgressMap[`${row.block}_${row.line}_${row.tr}`] = row;
+        });
+
+        window.cachedProgressData = allData;
+        console.log(`✅ Berhasil memuat TOTAL ${allData.length} data progress harian dari Supabase.`);
+>>>>>>> f64ce45 (clean up)
       } catch (err) {
         console.error("Error Koneksi Supabase:", err);
       }
@@ -292,6 +482,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       });
     }
 
+<<<<<<< HEAD
     // Fungsi fetch aman yang mencoba berbagai variasi path file sekaligus
     async function loadGeoJsonFile(filename) {
       // Base URL Supabase Storage sesuai dengan link publik Anda
@@ -310,6 +501,41 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       } catch (err) {
         console.error(`Error memuat ${filename}:`, err);
         throw err;
+=======
+    async function loadGeoJsonFile(filename) {
+      const supabaseStorageBaseUrl = "https://kimzyjcuqbyxmcixojke.supabase.co/storage/v1/object/public/peta_seismic/";
+      const fileUrl = supabaseStorageBaseUrl + filename;
+
+      const res = await fetch(fileUrl);
+      if (res.ok) {
+        const text = await res.text();
+        if (text.trim().startsWith("{") || text.trim().startsWith("[")) {
+          return JSON.parse(text);
+        }
+      }
+      throw new Error(`Gagal memuat ${filename}`);
+    }
+
+    async function loadExtraGeoJsonFiles() {
+      try {
+        const jalanData = await loadGeoJsonFile("jalan.geojson").catch(() => null);
+        if (jalanData) {
+          L.geoJSON(jalanData, { style: { color: '#ff7800', weight: 3, opacity: 0.7 } }).bindPopup("<b>Jalan Akses</b>").addTo(groupExtraLayers);
+        }
+
+        const bmData = await loadGeoJsonFile("titikbm.geojson").catch(() => null);
+        if (bmData) {
+          L.geoJSON(bmData, {
+            pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 5, fillColor: '#9400D3', color: '#fff', weight: 1, fillOpacity: 1 }),
+            onEachFeature: (f, l) => {
+              const p = f.properties || {};
+              l.bindPopup(`<b>Benchmark (BM):</b> ${p.ID || p.Name || 'BM Point'}`);
+            }
+          }).addTo(groupExtraLayers);
+        }
+      } catch (e) {
+        console.log("Catatan: Layer tambahan opsional tidak ditemukan.");
+>>>>>>> f64ce45 (clean up)
       }
     }
 
@@ -329,9 +555,16 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
         applyCloudDataToGeoJSON();
         renderBlockOnMap(document.getElementById("mainSelectBlock").value);
+<<<<<<< HEAD
       } catch (err) {
         console.error("Detail Error GeoJSON:", err);
         alert("⚠️ Gagal memuat file GeoJSON. Pastikan file East_Block.geojson, Central_Block.geojson, dan West_Block.geojson sudah di-upload ke Vercel di direktori yang sama dengan index.html.");
+=======
+        loadExtraGeoJsonFiles();
+      } catch (err) {
+        console.error("Detail Error GeoJSON:", err);
+        alert("⚠️ Gagal memuat file utama GeoJSON dari Storage Supabase.");
+>>>>>>> f64ce45 (clean up)
       }
     }
 
@@ -370,6 +603,26 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         </div>
       `;
 
+<<<<<<< HEAD
+=======
+      const totalS = statS.total || 1;
+      const totalR = statR.total || 1;
+      const pctS = [
+        ((statS.topo / totalS) * 100).toFixed(1),
+        ((statS.rintis / totalS) * 100).toFixed(1),
+        ((statS.bridging / totalS) * 100).toFixed(1),
+        ((statS.drilling / totalS) * 100).toFixed(1),
+        0
+      ];
+      const pctR = [
+        ((statR.topo / totalR) * 100).toFixed(1),
+        ((statR.rintis / totalR) * 100).toFixed(1),
+        ((statR.bridging / totalR) * 100).toFixed(1),
+        0,
+        ((statR.recording / totalR) * 100).toFixed(1)
+      ];
+
+>>>>>>> f64ce45 (clean up)
       const ctx = document.getElementById('progressChart').getContext('2d');
       if (myChart) myChart.destroy();
       myChart = new Chart(ctx, {
@@ -381,6 +634,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
             { label: 'Receiver (R)', data: [statR.topo, statR.rintis, statR.bridging, 0, statR.recording], backgroundColor: '#0055ff' }
           ]
         },
+<<<<<<< HEAD
         options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
       });
     }
@@ -388,6 +642,153 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     L.control.layers(
       { "Peta Jalan": baseOSM, "Satelit": baseSat },
       { "Source (S)": groupSource, "Receiver (R)": groupReceiver, "Label Poin": groupPointLabels },
+=======
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false, 
+          scales: { y: { beginAtZero: true } },
+          plugins: {
+            datalabels: {
+              anchor: 'end',
+              align: 'top',
+              formatter: (value, context) => {
+                const datasetIndex = context.datasetIndex;
+                const dataIndex = context.dataIndex;
+                const pctVal = datasetIndex === 0 ? pctS[dataIndex] : pctR[dataIndex];
+                return Number(pctVal) > 0 ? `${pctVal}%` : '';
+              },
+              font: { weight: 'bold', size: 10 },
+              color: '#333'
+            }
+          } 
+        }
+      });
+    }
+
+    function renderCrewSummaryTable(selectedBlock) {
+      const tbody = document.getElementById("crewSummaryTableBody");
+      const dbData = window.cachedProgressData || [];
+
+      if (dbData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Belum ada data progress tercatat.</td></tr>`;
+        return;
+      }
+
+      let crewMap = {};
+      dbData.forEach(row => {
+        if (selectedBlock !== "ALL" && row.block !== selectedBlock) return;
+
+        let kru = row.kru ? String(row.kru).trim() : "Kru Undefined";
+        let line = row.line ? String(row.line).trim() : "-";
+        let key = `${kru}_${line}`;
+
+        if (!crewMap[key]) {
+          crewMap[key] = { kru: kru, line: line, totalSp: 0 };
+        }
+        crewMap[key].totalSp++;
+      });
+
+      const keys = Object.keys(crewMap);
+      if (keys.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Tidak ada data produksi pada blok ini.</td></tr>`;
+        return;
+      }
+
+      keys.sort((a, b) => crewMap[a].kru.localeCompare(crewMap[b].kru) || crewMap[a].line.localeCompare(crewMap[b].line));
+
+      let rowsHtml = "";
+      const spIntervalKm = 0.025; // 25 meter
+
+      keys.forEach(k => {
+        let item = crewMap[k];
+        let totalKm = (item.totalSp * spIntervalKm).toFixed(3);
+        rowsHtml += `
+          <tr>
+            <td><b>${item.kru}</b></td>
+            <td>Line ${item.line}</td>
+            <td style="text-align: center;">${item.totalSp.toLocaleString('id-ID')} SP</td>
+            <td style="text-align: right;"><b>${totalKm} km</b></td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = rowsHtml;
+    }
+
+    // Export Excel (.csv) Laporan Produksi
+    document.getElementById("btn-export-excel").addEventListener("click", async () => {
+      const btnExport = document.getElementById("btn-export-excel");
+      btnExport.innerText = "⏳ Mengunduh Data...";
+
+      await fetchCloudProgress();
+      const dbData = window.cachedProgressData || [];
+
+      if (dbData.length === 0) {
+        alert("Belum ada data progress harian yang tercatat di database!");
+        btnExport.innerText = "📊 Export Excel (.csv)";
+        return;
+      }
+
+      let grouped = {};
+      dbData.forEach(row => {
+        let tgl = row.tanggal ? String(row.tanggal).trim() : "-";
+        let kru = row.kru ? String(row.kru).trim() : "-";
+        let line = row.line ? String(row.line).trim() : "-";
+        let block = row.block ? String(row.block).trim() : "-";
+
+        let key = `${tgl}_${kru}_${line}_${block}`;
+
+        if (!grouped[key]) {
+          grouped[key] = { tanggal: tgl, kru: kru, line: line, block: block, trs: [] };
+        }
+        if (row.tr !== undefined && row.tr !== null) {
+          grouped[key].trs.push(parseFloat(row.tr));
+        }
+      });
+
+      let csvContent = "No,Tanggal,Kru,Blok,Line,Dari_Stasiun,Sampai_Stasiun,Total_Point,Panjang_KM\n";
+      const stationIntervalKm = 0.025;
+      let no = 1;
+
+      const sortedKeys = Object.keys(grouped).sort((a, b) => grouped[a].tanggal.localeCompare(grouped[b].tanggal));
+
+      sortedKeys.forEach(k => {
+        let item = grouped[k];
+        item.trs.sort((a, b) => a - b);
+
+        let minTr = item.trs.length > 0 ? item.trs[0] : "-";
+        let maxTr = item.trs.length > 0 ? item.trs[item.trs.length - 1] : "-";
+        let totalPoint = item.trs.length;
+        let panjangKm = (totalPoint * stationIntervalKm).toFixed(3);
+
+        csvContent += `${no},"${item.tanggal}","${item.kru}","${item.block}","${item.line}","STP ${minTr}","STP ${maxTr}",${totalPoint},${panjangKm}\n`;
+        no++;
+      });
+
+      const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Laporan_Produksi_Seismik_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      btnExport.innerText = "📊 Export Excel (.csv)";
+    });
+
+    document.getElementById("btn-export-geojson").addEventListener("click", () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ type: "FeatureCollection", features: allFeatures }, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", `Progress_Seismik_${new Date().toISOString().slice(0,10)}.geojson`);
+      document.body.appendChild(a); a.click(); a.remove();
+    });
+
+    L.control.layers(
+      { "Peta Jalan": baseOSM, "Satelit": baseSat },
+      { "Source (S)": groupSource, "Receiver (R)": groupReceiver, "Label Poin": groupPointLabels, "Layer Lain (Jalan/BM)": groupExtraLayers },
+>>>>>>> f64ce45 (clean up)
       { position: "topright" }
     ).addTo(map);
   
@@ -512,6 +913,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     document.getElementById("btnExecuteUploadFile").addEventListener("click", async () => {
       const fileInput = document.getElementById("fileReportInput");
       const targetBlock = document.getElementById("uploadTargetBlock").value;
+<<<<<<< HEAD
       if (fileInput.files.length === 0) { alert("Pilih file terlebih dahulu!"); return; }
 
       const reader = new FileReader();
@@ -553,6 +955,103 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
           alert(`✅ Berhasil sync ${cloudBatch.length} titik!`);
           uploadPage.style.display = "none";
           renderBlockOnMap(document.getElementById("mainSelectBlock").value);
+=======
+      
+      if (fileInput.files.length === 0) { 
+        alert("Pilih file terlebih dahulu!"); 
+        return; 
+      }
+
+      const btn = document.getElementById("btnExecuteUploadFile");
+      const originalText = btn.innerText;
+      btn.innerText = "⏳ Memproses...";
+      btn.disabled = true;
+
+      const reader = new FileReader();
+      reader.readAsText(fileInput.files[0]);
+      
+      reader.onload = async function(e) {
+        try {
+          const lines = e.target.result.split(/\r\n|\n/);
+          let cloudBatch = [];
+
+          lines.forEach(lineStr => {
+            const cleanLine = lineStr.trim();
+            if (!cleanLine || cleanLine.startsWith("#")) return;
+            
+            const parts = cleanLine.split(/,|\t|;/).map(item => item.trim());
+            if (parts.length < 6) return;
+
+            const [tgl, kru, targetLine, trAwal, trAkhir, statusCode] = [
+              parts[0], parts[1], parts[2], parseFloat(parts[3]), parseFloat(parts[4]), parts[5]
+            ];
+            
+            const flags = parseStatusFlags(statusCode);
+            const blocksToSearch = targetBlock === "ALL" ? ["East_Block", "Central_Block", "West_Block"] : [targetBlock];
+
+            blocksToSearch.forEach(b => {
+              const blockData = rawData[b];
+              if (blockData && Array.isArray(blockData.features)) {
+                blockData.features.forEach(f => {
+                  const p = f.properties || {};
+                  const lineMatch = String(p.Line || "").trim().toLowerCase() === String(targetLine).toLowerCase();
+                  const trVal = parseFloat(p.Tr);
+                  
+                  if (lineMatch && trVal >= Math.min(trAwal, trAkhir) && trVal <= Math.max(trAwal, trAkhir)) {
+                    p.Tanggal = tgl; 
+                    p.Kru = kru;
+                    Object.assign(p, flags);
+
+                    cloudBatch.push({ 
+                      block: b, 
+                      line: String(p.Line || "").trim(), 
+                      tr: trVal, 
+                      tanggal: tgl, 
+                      kru, 
+                      topo: flags.topo, 
+                      rintis: flags.rintis, 
+                      bridging: flags.bridging, 
+                      drilling: flags.drilling, 
+                      recording: flags.recording 
+                    });
+                  }
+                });
+              }
+            });
+          });
+
+          if (cloudBatch.length === 0) {
+            alert("⚠️ Tidak ada data titik yang cocok antara file CSV dan Line/TR di peta!");
+            btn.innerText = originalText;
+            btn.disabled = false;
+            return;
+          }
+
+          let success = true;
+          for (let i = 0; i < cloudBatch.length; i += 500) {
+            const chunk = cloudBatch.slice(i, i + 500);
+            const resOk = await saveProgressToCloud(chunk);
+            if (!resOk) {
+              success = false;
+              break;
+            }
+          }
+
+          if (success) {
+            alert(`✅ Berhasil sync ${cloudBatch.length} titik ke Supabase!`);
+            uploadPage.style.display = "none";
+            fileInput.value = "";
+            await fetchCloudProgress();
+            applyCloudDataToGeoJSON();
+            renderBlockOnMap(document.getElementById("mainSelectBlock").value);
+          }
+        } catch (err) {
+          console.error("Error parsing file:", err);
+          alert("Terjadi kesalahan saat membaca file.");
+        } finally {
+          btn.innerText = originalText;
+          btn.disabled = false;
+>>>>>>> f64ce45 (clean up)
         }
       };
     });
@@ -561,15 +1060,23 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       const targetBlock = document.getElementById("adminRangeTargetBlock").value;
       const rawInput = document.getElementById("adminRangeInputString").value.trim();
       const parts = rawInput.split("-");
+<<<<<<< HEAD
       if (parts.length < 6) { alert("Format salah!"); return; }
 
       const [tgl, kru, targetLine, trAwal, trAkhir, statusCode] = [parts[0].trim(), parts[1].trim(), parts[2].trim(), parseFloat(parts[3]), parseFloat(parts[4]), parts[5].trim()];
+=======
+      if (parts.length < 6) { alert("Format salah! Gunakan: TANGGAL-KRU-LINE-TRAWAL-TRAKHIR-STATUS"); return; }
+
+      const [tgl, kru, targetLine, trAwal, trAkhir, statusCode] = [parts[0].trim(), parts[1].trim(), parts[2].trim(), parseFloat(parts[3]), parseFloat(parts[4]), parts[5].trim()];
+      const flags = parseStatusFlags(statusCode);
+>>>>>>> f64ce45 (clean up)
       let cloudBatch = [];
       const blockData = rawData[targetBlock];
 
       if (blockData && Array.isArray(blockData.features)) {
         blockData.features.forEach(f => {
           const p = f.properties || {};
+<<<<<<< HEAD
           if (String(p.Line || "").trim() === targetLine && parseFloat(p.Tr) >= trAwal && parseFloat(p.Tr) <= trAkhir) {
             p.Tanggal = tgl; p.Kru = kru;
             p.topo = (statusCode >= "1") ? "1" : "0";
@@ -578,15 +1085,33 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
             p.drilling = (statusCode === "4") ? "4" : "0";
             p.recording = (statusCode === "5") ? "5" : "0";
             cloudBatch.push({ block: targetBlock, line: String(p.Line || "").trim(), tr: parseFloat(p.Tr), tanggal: tgl, kru, topo: p.topo, rintis: p.rintis, bridging: p.bridging, drilling: p.drilling, recording: p.recording });
+=======
+          const trVal = parseFloat(p.Tr);
+          if (String(p.Line || "").trim() === targetLine && trVal >= Math.min(trAwal, trAkhir) && trVal <= Math.max(trAwal, trAkhir)) {
+            p.Tanggal = tgl; p.Kru = kru;
+            Object.assign(p, flags);
+            cloudBatch.push({ block: targetBlock, line: String(p.Line || "").trim(), tr: trVal, tanggal: tgl, kru, ...flags });
+>>>>>>> f64ce45 (clean up)
           }
         });
       }
 
       if (cloudBatch.length > 0 && await saveProgressToCloud(cloudBatch)) {
+<<<<<<< HEAD
         alert(`✅ Update massal sukses!`);
         document.getElementById("adminRangeInputString").value = "";
         adminPage.style.display = "none";
         renderBlockOnMap(document.getElementById("mainSelectBlock").value);
+=======
+        alert(`✅ Update massal harian sukses (${cloudBatch.length} titik diperbarui)!`);
+        document.getElementById("adminRangeInputString").value = "";
+        adminPage.style.display = "none";
+        await fetchCloudProgress();
+        applyCloudDataToGeoJSON();
+        renderBlockOnMap(document.getElementById("mainSelectBlock").value);
+      } else {
+        alert("⚠️ Tidak ada titik yang cocok dengan parameter range tersebut.");
+>>>>>>> f64ce45 (clean up)
       }
     });
 
@@ -597,6 +1122,10 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       if (parts.length < 5) { alert("Format salah!"); return; }
 
       const [tgl, kru, targetLine, targetId, statusCode] = [parts[0].trim(), parts[1].trim(), parts[2].trim(), parts[3].trim(), parts[4].trim()];
+<<<<<<< HEAD
+=======
+      const flags = parseStatusFlags(statusCode);
+>>>>>>> f64ce45 (clean up)
       let targetFeature = null;
       const blockData = rawData[targetBlock];
 
@@ -610,6 +1139,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       if (targetFeature) {
         const p = targetFeature.properties;
         p.Tanggal = tgl; p.Kru = kru;
+<<<<<<< HEAD
         p.topo = (statusCode >= "1") ? "1" : "0";
         p.rintis = (statusCode >= "2") ? "2" : "0";
         p.bridging = (statusCode >= "3") ? "3" : "0";
@@ -617,15 +1147,28 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         p.recording = (statusCode === "5") ? "5" : "0";
 
         let rowData = { block: targetBlock, line: String(p.Line || "").trim(), tr: parseFloat(p.Tr), tanggal: tgl, kru, topo: p.topo, rintis: p.rintis, bridging: p.bridging, drilling: p.drilling, recording: p.recording };
+=======
+        Object.assign(p, flags);
+
+        let rowData = { block: targetBlock, line: String(p.Line || "").trim(), tr: parseFloat(p.Tr), tanggal: tgl, kru, ...flags };
+>>>>>>> f64ce45 (clean up)
         if (parts.length >= 9) {
           p.NewX = parseFloat(parts[5]); p.NewY = parseFloat(parts[6]); p.NewZ = parseFloat(parts[7]); p.NEWID = parts[8].trim();
           Object.assign(rowData, { new_x: p.NewX, new_y: p.NewY, new_z: p.NewZ, new_id: p.NEWID });
         }
 
         if (await saveProgressToCloud([rowData])) {
+<<<<<<< HEAD
           alert(`✅ Rekam data sukses!`);
           document.getElementById("adminInputString").value = "";
           adminPage.style.display = "none";
+=======
+          alert(`✅ Rekam satuan harian sukses!`);
+          document.getElementById("adminInputString").value = "";
+          adminPage.style.display = "none";
+          await fetchCloudProgress();
+          applyCloudDataToGeoJSON();
+>>>>>>> f64ce45 (clean up)
           renderBlockOnMap(document.getElementById("mainSelectBlock").value);
         }
       } else {
@@ -633,6 +1176,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       }
     });
 
+<<<<<<< HEAD
     document.getElementById("btn-export-geojson").addEventListener("click", () => {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ type: "FeatureCollection", features: allFeatures }, null, 2));
       const a = document.createElement('a');
@@ -641,16 +1185,26 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       document.body.appendChild(a); a.click(); a.remove();
     });
 
+=======
+    // Fitur Cari Stasiun ID (Mencakup Semua Blok)
+>>>>>>> f64ce45 (clean up)
     const searchInput = document.getElementById("searchBox");
     searchInput.addEventListener("keypress", function(e) {
       if (e.key === "Enter") {
         const query = searchInput.value.trim().toLowerCase();
         if (!query) return;
+<<<<<<< HEAD
         let found = false;
+=======
+        
+        let foundLayer = null;
+
+>>>>>>> f64ce45 (clean up)
         loadedLayers.forEach(gl => {
           gl.eachLayer(layer => {
             const p = layer.feature.properties || {};
             if (String(p.ID || "").trim().toLowerCase() === query || String(p.NEWID || "").trim().toLowerCase() === query) {
+<<<<<<< HEAD
               map.setView(layer.getLatLng(), 18);
               layer.openPopup();
               found = true;
@@ -658,6 +1212,41 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
           });
         });
         if (!found) alert("ID Poin tidak ditemukan!");
+=======
+              foundLayer = layer;
+            }
+          });
+        });
+
+        if (foundLayer) {
+          map.setView(foundLayer.getLatLng(), 18);
+          foundLayer.openPopup();
+        } else {
+          // Cari di seluruh fitur jika tidak ada di filter map saat ini
+          let globalMatch = allFeatures.find(f => {
+            const p = f.properties || {};
+            return String(p.ID || "").trim().toLowerCase() === query || String(p.NEWID || "").trim().toLowerCase() === query;
+          });
+
+          if (globalMatch) {
+            document.getElementById("mainSelectBlock").value = "ALL";
+            renderBlockOnMap("ALL");
+            setTimeout(() => {
+              loadedLayers.forEach(gl => {
+                gl.eachLayer(layer => {
+                  const p = layer.feature.properties || {};
+                  if (String(p.ID || "").trim().toLowerCase() === query || String(p.NEWID || "").trim().toLowerCase() === query) {
+                    map.setView(layer.getLatLng(), 18);
+                    layer.openPopup();
+                  }
+                });
+              });
+            }, 300);
+          } else {
+            alert("ID Stasiun tidak ditemukan!");
+          }
+        }
+>>>>>>> f64ce45 (clean up)
         searchInput.blur();
       }
     });
