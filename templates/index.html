@@ -169,7 +169,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       <!-- REKAP PRODUKSI KRU & LINE -->
       <div class="crew-summary-card">
         <h3 style="margin: 0 0 5px 0; font-size: 13px; color: #333;">📋 Rekap Total Produksi Per Kru & Line</h3>
-        <p style="margin: 0 0 10px 0; font-size: 10px; color: #666;">Interval stasiun standar: 25 Meter (0.025 km / SP)</p>
+        <p style="margin: 0 0 10px 0; font-size: 10px; color: #666;">Interval stasiun standar: 50 Meter (0.050 km / SP)</p>
         <div style="overflow-x: auto;">
           <table class="crew-table">
             <thead>
@@ -576,7 +576,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       keys.sort((a, b) => crewMap[a].kru.localeCompare(crewMap[b].kru) || crewMap[a].line.localeCompare(crewMap[b].line));
 
       let rowsHtml = "";
-      const spIntervalKm = 0.025; // 25 meter
+      const spIntervalKm = 0.050; // 50 meter
 
       keys.forEach(k => {
         let item = crewMap[k];
@@ -626,7 +626,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       });
 
       let csvContent = "No,Tanggal,Kru,Blok,Line,Dari_Stasiun,Sampai_Stasiun,Total_Point,Panjang_KM\n";
-      const stationIntervalKm = 0.025;
+      const stationIntervalKm = 0.050;
       let no = 1;
 
       const sortedKeys = Object.keys(grouped).sort((a, b) => grouped[a].tanggal.localeCompare(grouped[b].tanggal));
