@@ -174,6 +174,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
           <table class="crew-table">
             <thead>
               <tr>
+                <th>Tanggal</th>
                 <th>Nama Kru</th>
                 <th>Line</th>
                 <th style="text-align: center;">Total SP</th>
@@ -181,7 +182,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
               </tr>
             </thead>
             <tbody id="crewSummaryTableBody">
-              <tr><td colspan="4" style="text-align:center; color:#888;">Memuat data rekap...</td></tr>
+              <tr><td colspan="5" style="text-align:center; color:#888;">Memuat data rekap...</td></tr>
             </tbody>
           </table>
         </div>
@@ -544,12 +545,13 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       });
     }
 
+    // FUNGSI FIX: RENDER REKAP TOTAL DENGAN TANGGAL
     function renderCrewSummaryTable(selectedBlock) {
       const tbody = document.getElementById("crewSummaryTableBody");
       const dbData = window.cachedProgressData || [];
 
       if (dbData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Belum ada data progress tercatat.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#888;">Belum ada data progress tercatat.</td></tr>`;
         return;
       }
 
@@ -559,17 +561,21 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
         let kru = row.kru ? String(row.kru).trim() : "Kru Undefined";
         let line = row.line ? String(row.line).trim() : "-";
+        let tgl = row.tanggal ? String(row.tanggal).trim() : "-";
         let key = `${kru}_${line}`;
 
         if (!crewMap[key]) {
-          crewMap[key] = { kru: kru, line: line, totalSp: 0 };
+          crewMap[key] = { kru: kru, line: line, totalSp: 0, dates: new Set() };
         }
         crewMap[key].totalSp++;
+        if (tgl !== "-") {
+          crewMap[key].dates.add(tgl);
+        }
       });
 
       const keys = Object.keys(crewMap);
       if (keys.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Tidak ada data produksi pada blok ini.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#888;">Tidak ada data produksi pada blok ini.</td></tr>`;
         return;
       }
 
@@ -581,8 +587,18 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       keys.forEach(k => {
         let item = crewMap[k];
         let totalKm = (item.totalSp * spIntervalKm).toFixed(3);
+        
+        let arrDates = Array.from(item.dates).sort();
+        let displayTanggal = "-";
+        if (arrDates.length === 1) {
+          displayTanggal = arrDates[0];
+        } else if (arrDates.length > 1) {
+          displayTanggal = `${arrDates[0]} s/d ${arrDates[arrDates.length - 1]}`;
+        }
+
         rowsHtml += `
           <tr>
+            <td><span style="background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #495057;">${displayTanggal}</span></td>
             <td><b>${item.kru}</b></td>
             <td>Line ${item.line}</td>
             <td style="text-align: center;">${item.totalSp.toLocaleString('id-ID')} SP</td>
