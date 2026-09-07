@@ -200,10 +200,10 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   </div>
   <div class="modal-body">
     <div class="form-card" style="border-left: 6px solid #ffc107;">
-      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📄 Format File (.txt / .csv)</h3>
+      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📄 Format File (.csv / .txt)</h3>
       <p style="font-size: 10px; color: #666; line-height: 1.4; margin-bottom: 12px;">
-        Urutan: <code style="background:#eee; padding:2px 4px;">Tanggal, Kru, Line, Dari_SP, Sampai_SP, Status</code><br>
-        <small style="color:#888;">Contoh Status: 1=Topo, 2=Rintis, 3=Bridging, 4=Drilling, 5=Recording</small>
+        Urutan: <code style="background:#eee; padding:2px 4px;">Tanggal, Kru, Line, Dari_SP, Sampai_SP, Kode_Status</code><br>
+        <small style="color:#888;">Header di baris pertama diperbolehkan dan akan dilewati secara otomatis.</small>
       </p>
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <select id="uploadTargetBlock" style="padding: 8px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
@@ -259,11 +259,20 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 <script>
   Chart.register(ChartDataLabels);
 
+  // SUPABASE CONFIGURATION
   const SUPABASE_URL = "https://kimzyjcuqbyxmcixojke.supabase.co";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbXp5amN1cWJ5eG1jaXhvamtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjg5NzcsImV4cCI6MjEwMzg0NDk3N30.dpyM0bPeUExLWR9d0CsIRU7C5B1ZD4EN1VY4eNd_KYc";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // FUNGSI NORMALISASI KUNCI MATCHING
+  // ==========================================
+  // VARIABEL GLOBAL & HELPER (GLOBAL SCOPE)
+  // ==========================================
+  let rawData = { East_Block: null, Central_Block: null, West_Block: null };
+  let cloudProgressMap = {};
+  let loadedLayers = [];
+  let allFeatures = [];
+  let myChart = null;
+
   function normalizeBlockName(name) {
     if (!name) return "";
     let clean = String(name).trim().toLowerCase();
@@ -278,6 +287,129 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     return String(line).trim().replace(/^0+/, "") || "0";
   }
 
+  // AUTO-DETECT PROPERTI KOLOM GEOJSON (LINE)
+  function getFeatureLine(properties) {
+    if (!properties) return "";
+    const p = properties;
+    const val = p.Line ?? p.line ?? p.LINE ?? p.Line_Name ?? p.LINE_NAME ?? "";
+    return normalizeLine(val);
+  }
+
+  // AUTO-DETECT PROPERTI KOLOM GEOJSON (TR/STATION)
+  function getFeatureTr(properties) {
+    if (!properties) return NaN;
+    const p = properties;
+    const val = p.Tr ?? p.tr ?? p.TR ?? p.STATION ?? p.Station ?? p.Point ?? p.TR_ ?? NaN;
+    return parseFloat(val);
+  }
+
+  // AMBIL DATA DARI SUPABASE
+  async function fetchCloudProgress() {
+    try {
+      let allData = [];
+      let from = 0;
+      let step = 1000;
+      let keepFetching = true;
+
+      while (keepFetching) {
+        const { data, error } = await supabaseClient
+          .from("progress_seismik")
+          .select("tanggal, kru, block, line, tr, topo, rintis, bridging, drilling, recording, new_x, new_y, new_z, new_id")
+          .range(from, from + step - 1);
+
+        if (error) { 
+          console.error("Gagal ambil cloud:", error); 
+          break; 
+        }
+
+        if (data && data.length > 0) {
+          allData = allData.concat(data);
+          from += step;
+          if (data.length < step) keepFetching = false;
+        } else {
+          keepFetching = false;
+        }
+      }
+
+      cloudProgressMap = {};
+      allData.forEach(row => {
+        const normBlock = normalizeBlockName(row.block);
+        const normLine = normalizeLine(row.line);
+        const normTr = parseFloat(row.tr);
+        
+        const key = `${normBlock}_${normLine}_${normTr}`;
+        cloudProgressMap[key] = row;
+      });
+
+      window.cachedProgressData = allData;
+      console.log(`✅ Berhasil memuat TOTAL ${allData.length} data progress harian dari Supabase.`);
+    } catch (err) {
+      console.error("Error Koneksi Supabase:", err);
+    }
+  }
+
+  // TEMPELKAN DATA CLOUD KE GEOJSON
+  function applyCloudDataToGeoJSON() {
+    const blockMapping = [
+      { keyName: "East_Block", norm: "east" },
+      { keyName: "Central_Block", norm: "central" },
+      { keyName: "West_Block", norm: "west" }
+    ];
+
+    blockMapping.forEach(b => {
+      if (rawData[b.keyName] && Array.isArray(rawData[b.keyName].features)) {
+        rawData[b.keyName].features.forEach(f => {
+          const p = f.properties || {};
+          p.BlockName = b.keyName;
+
+          const normLine = getFeatureLine(p);
+          const normTr = getFeatureTr(p);
+          
+          const matchKey = `${b.norm}_${normLine}_${normTr}`;
+
+          if (cloudProgressMap[matchKey]) {
+            const cp = cloudProgressMap[matchKey];
+            p.Tanggal = cp.tanggal;
+            p.Kru = cp.kru;
+            p.topo = cp.topo;
+            p.rintis = cp.rintis;
+            p.bridging = cp.bridging;
+            p.drilling = cp.drilling;
+            p.recording = cp.recording;
+            if (cp.new_x) p.NewX = cp.new_x;
+            if (cp.new_y) p.NewY = cp.new_y;
+            if (cp.new_z) p.NewZ = cp.new_z;
+            if (cp.new_id) p.NEWID = cp.new_id;
+          }
+        });
+      }
+    });
+  }
+
+  // SIMPAN KE SUPABASE CLOUD
+  async function saveProgressToCloud(recordsArray) {
+    const { error } = await supabaseClient.from("progress_seismik").upsert(recordsArray, { onConflict: 'block,line,tr' });
+    if (error) {
+      alert("⚠️ Gagal sync ke Cloud: " + error.message);
+      return false;
+    }
+    return true;
+  }
+
+  function parseStatusFlags(statusCode) {
+    const st = parseInt(statusCode, 10) || 0;
+    return {
+      topo: (st >= 1) ? "1" : "0",
+      rintis: (st >= 2) ? "2" : "0",
+      bridging: (st >= 3) ? "3" : "0",
+      drilling: (st === 4 || st === 5) ? "4" : "0",
+      recording: (st === 5) ? "5" : "0"
+    };
+  }
+
+  // ==========================================
+  // INTI INI TERTANAM DALAM DOM CONTENT LOADED
+  // ==========================================
   document.addEventListener("DOMContentLoaded", function() {
     const map = L.map("map", { 
       preferCanvas: true, zoomControl: false, tap: true, touchZoom: true 
@@ -292,11 +424,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     const groupReceiver = L.layerGroup().addTo(map);
     const groupPointLabels = L.layerGroup().addTo(map);
     const groupExtraLayers = L.layerGroup().addTo(map);
-
-    let loadedLayers = [];
-    let allFeatures = [];
-    let rawData = { East_Block: null, Central_Block: null, West_Block: null };
-    let cloudProgressMap = {};
 
     const dashboardPage = document.getElementById("dashboard-page");
     const adminPage = document.getElementById("admin-page");
@@ -338,100 +465,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     document.addEventListener("click", () => {
       exportMenuPopup.style.display = "none";
     });
-
-    function parseStatusFlags(statusCode) {
-      const st = parseInt(statusCode, 10) || 0;
-      return {
-        topo: (st >= 1) ? "1" : "0",
-        rintis: (st >= 2) ? "2" : "0",
-        bridging: (st >= 3) ? "3" : "0",
-        drilling: (st === 4 || st === 5) ? "4" : "0",
-        recording: (st === 5) ? "5" : "0"
-      };
-    }
-
-    // AMBIL DATA BERTAHAP (PENYESUAIAN NORMALISASI KUNCI)
-    async function fetchCloudProgress() {
-      try {
-        let allData = [];
-        let from = 0;
-        let step = 1000;
-        let keepFetching = true;
-
-        while (keepFetching) {
-          const { data, error } = await supabaseClient
-            .from("progress_seismik")
-            .select("tanggal, kru, block, line, tr, topo, rintis, bridging, drilling, recording, new_x, new_y, new_z, new_id")
-            .range(from, from + step - 1);
-
-          if (error) { 
-            console.error("Gagal ambil cloud:", error); 
-            break; 
-          }
-
-          if (data && data.length > 0) {
-            allData = allData.concat(data);
-            from += step;
-            if (data.length < step) keepFetching = false;
-          } else {
-            keepFetching = false;
-          }
-        }
-
-        cloudProgressMap = {};
-        allData.forEach(row => {
-          const normBlock = normalizeBlockName(row.block);
-          const normLine = normalizeLine(row.line);
-          const normTr = parseFloat(row.tr);
-          
-          const key = `${normBlock}_${normLine}_${normTr}`;
-          cloudProgressMap[key] = row;
-        });
-
-        window.cachedProgressData = allData;
-        console.log(`✅ Berhasil memuat TOTAL ${allData.length} data progress harian dari Supabase.`);
-      } catch (err) {
-        console.error("Error Koneksi Supabase:", err);
-      }
-    }
-
-    // TEMPEL DATA SUPABASE KE GEOJSON (PENYESUAIAN NORMALISASI KUNCI)
-    function applyCloudDataToGeoJSON() {
-      const blockMapping = [
-        { keyName: "East_Block", norm: "east" },
-        { keyName: "Central_Block", norm: "central" },
-        { keyName: "West_Block", norm: "west" }
-      ];
-
-      blockMapping.forEach(b => {
-        if (rawData[b.keyName] && Array.isArray(rawData[b.keyName].features)) {
-          rawData[b.keyName].features.forEach(f => {
-            const p = f.properties || {};
-            
-            p.BlockName = b.keyName;
-
-            const normLine = normalizeLine(p.Line);
-            const normTr = parseFloat(p.Tr);
-            const matchKey = `${b.norm}_${normLine}_${normTr}`;
-
-            if (cloudProgressMap[matchKey]) {
-              const cp = cloudProgressMap[matchKey];
-              p.Tanggal = cp.tanggal;
-              p.Kru = cp.kru;
-              p.topo = cp.topo;
-              p.rintis = cp.rintis;
-              p.bridging = cp.bridging;
-              p.drilling = cp.drilling;
-              p.recording = cp.recording;
-              if (cp.new_x) p.NewX = cp.new_x;
-              if (cp.new_y) p.NewY = cp.new_y;
-              if (cp.new_z) p.NewZ = cp.new_z;
-              if (cp.new_id) p.NEWID = cp.new_id;
-            }
-          });
-        }
-      });
-    }
 
     async function loadGeoJsonFile(filename) {
       const supabaseStorageBaseUrl = "https://kimzyjcuqbyxmcixojke.supabase.co/storage/v1/object/public/peta_seismic/";
@@ -494,7 +527,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
     initAppData();
 
-    let myChart = null;
     function renderChartsAndStats(selectedBlock) {
       let featuresS = [], featuresR = [];
       const blocks = selectedBlock === "ALL" ? ["East_Block", "Central_Block", "West_Block"] : [selectedBlock];
@@ -816,11 +848,13 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       const p = feature.properties || {};
       const pointName = getPointName(p) || p.ID || "Poin";
       const infoKru = p.Kru && p.Kru.trim() !== "" ? `${p.Kru} (${p.Tanggal})` : '- Belum ada data -';
+      const geoLine = getFeatureLine(p);
+      const geoTr = getFeatureTr(p);
 
       layer.bindPopup(`
         <div style="font-size:11px; font-family:sans-serif;">
           <b style="color:#007bff; font-size:12px;">ID: ${pointName}</b> (${p.Desc_ || 'R'})<br>
-          <b>Line:</b> ${p.Line || '-'} | <b>Tr:</b> ${p.Tr || '-'}<br>
+          <b>Line:</b> ${geoLine || '-'} | <b>Tr:</b> ${isNaN(geoTr) ? '-' : geoTr}<br>
           <b>Pelaksana:</b> <span style="color: #28a745; font-weight: bold;">${infoKru}</span><br>
           <hr style="margin:3px 0">
           <b>Status:</b> Topo(${p.topo||0}) | Rintis(${p.rintis||0}) | Bridge(${p.bridging||0}) | Drill(${p.drilling||0}) | Rec(${p.recording||0})
@@ -828,19 +862,11 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       `);
     }
 
-    async function saveProgressToCloud(recordsArray) {
-      const { error } = await supabaseClient.from("progress_seismik").upsert(recordsArray, { onConflict: 'block,line,tr' });
-      if (error) {
-        alert("⚠️ Gagal sync ke Cloud: " + error.message);
-        return false;
-      }
-      return true;
-    }
-
+    // UPLOAD FILE PROGRESS CSV / TXT
     document.getElementById("btnExecuteUploadFile").addEventListener("click", async () => {
       const fileInput = document.getElementById("fileReportInput");
       const targetBlock = document.getElementById("uploadTargetBlock").value;
-  
+      
       if (fileInput.files.length === 0) { 
         alert("Pilih file terlebih dahulu!"); 
         return; 
@@ -853,31 +879,27 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
       const reader = new FileReader();
       reader.readAsText(fileInput.files[0]);
-  
+      
       reader.onload = async function(e) {
         try {
           const lines = e.target.result.split(/\r\n|\n/);
           let cloudBatch = [];
 
-          lines.forEach((lineStr, index) => {
+          lines.forEach((lineStr) => {
             const cleanLine = lineStr.trim();
-        
-            // Skip baris kosong, baris komentar, atau BARIS HEADER (baris pertama)
+            
             if (!cleanLine || cleanLine.startsWith("#") || cleanLine.toLowerCase().startsWith("tanggal")) return;
-        
+            
             const parts = cleanLine.split(/,|\t|;/).map(item => item.trim());
             if (parts.length < 6) return;
 
-            const [tgl, kru, targetLine, trAwal, trAkhir, statusCode] = [
-              parts[0], 
-              parts[1], 
-              parts[2], 
-              parseFloat(parts[3]), 
-              parseFloat(parts[4]), 
-              parts[5]
+            const [tgl, kru, targetLine, trAwalStr, trAkhirStr, statusCode] = [
+              parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]
             ];
-        
-            // Abaikan jika conversion angka gagal
+            
+            const trAwal = parseFloat(trAwalStr);
+            const trAkhir = parseFloat(trAkhirStr);
+
             if (isNaN(trAwal) || isNaN(trAkhir)) return;
 
             const flags = parseStatusFlags(statusCode);
@@ -888,18 +910,21 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
               if (blockData && Array.isArray(blockData.features)) {
                 blockData.features.forEach(f => {
                   const p = f.properties || {};
-                  const lineMatch = normalizeLine(p.Line) === normalizeLine(targetLine);
-                  const trVal = parseFloat(p.Tr);
-              
-                  if (lineMatch && trVal >= Math.min(trAwal, trAkhir) && trVal <= Math.max(trAwal, trAkhir)) {
+                  
+                  const geoLine = getFeatureLine(p);
+                  const geoTr = getFeatureTr(p);
+
+                  const lineMatch = geoLine === normalizeLine(targetLine);
+                  
+                  if (lineMatch && !isNaN(geoTr) && geoTr >= Math.min(trAwal, trAkhir) && geoTr <= Math.max(trAwal, trAkhir)) {
                     p.Tanggal = tgl; 
                     p.Kru = kru;
                     Object.assign(p, flags);
 
                     cloudBatch.push({ 
                       block: b, 
-                      line: String(p.Line || "").trim(), 
-                      tr: trVal, 
+                      line: String(geoLine), 
+                      tr: geoTr, 
                       tanggal: tgl, 
                       kru, 
                       topo: flags.topo, 
@@ -914,40 +939,40 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
             });
           });
 
-      if (cloudBatch.length === 0) {
-        alert("⚠️ Tidak ada data titik yang cocok antara file CSV dan Line/TR di peta!");
-        btn.innerText = originalText;
-        btn.disabled = false;
-        return;
-      }
+          if (cloudBatch.length === 0) {
+            alert("⚠️ Tidak ada data titik yang cocok antara file CSV dan Line/TR di peta!");
+            btn.innerText = originalText;
+            btn.disabled = false;
+            return;
+          }
 
-      let success = true;
-      for (let i = 0; i < cloudBatch.length; i += 500) {
-        const chunk = cloudBatch.slice(i, i + 500);
-        const resOk = await saveProgressToCloud(chunk);
-        if (!resOk) {
-          success = false;
-          break;
+          let success = true;
+          for (let i = 0; i < cloudBatch.length; i += 500) {
+            const chunk = cloudBatch.slice(i, i + 500);
+            const resOk = await saveProgressToCloud(chunk);
+            if (!resOk) {
+              success = false;
+              break;
+            }
+          }
+
+          if (success) {
+            alert(`✅ Berhasil sync ${cloudBatch.length} titik ke Supabase!`);
+            uploadPage.style.display = "none";
+            fileInput.value = "";
+            await fetchCloudProgress();
+            applyCloudDataToGeoJSON();
+            renderBlockOnMap(document.getElementById("mainSelectBlock").value);
+          }
+        } catch (err) {
+          console.error("Error parsing file:", err);
+          alert("Terjadi kesalahan saat membaca file.");
+        } finally {
+          btn.innerText = originalText;
+          btn.disabled = false;
         }
-      }
-
-      if (success) {
-        alert(`✅ Berhasil sync ${cloudBatch.length} titik ke Supabase!`);
-        uploadPage.style.display = "none";
-        fileInput.value = "";
-        await fetchCloudProgress();
-        applyCloudDataToGeoJSON();
-        renderBlockOnMap(document.getElementById("mainSelectBlock").value);
-      }
-    } catch (err) {
-      console.error("Error parsing file:", err);
-      alert("Terjadi kesalahan saat membaca file.");
-    } finally {
-      btn.innerText = originalText;
-      btn.disabled = false;
-    }
-  };
-});
+      };
+    });
 
     document.getElementById("btnExecuteRangeInput").addEventListener("click", async () => {
       const targetBlock = document.getElementById("adminRangeTargetBlock").value;
@@ -963,11 +988,13 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       if (blockData && Array.isArray(blockData.features)) {
         blockData.features.forEach(f => {
           const p = f.properties || {};
-          const trVal = parseFloat(p.Tr);
-          if (normalizeLine(p.Line) === normalizeLine(targetLine) && trVal >= Math.min(trAwal, trAkhir) && trVal <= Math.max(trAwal, trAkhir)) {
+          const geoLine = getFeatureLine(p);
+          const geoTr = getFeatureTr(p);
+
+          if (geoLine === normalizeLine(targetLine) && !isNaN(geoTr) && geoTr >= Math.min(trAwal, trAkhir) && geoTr <= Math.max(trAwal, trAkhir)) {
             p.Tanggal = tgl; p.Kru = kru;
             Object.assign(p, flags);
-            cloudBatch.push({ block: targetBlock, line: String(p.Line || "").trim(), tr: trVal, tanggal: tgl, kru, ...flags });
+            cloudBatch.push({ block: targetBlock, line: String(geoLine), tr: geoTr, tanggal: tgl, kru, ...flags });
           }
         });
       }
@@ -998,7 +1025,8 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       if (blockData && Array.isArray(blockData.features)) {
         blockData.features.forEach(f => {
           const p = f.properties || {};
-          if (normalizeLine(p.Line) === normalizeLine(targetLine) && String(p.ID || "").trim() === targetId) targetFeature = f;
+          const geoLine = getFeatureLine(p);
+          if (geoLine === normalizeLine(targetLine) && String(p.ID || "").trim() === targetId) targetFeature = f;
         });
       }
 
@@ -1007,7 +1035,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         p.Tanggal = tgl; p.Kru = kru;
         Object.assign(p, flags);
 
-        let rowData = { block: targetBlock, line: String(p.Line || "").trim(), tr: parseFloat(p.Tr), tanggal: tgl, kru, ...flags };
+        let rowData = { block: targetBlock, line: String(getFeatureLine(p)), tr: getFeatureTr(p), tanggal: tgl, kru, ...flags };
         if (parts.length >= 9) {
           p.NewX = parseFloat(parts[5]); p.NewY = parseFloat(parts[6]); p.NewZ = parseFloat(parts[7]); p.NEWID = parts[8].trim();
           Object.assign(rowData, { new_x: p.NewX, new_y: p.NewY, new_z: p.NewZ, new_id: p.NEWID });
