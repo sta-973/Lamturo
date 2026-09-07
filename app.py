@@ -11,18 +11,17 @@ from flask import (
 )
 from pyproj import Transformer
 
-app = Flask(__name__, static_folder='static', template_folder='templates')
+app = Flask(__name__, static_folder="static", template_folder="templates")
 
-# Password proyek utama untuk verifikasi akses kru
-PROJECT_PASSWORD = "BGPBISA3X"
+# Password utama proyek
+PROJECT_PASSWORD = os.getenv("ADMIN_PASSWORD", "BGPBISA3X")
 
-# File tunggal penyimpanan hasil Pick Point
+# Jalur penyimpanan file survey lokal
 PICK_FILE = os.path.join("static", "survey_picks.geojson")
 
-# Inisialisasi Transformer koordinat: WGS84 (EPSG:4326) -> UTM Zone 49S (EPSG:32749)
-transformer = Transformer.from_crs(
-    "EPSG:4326", "EPSG:32749", always_xy=True
-)
+# Transformer Koordinat: WGS84 (EPSG:4326) <-> UTM Zone 49S (EPSG:32749)
+transformer_to_utm = Transformer.from_crs("EPSG:4326", "EPSG:32749", always_xy=True)
+transformer_to_wgs = Transformer.from_crs("EPSG:32749", "EPSG:4326", always_xy=True)
 
 
 @app.route("/")
@@ -32,28 +31,51 @@ def index():
 
 @app.route("/api/verify-phone", methods=["POST"])
 def verify_phone():
-  """Route verifikasi password untuk kru WebGIS"""
-  data = request.json or {}
-
-  # Membaca input password dari request
+  """Verifikasi password akses kru / admin"""
+  data = request.get_json() or {}
   input_pass = data.get("password") or data.get("phone") or ""
-  input_pass = input_pass.strip()
+  input_pass = str(input_pass).strip()
 
   if input_pass == PROJECT_PASSWORD:
-    return jsonify({"status": "success", "message": "Akses diterima"})
-  else:
+    return jsonify({"status": "success", "message": "Akses diterima"}), 200
+  return jsonify({
+      "status": "error",
+      "message": "Password salah atau akses ditolak",
+  }), 401
+
+
+@app.route("/api/convert-coords", methods=["POST"])
+def convert_coords():
+  """Endpoint pendukung konversi UTM 49S (Easting, Northing) ke WGS84 (Lat, Lng)"""
+  data = request.get_json() or {}
+  easting = data.get("easting")
+  northing = data.get("northing")
+
+  if easting is None or northing is None:
+    return jsonify(
+        {"status": "error", "message": "Easting dan Northing wajib diisi"}
+    ), 400
+
+  try:
+    lng, lat = transformer_to_wgs.transform(float(easting), float(northing))
     return jsonify({
-        "status": "error",
-        "message": "Password salah atau akses ditolak",
-    }), 403
+        "status": "success",
+        "zone": "UTM 49S",
+        "easting": float(easting),
+        "northing": float(northing),
+        "longitude": round(lng, 7),
+        "latitude": round(lat, 7),
+    }), 200
+  except Exception as e:
+    return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @app.route("/api/pick-point", methods=["POST"])
 def save_pick_point():
-  """Route untuk merekam Pick Point ke 1 file GeoJSON tunggal (UTM 49S)"""
-  data = request.json or {}
+  """Merekam titik Pick Point (Lat/Lng WGS84 -> UTM 49S) ke survey_picks.geojson"""
+  data = request.get_json() or {}
 
-  point_name = data.get("name", "UNNAMED").strip()
+  point_name = str(data.get("name", "UNNAMED")).strip()
   lat = data.get("lat")
   lng = data.get("lng")
   alt = data.get("alt", 0)
@@ -64,51 +86,47 @@ def save_pick_point():
     ), 400
 
   try:
-    # 1. Konversi Koordinat WGS84 ke UTM Zone 49S (Easting, Northing)
-    easting, northing = transformer.transform(lng, lat)
+    # 1. Konversi WGS84 ke UTM Zone 49S
+    easting, northing = transformer_to_utm.transform(float(lng), float(lat))
 
-    easting_formatted = round(easting, 3)
-    northing_formatted = round(northing, 3)
-    lat_formatted = round(lat, 7)
-    lng_formatted = round(lng, 7)
-    alt_formatted = round(alt, 3)
+    easting_fmt = round(easting, 3)
+    northing_fmt = round(northing, 3)
+    lat_fmt = round(float(lat), 7)
+    lng_fmt = round(float(lng), 7)
+    alt_fmt = round(float(alt), 3)
 
-    # 2. Tanggal & Waktu Otomatis
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # 3. Buat Feature GeoJSON
+    # 2. Struktur Feature GeoJSON
     new_feature = {
         "type": "Feature",
         "properties": {
             "Point_Name": point_name,
             "Date_Time": timestamp,
-            "Elevation": alt_formatted,
-            "Latitude": lat_formatted,
-            "Longitude": lng_formatted,
-            "Easting_UTM49S": easting_formatted,
-            "Northing_UTM49S": northing_formatted,
+            "Elevation": alt_fmt,
+            "Latitude": lat_fmt,
+            "Longitude": lng_fmt,
+            "Easting_UTM49S": easting_fmt,
+            "Northing_UTM49S": northing_fmt,
             "Zone": "UTM 49S",
         },
         "geometry": {
             "type": "Point",
-            "coordinates": [lng_formatted, lat_formatted, alt_formatted],
+            "coordinates": [lng_fmt, lat_fmt, alt_fmt],
         },
     }
 
-    # 4. Baca atau inisialisasi file GeoJSON tunggal
+    # 3. Baca dan update file survey_picks.geojson
+    geojson_data = {"type": "FeatureCollection", "features": []}
     if os.path.exists(PICK_FILE):
       try:
         with open(PICK_FILE, "r", encoding="utf-8") as f:
           geojson_data = json.load(f)
       except Exception:
         geojson_data = {"type": "FeatureCollection", "features": []}
-    else:
-      geojson_data = {"type": "FeatureCollection", "features": []}
 
-    # 5. Tambahkan (Append) titik baru ke array features
     geojson_data["features"].append(new_feature)
 
-    # 6. Simpan kembali ke file survey_picks.geojson
     with open(PICK_FILE, "w", encoding="utf-8") as f:
       json.dump(geojson_data, f, indent=2)
 
@@ -116,7 +134,7 @@ def save_pick_point():
         "status": "success",
         "message": f"Point '{point_name}' tersimpan di UTM Zone 49S!",
         "feature": new_feature,
-    })
+    }), 200
 
   except Exception as e:
     return jsonify({
@@ -125,12 +143,26 @@ def save_pick_point():
     }), 500
 
 
+@app.route("/api/get-picks", methods=["GET"])
+def get_picks():
+  """Melihat seluruh data Pick Point yang tersimpan"""
+  if os.path.exists(PICK_FILE):
+    try:
+      with open(PICK_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+      return jsonify(data), 200
+    except Exception as e:
+      return jsonify({"status": "error", "message": str(e)}), 500
+  return jsonify({"type": "FeatureCollection", "features": []}), 200
+
+
 @app.route("/static/<path:filename>")
 def serve_static(filename):
-  """Melayani penyediaan file static/tiles dengan header CORS"""
-  response = make_response(send_from_directory("static", filename))
+  """Penyediaan file statis & raster tile dengan CORS enabled"""
+  response = make_response(send_from_directory(app.static_folder, filename))
   response.headers["Access-Control-Allow-Origin"] = "*"
   response.headers["Access-Control-Allow-Headers"] = "*"
+  response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
   response.headers["Accept-Ranges"] = "bytes"
   return response
 
