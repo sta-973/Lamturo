@@ -8,7 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>WebGIS Seismik 3 Blok - Supabase Cloud</title>
+<title>Seismik 2D Lamturo</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -57,13 +57,12 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 }
 .btn-action:active { transform: scale(0.95); }
 .btn-export { background: #007bff; }
-.btn-admin { background: #dc3545; }
 .btn-dash { background: #6f42c1; }
 .btn-upload { background: #ffc107; color: #333; }
 
 /* Menu Popup Export */
 .export-menu-popup {
-  display: none; position: absolute; top: 185px; right: 10px; z-index: 1001;
+  display: none; position: absolute; top: 140px; right: 10px; z-index: 1001;
   background: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   overflow: hidden; flex-direction: column; width: 150px;
 }
@@ -88,6 +87,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 }
 .modal-header {
   background: #343a40; color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;
+  position: sticky; top: 0; z-index: 100000;
 }
 .modal-header h2 { font-size: 13px; margin: 0; }
 .btn-close { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; }
@@ -97,7 +97,15 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 @media(min-width: 600px) { .stats-summary-grid { grid-template-columns: repeat(2, 1fr); } }
 .stat-card { background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); border-left: 5px solid #007bff; }
 .stat-card h4 { margin: 0 0 5px 0; font-size: 11px; color: #666; text-transform: uppercase; }
-.chart-container { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative; height: 280px; margin-bottom: 15px; }
+
+/* DUA GRAFIK LINGKARAN DENGAN GRID RESPONSUS */
+.charts-wrapper { display: grid; grid-template-columns: repeat(1, 1fr); gap: 15px; margin-bottom: 15px; }
+@media(min-width: 768px) { .charts-wrapper { grid-template-columns: repeat(2, 1fr); } }
+
+.chart-box { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }
+.chart-box h3 { margin: 0 0 10px 0; font-size: 12px; color: #333; }
+.chart-canvas-holder { position: relative; height: 250px; width: 100%; }
+
 .form-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; }
 
 /* Styling Tabel Ringkasan Kru */
@@ -128,8 +136,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   
   <div class="action-buttons-group">
     <button class="btn-action btn-dash" id="btn-open-dashboard">📊 Dashboard</button>
-    <button class="btn-action btn-upload" id="btn-open-upload">📂 Upload</button>
-    <button class="btn-action btn-admin" id="btn-open-admin">🔐 Admin</button>
+    <button class="btn-action btn-upload" id="btn-open-upload">🔒 Update Peta</button>
     <button class="btn-action btn-export" id="btn-toggle-export">💾 Export ▾</button>
   </div>
 
@@ -162,13 +169,25 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       
       <div class="stats-summary-grid" id="modal-stats-summary"></div>
       
-      <div class="chart-container">
-        <canvas id="progressChart"></canvas>
+      <!-- DUA GRAFIK LINGKARAN (SOURCE & RECEIVER) -->
+      <div class="charts-wrapper">
+        <div class="chart-box">
+          <h3>🔴 Proporsi Status Source (S)</h3>
+          <div class="chart-canvas-holder">
+            <canvas id="sourceChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-box">
+          <h3>🔵 Proporsi Status Receiver (R)</h3>
+          <div class="chart-canvas-holder">
+            <canvas id="receiverChart"></canvas>
+          </div>
+        </div>
       </div>
 
       <!-- REKAP PRODUKSI KRU & LINE -->
       <div class="crew-summary-card">
-        <h3 style="margin: 0 0 5px 0; font-size: 13px; color: #333;">📋 Rekap Total Produksi Per Kru & Line</h3>
+        <h3 style="margin: 0 0 5px 0; font-size: 13px; color: #333;">📋 Rekap Total Produksi Per Tanggal, Kru & Line</h3>
         <p style="margin: 0 0 10px 0; font-size: 10px; color: #666;">Interval stasiun standar: 50 Meter (0.050 km / SP)</p>
         <div style="overflow-x: auto;">
           <table class="crew-table">
@@ -192,18 +211,19 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   </div>
 </div>
 
-<!-- UPLOAD PROGRESS MODAL -->
+<!-- UPDATE PETA MODAL -->
 <div id="upload-page" class="modal-page">
   <div class="modal-header" style="background: #e0a800; color: #212529;">
-    <h2>📂 Upload File Progress Harian</h2>
+    <h2>🔒 Panel Update Progress Harian (Admin)</h2>
     <button id="btn-close-upload" class="btn-close" style="background:#343a40;">✕ Tutup</button>
   </div>
   <div class="modal-body">
+    <!-- 1. UPLOAD FILE CSV/TXT -->
     <div class="form-card" style="border-left: 6px solid #ffc107;">
-      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📄 Format File (.csv / .txt)</h3>
+      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📄 1. Upload File Progress (.csv / .txt)</h3>
       <p style="font-size: 10px; color: #666; line-height: 1.4; margin-bottom: 12px;">
         Urutan: <code style="background:#eee; padding:2px 4px;">Tanggal, Kru, Line, Dari_SP, Sampai_SP, Kode_Status</code><br>
-        <small style="color:#888;">Header di baris pertama diperbolehkan dan akan dilewati secara otomatis.</small>
+        <small style="color:#888;">Contoh Status: 1=Topo, 2=Rintis, 3=Bridging, 4=Drilling, 5=Recording</small>
       </p>
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <select id="uploadTargetBlock" style="padding: 8px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
@@ -216,18 +236,10 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         <button id="btnExecuteUploadFile" style="background: #ffc107; color: #212529; border: none; padding: 9px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Proses & Sync Supabase</button>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- ADMIN MODAL -->
-<div id="admin-page" class="modal-page">
-  <div class="modal-header" style="background: #dc3545;">
-    <h2>🔐 Panel Administrator (Update Harian)</h2>
-    <button id="btn-close-admin" class="btn-close">✕ Tutup</button>
-  </div>
-  <div class="modal-body">
+    <!-- 2. INPUT MASSAL RANGE TR -->
     <div class="form-card" style="border-left: 6px solid #007bff;">
-      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📦 1. Input Massal (Range TR per Update Harian)</h3>
+      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📦 2. Input Massal (Range TR)</h3>
       <p style="font-size: 10px; color: #666; margin-bottom: 8px;">Format: <code>TANGGAL-KRU-LINE-TRAWAL-TRAKHIR-STATUS</code></p>
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <select id="adminRangeTargetBlock" style="padding: 7px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
@@ -240,8 +252,9 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       </div>
     </div>
 
+    <!-- 3. INPUT SATUAN TITIK -->
     <div class="form-card" style="border-left: 6px solid #28a745;">
-      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📍 2. Input Satuan Titik</h3>
+      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📍 3. Input Satuan Titik</h3>
       <p style="font-size: 10px; color: #666; margin-bottom: 8px;">Format: <code>TANGGAL-KRU-LINE-ID-STATUS</code> (Opsional Koordinat Baru di belakang)</p>
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <select id="adminTargetBlock" style="padding: 7px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
@@ -259,19 +272,17 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 <script>
   Chart.register(ChartDataLabels);
 
-  // SUPABASE CONFIGURATION
   const SUPABASE_URL = "https://kimzyjcuqbyxmcixojke.supabase.co";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbXp5amN1cWJ5eG1jaXhvamtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjg5NzcsImV4cCI6MjEwMzg0NDk3N30.dpyM0bPeUExLWR9d0CsIRU7C5B1ZD4EN1VY4eNd_KYc";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // ==========================================
-  // VARIABEL GLOBAL & HELPER (GLOBAL SCOPE)
-  // ==========================================
   let rawData = { East_Block: null, Central_Block: null, West_Block: null };
   let cloudProgressMap = {};
   let loadedLayers = [];
   let allFeatures = [];
-  let myChart = null;
+  
+  let chartSourceInstance = null;
+  let chartReceiverInstance = null;
 
   function normalizeBlockName(name) {
     if (!name) return "";
@@ -287,7 +298,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     return String(line).trim().replace(/^0+/, "") || "0";
   }
 
-  // AUTO-DETECT PROPERTI KOLOM GEOJSON (LINE)
   function getFeatureLine(properties) {
     if (!properties) return "";
     const p = properties;
@@ -295,7 +305,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     return normalizeLine(val);
   }
 
-  // AUTO-DETECT PROPERTI KOLOM GEOJSON (TR/STATION)
   function getFeatureTr(properties) {
     if (!properties) return NaN;
     const p = properties;
@@ -303,7 +312,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     return parseFloat(val);
   }
 
-  // AMBIL DATA DARI SUPABASE
   async function fetchCloudProgress() {
     try {
       let allData = [];
@@ -348,7 +356,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     }
   }
 
-  // TEMPELKAN DATA CLOUD KE GEOJSON
   function applyCloudDataToGeoJSON() {
     const blockMapping = [
       { keyName: "East_Block", norm: "east" },
@@ -371,6 +378,15 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
             const cp = cloudProgressMap[matchKey];
             p.Tanggal = cp.tanggal;
             p.Kru = cp.kru;
+            
+            // Tentukan status tertinggi secara eksplisit
+            if (String(cp.recording) === "5" || String(cp.recording) === "1") p.status_code = 5;
+            else if (String(cp.drilling) === "4" || String(cp.drilling) === "1") p.status_code = 4;
+            else if (String(cp.bridging) === "3" || String(cp.bridging) === "1") p.status_code = 3;
+            else if (String(cp.rintis) === "2" || String(cp.rintis) === "1") p.status_code = 2;
+            else if (String(cp.topo) === "1") p.status_code = 1;
+            else p.status_code = 0;
+
             p.topo = cp.topo;
             p.rintis = cp.rintis;
             p.bridging = cp.bridging;
@@ -380,13 +396,14 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
             if (cp.new_y) p.NewY = cp.new_y;
             if (cp.new_z) p.NewZ = cp.new_z;
             if (cp.new_id) p.NEWID = cp.new_id;
+          } else {
+            p.status_code = 0;
           }
         });
       }
     });
   }
 
-  // SIMPAN KE SUPABASE CLOUD
   async function saveProgressToCloud(recordsArray) {
     const { error } = await supabaseClient.from("progress_seismik").upsert(recordsArray, { onConflict: 'block,line,tr' });
     if (error) {
@@ -407,9 +424,23 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     };
   }
 
-  // ==========================================
-  // INTI INI TERTANAM DALAM DOM CONTENT LOADED
-  // ==========================================
+  // KALKULASI EKSKLUSIF (STATUS TERTINGGI DARI DUA KATEGORI S/R)
+  function calculateProgress(geojson) {
+    let s = { total: geojson.features.length, topo: 0, rintis: 0, bridging: 0, drilling: 0, recording: 0, uncompleted: 0 };
+    geojson.features.forEach(f => {
+      const p = f.properties || {};
+      const code = parseInt(p.status_code, 10) || 0;
+      
+      if (code === 5) s.recording++;
+      else if (code === 4) s.drilling++;
+      else if (code === 3) s.bridging++;
+      else if (code === 2) s.rintis++;
+      else if (code === 1) s.topo++;
+      else s.uncompleted++;
+    });
+    return s;
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
     const map = L.map("map", { 
       preferCanvas: true, zoomControl: false, tap: true, touchZoom: true 
@@ -426,7 +457,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     const groupExtraLayers = L.layerGroup().addTo(map);
 
     const dashboardPage = document.getElementById("dashboard-page");
-    const adminPage = document.getElementById("admin-page");
     const uploadPage = document.getElementById("upload-page");
     const exportMenuPopup = document.getElementById("exportMenuPopup");
 
@@ -436,20 +466,21 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       renderChartsAndStats(currentBlock);
       renderCrewSummaryTable(currentBlock);
     });
-    document.getElementById("btn-close-dashboard").addEventListener("click", () => dashboardPage.style.display = "none");
+    document.getElementById("btn-close-dashboard").addEventListener("click", () => {
+      dashboardPage.style.display = "none";
+    });
 
-    document.getElementById("btn-open-upload").addEventListener("click", () => uploadPage.style.display = "flex");
-    document.getElementById("btn-close-upload").addEventListener("click", () => uploadPage.style.display = "none");
-
-    document.getElementById("btn-open-admin").addEventListener("click", () => {
-      const pwd = prompt("Masukkan Password Administrator:");
+    document.getElementById("btn-open-upload").addEventListener("click", () => {
+      const pwd = prompt("🔒 Masukkan Password Administrator untuk Update Peta:");
       if (pwd === "admin123") {
-        adminPage.style.display = "flex";
+        uploadPage.style.display = "flex";
       } else if (pwd !== null) {
-        alert("Password salah!");
+        alert("Akses Ditolak: Password salah!");
       }
     });
-    document.getElementById("btn-close-admin").addEventListener("click", () => adminPage.style.display = "none");
+    document.getElementById("btn-close-upload").addEventListener("click", () => {
+      uploadPage.style.display = "none";
+    });
 
     document.getElementById("mainSelectBlock").addEventListener("change", (e) => renderBlockOnMap(e.target.value));
     document.getElementById("dashboardSelectBlock").addEventListener("change", (e) => {
@@ -546,65 +577,78 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
       document.getElementById("modal-stats-summary").innerHTML = `
         <div class="stat-card" style="border-left-color: #8b0000;">
-          <h4>Total Source (S): ${statS.total} Poin</h4>
+          <h4>Total Source (S): ${statS.total.toLocaleString('id-ID')} Poin</h4>
           <div style="font-size:10px; color:#555; margin-top:3px;">
-            Topo: ${statS.topo} | Rintis: ${statS.rintis} | Bridge: ${statS.bridging} | <b>Drill: ${statS.drilling}</b>
+            Topo: ${statS.topo.toLocaleString('id-ID')} | Rintis: ${statS.rintis.toLocaleString('id-ID')} | Bridge: ${statS.bridging.toLocaleString('id-ID')} | <b>Drill: ${statS.drilling.toLocaleString('id-ID')}</b> | Belum: ${statS.uncompleted.toLocaleString('id-ID')}
           </div>
         </div>
         <div class="stat-card" style="border-left-color: #0055ff;">
-          <h4>Total Receiver (R): ${statR.total} Poin</h4>
+          <h4>Total Receiver (R): ${statR.total.toLocaleString('id-ID')} Poin</h4>
           <div style="font-size:10px; color:#555; margin-top:3px;">
-            Topo: ${statR.topo} | Rintis: ${statR.rintis} | Bridge: ${statR.bridging} | <b>Rec: ${statR.recording}</b>
+            Topo: ${statR.topo.toLocaleString('id-ID')} | Rintis: ${statR.rintis.toLocaleString('id-ID')} | Bridge: ${statR.bridging.toLocaleString('id-ID')} | <b>Rec: ${statR.recording.toLocaleString('id-ID')}</b> | Belum: ${statR.uncompleted.toLocaleString('id-ID')}
           </div>
         </div>
       `;
 
-      const totalS = statS.total || 1;
-      const totalR = statR.total || 1;
-      const pctS = [
-        ((statS.topo / totalS) * 100).toFixed(1),
-        ((statS.rintis / totalS) * 100).toFixed(1),
-        ((statS.bridging / totalS) * 100).toFixed(1),
-        ((statS.drilling / totalS) * 100).toFixed(1),
-        0
-      ];
-      const pctR = [
-        ((statR.topo / totalR) * 100).toFixed(1),
-        ((statR.rintis / totalR) * 100).toFixed(1),
-        ((statR.bridging / totalR) * 100).toFixed(1),
-        0,
-        ((statR.recording / totalR) * 100).toFixed(1)
-      ];
-
-      const ctx = document.getElementById('progressChart').getContext('2d');
-      if (myChart) myChart.destroy();
-      myChart = new Chart(ctx, {
-        type: 'bar',
+      // 1. CHART DOUGHNUT SOURCE (S)
+      const ctxSource = document.getElementById('sourceChart').getContext('2d');
+      if (chartSourceInstance) chartSourceInstance.destroy();
+      
+      chartSourceInstance = new Chart(ctxSource, {
+        type: 'doughnut',
         data: {
-          labels: ['Topo (1)', 'Rintis (2)', 'Bridge (3)', 'Drill (4-S)', 'Rec (5-R)'],
-          datasets: [
-            { label: 'Source (S)', data: [statS.topo, statS.rintis, statS.bridging, statS.drilling, 0], backgroundColor: '#8b0000' },
-            { label: 'Receiver (R)', data: [statR.topo, statR.rintis, statR.bridging, 0, statR.recording], backgroundColor: '#0055ff' }
-          ]
+          labels: ['Topo (1)', 'Rintis (2)', 'Bridge (3)', 'Drilling (4)', 'Belum (0)'],
+          datasets: [{
+            data: [statS.topo, statS.rintis, statS.bridging, statS.drilling, statS.uncompleted],
+            backgroundColor: ['#ffc107', '#28a745', '#343a40', '#8b0000', '#e9ecef']
+          }]
         },
-        options: { 
-          responsive: true, 
-          maintainAspectRatio: false, 
-          scales: { y: { beginAtZero: true } },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
           plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
             datalabels: {
-              anchor: 'end',
-              align: 'top',
-              formatter: (value, context) => {
-                const datasetIndex = context.datasetIndex;
-                const dataIndex = context.dataIndex;
-                const pctVal = datasetIndex === 0 ? pctS[dataIndex] : pctR[dataIndex];
-                return Number(pctVal) > 0 ? `${pctVal}%` : '';
+              formatter: (value, ctx) => {
+                let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                if (sum === 0 || value === 0) return '';
+                return (value * 100 / sum).toFixed(1) + "%";
               },
-              font: { weight: 'bold', size: 10 },
-              color: '#333'
+              color: '#fff',
+              font: { weight: 'bold', size: 10 }
             }
-          } 
+          }
+        }
+      });
+
+      // 2. CHART DOUGHNUT RECEIVER (R)
+      const ctxReceiver = document.getElementById('receiverChart').getContext('2d');
+      if (chartReceiverInstance) chartReceiverInstance.destroy();
+
+      chartReceiverInstance = new Chart(ctxReceiver, {
+        type: 'doughnut',
+        data: {
+          labels: ['Topo (1)', 'Rintis (2)', 'Bridge (3)', 'Recording (5)', 'Belum (0)'],
+          datasets: [{
+            data: [statR.topo, statR.rintis, statR.bridging, statR.recording, statR.uncompleted],
+            backgroundColor: ['#ffc107', '#28a745', '#343a40', '#0055ff', '#e9ecef']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+            datalabels: {
+              formatter: (value, ctx) => {
+                let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                if (sum === 0 || value === 0) return '';
+                return (value * 100 / sum).toFixed(1) + "%";
+              },
+              color: '#fff',
+              font: { weight: 'bold', size: 10 }
+            }
+          }
         }
       });
     }
@@ -754,11 +798,12 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     map.pm.addControls({ position: 'topleft', drawMarker: true, drawPolyline: true, drawPolygon: true, editMode: true, removalMode: true });
 
     function getPointColor(properties, defaultColor) {
-      if (String(properties.recording) === "5") return "#00008b"; 
-      if (String(properties.drilling) === "4")  return "#8b0000"; 
-      if (String(properties.bridging) === "3")  return "#000000"; 
-      if (String(properties.rintis) === "2")    return "#28a745"; 
-      if (String(properties.topo) === "1")      return "#ffc107"; 
+      const code = parseInt(properties.status_code, 10) || 0;
+      if (code === 5) return "#00008b"; 
+      if (code === 4) return "#8b0000"; 
+      if (code === 3) return "#000000"; 
+      if (code === 2) return "#28a745"; 
+      if (code === 1) return "#ffc107"; 
       return defaultColor; 
     }
 
@@ -831,19 +876,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     }
     map.on("zoomend moveend", updatePointLabels);
   
-    function calculateProgress(geojson) {
-      let s = { total: geojson.features.length, topo: 0, rintis: 0, bridging: 0, drilling: 0, recording: 0 };
-      geojson.features.forEach(f => {
-        const p = f.properties || {};
-        if (String(p.topo) === "1") s.topo++;
-        if (String(p.rintis) === "2") s.rintis++;
-        if (String(p.bridging) === "3") s.bridging++;
-        if (String(p.drilling) === "4") s.drilling++;
-        if (String(p.recording) === "5") s.recording++;
-      });
-      return s;
-    }
-  
     function bindPopup(feature, layer) {
       const p = feature.properties || {};
       const pointName = getPointName(p) || p.ID || "Poin";
@@ -862,7 +894,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       `);
     }
 
-    // UPLOAD FILE PROGRESS CSV / TXT
     document.getElementById("btnExecuteUploadFile").addEventListener("click", async () => {
       const fileInput = document.getElementById("fileReportInput");
       const targetBlock = document.getElementById("uploadTargetBlock").value;
@@ -887,7 +918,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
           lines.forEach((lineStr) => {
             const cleanLine = lineStr.trim();
-            
             if (!cleanLine || cleanLine.startsWith("#") || cleanLine.toLowerCase().startsWith("tanggal")) return;
             
             const parts = cleanLine.split(/,|\t|;/).map(item => item.trim());
@@ -1002,7 +1032,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       if (cloudBatch.length > 0 && await saveProgressToCloud(cloudBatch)) {
         alert(`✅ Update massal harian sukses (${cloudBatch.length} titik diperbarui)!`);
         document.getElementById("adminRangeInputString").value = "";
-        adminPage.style.display = "none";
+        uploadPage.style.display = "none";
         await fetchCloudProgress();
         applyCloudDataToGeoJSON();
         renderBlockOnMap(document.getElementById("mainSelectBlock").value);
@@ -1044,7 +1074,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         if (await saveProgressToCloud([rowData])) {
           alert(`✅ Rekam satuan harian sukses!`);
           document.getElementById("adminInputString").value = "";
-          adminPage.style.display = "none";
+          uploadPage.style.display = "none";
           await fetchCloudProgress();
           applyCloudDataToGeoJSON();
           renderBlockOnMap(document.getElementById("mainSelectBlock").value);
