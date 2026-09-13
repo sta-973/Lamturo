@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "keterangan1_leaflet",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "FID": 0, "ID": 1, "x": 639097.731, "Y": 9229633.824, "Kode": "East Block" }, "geometry": { "type": "Point", "coordinates": [ 112.25918082193013, -6.969621995021745 ] } },
+{ "type": "Feature", "properties": { "FID": 1, "ID": 2, "x": 604196.034, "Y": 9203272.778000001, "Kode": "Central Block" }, "geometry": { "type": "Point", "coordinates": [ 111.943752734570069, -7.208785943214594 ] } },
+{ "type": "Feature", "properties": { "FID": 2, "ID": 3, "x": 582105.312, "Y": 9201538.223, "Kode": "West Block" }, "geometry": { "type": "Point", "coordinates": [ 111.743705125969271, -7.224753990662691 ] } }
+]
+}
