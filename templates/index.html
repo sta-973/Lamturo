@@ -73,13 +73,49 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 .export-menu-popup button:hover { background: #f0f0f0; }
 
 #coord-info {
-  position: absolute; bottom: 45px; right: 10px;
+  position: absolute; bottom: 80px; right: 10px;
   background: rgba(0, 0, 0, 0.85); color: #ffffff; padding: 5px 8px;
-  border-radius: 10px; font-size: 9px; font-family: monospace; z-index: 1000;
+  border-radius: 10px; font-size: 12px; font-family: monospace; z-index: 1000;
   box-shadow: 0 3px 6px rgba(0,0,0,0.4); text-align: right; pointer-events: none;
 }
 
-.point-name-label { font-size: 9px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; white-space: nowrap; pointer-events: none; }
+/* Base Style Label Poin */
+.point-name-label { 
+  font-size: 9px; 
+  font-weight: bold; 
+  white-space: nowrap; 
+  pointer-events: none; 
+}
+
+/* Mode Satelit (Background Gelap -> Teks Putih) */
+.point-name-label.text-white {
+  color: #ffffff !important;
+  text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000, 1px -1px 2px #000000, -1px 1px 2px #000000;
+}
+
+/* Mode Peta Jalan / OSM (Background Terang -> Teks Hitam) */
+.point-name-label.text-black {
+  color: #000000 !important;
+  text-shadow: 1px 1px 2px #ffffff, -1px -1px 2px #ffffff, 1px -1px 2px #ffffff, -1px 1px 2px #ffffff;
+}
+
+/* Icon Camp Styling */
+.camp-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dc3545;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  width: 26px;
+  height: 26px;
+}
+.camp-icon-container svg {
+  fill: #ffffff;
+  width: 14px;
+  height: 14px;
+}
 
 .modal-page {
   display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -273,13 +309,14 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   Chart.register(ChartDataLabels);
 
   const SUPABASE_URL = "https://kimzyjcuqbyxmcixojke.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbXp5amN1cWJ5eG1jaXhvamtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjg5NzcsImV4cCI6MjEwMzg0NDk3N30.dpyM0bPeUExLWR9d0CsIRU7C5B1ZD4EN1VY4eNd_KYc";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbXp5amN1cWJ5eG1jaXhvamtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjg5NzcsImV4cCI6MjE0Mzg0NDk3N30.dpyM0bPeUExLWR9d0CsIRU7C5B1ZD4EN1VY4eNd_KYc";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let rawData = { East_Block: null, Central_Block: null, West_Block: null };
   let cloudProgressMap = {};
   let loadedLayers = [];
   let allFeatures = [];
+  let currentMapTheme = "light"; // Track theme basemap (light = OSM, dark = Satelit)
   
   let chartSourceInstance = null;
   let chartReceiverInstance = null;
@@ -454,7 +491,13 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     const groupSource = L.layerGroup().addTo(map);
     const groupReceiver = L.layerGroup().addTo(map);
     const groupPointLabels = L.layerGroup().addTo(map);
-    const groupExtraLayers = L.layerGroup().addTo(map);
+    
+    // Group Layer Tambahan
+    const groupJalan = L.layerGroup().addTo(map);
+    const groupBM = L.layerGroup().addTo(map);
+    const groupLintasan = L.layerGroup().addTo(map);
+    const groupKeterangan = L.layerGroup().addTo(map);
+    const groupCamp = L.layerGroup().addTo(map);
 
     const dashboardPage = document.getElementById("dashboard-page");
     const uploadPage = document.getElementById("upload-page");
@@ -497,40 +540,130 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       exportMenuPopup.style.display = "none";
     });
 
+    // FUNGSI LOAD DUAL-SOURCE (LOKAL STATIC -> SUPABASE STORAGE)
     async function loadGeoJsonFile(filename) {
-      const supabaseStorageBaseUrl = "https://kimzyjcuqbyxmcixojke.supabase.co/storage/v1/object/public/peta_seismic/";
-      const fileUrl = supabaseStorageBaseUrl + filename;
+      const localUrl = `/static/${filename}`;
+      const supabaseUrl = `https://kimzyjcuqbyxmcixojke.supabase.co/storage/v1/object/public/peta_seismic/${filename}`;
 
-      const res = await fetch(fileUrl);
-      if (res.ok) {
-        const text = await res.text();
-        if (text.trim().startsWith("{") || text.trim().startsWith("[")) {
-          return JSON.parse(text);
+      try {
+        let res = await fetch(localUrl);
+        if (!res.ok) {
+          res = await fetch(supabaseUrl);
         }
+        
+        if (res.ok) {
+          const text = await res.text();
+          if (text.trim().startsWith("{") || text.trim().startsWith("[")) {
+            return JSON.parse(text);
+          }
+        }
+        console.warn(`File ${filename} tidak ditemukan di folder static atau Supabase.`);
+        return null;
+      } catch (err) {
+        console.error(`Error loading ${filename}:`, err);
+        return null;
       }
-      throw new Error(`Gagal memuat ${filename}`);
     }
 
     async function loadExtraGeoJsonFiles() {
-      try {
-        const jalanData = await loadGeoJsonFile("jalan.geojson").catch(() => null);
+      // 1. Layer Jalan
+      loadGeoJsonFile("jalan.geojson").then(jalanData => {
         if (jalanData) {
-          L.geoJSON(jalanData, { style: { color: '#ff7800', weight: 3, opacity: 0.7 } }).bindPopup("<b>Jalan Akses</b>").addTo(groupExtraLayers);
+          L.geoJSON(jalanData, { style: { color: '#ff7800', weight: 3, opacity: 0.7 } })
+           .bindPopup("<b>Jalan Akses</b>").addTo(groupJalan);
         }
+      });
 
-        const bmData = await loadGeoJsonFile("titikbm.geojson").catch(() => null);
+      // 2. Layer BM GPS
+      loadGeoJsonFile("East_GPS.geojson").then(bmData => {
         if (bmData) {
           L.geoJSON(bmData, {
-            pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 5, fillColor: '#9400D3', color: '#fff', weight: 1, fillOpacity: 1 }),
+            pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: '#ff00ff', color: '#ffffff', weight: 2, fillOpacity: 0.95 }),
             onEachFeature: (f, l) => {
               const p = f.properties || {};
-              l.bindPopup(`<b>Benchmark (BM):</b> ${p.ID || p.Name || 'BM Point'}`);
+              l.bindPopup(`<b>BM GPS:</b> ${p.ID || p.Name || p.BM_NAME || 'Benchmark Point'}`);
             }
-          }).addTo(groupExtraLayers);
+          }).addTo(groupBM);
         }
-      } catch (e) {
-        console.log("Catatan: Layer tambahan opsional tidak ditemukan.");
-      }
+      });
+
+      // 3. Layer Label / Line Lintasan (Membaca kolom TEXTSTRING)
+      loadGeoJsonFile("Text_Lintasan_leaflet.geojson").then(textLintasanData => {
+        if (textLintasanData) {
+          L.geoJSON(textLintasanData, {
+            style: { color: '#00ffff', weight: 3, opacity: 0.9 },
+            pointToLayer: (f, latlng) => {
+              const p = f.properties || {};
+              const labelText = p.TEXTSTRING || p.Text || p.Line || p.Name || "Lintasan";
+              return L.marker(latlng, {
+                icon: L.divIcon({
+                  className: 'point-name-label text-white',
+                  html: `<span style="color:#000000; font-weight:bold; text-shadow:0px 0px 0px #000;">${labelText}</span>`,
+                  iconSize: null
+                })
+              });
+            },
+            onEachFeature: (f, l) => {
+              const p = f.properties || {};
+              const name = p.TEXTSTRING || p.Text || p.Line || p.Name || "Lintasan";
+              l.bindPopup(`<b>Label Lintasan:</b> ${name}`);
+            }
+          }).addTo(groupLintasan);
+        }
+      });
+
+      // 4. Layer Keterangan (Membaca kolom ID)
+      loadGeoJsonFile("keterangan1_leaflet.geojson").then(keteranganData => {
+        if (keteranganData) {
+          L.geoJSON(keteranganData, {
+            style: { color: '#e67e22', weight: 2, dashArray: '4, 4', fillOpacity: 0.3 },
+            pointToLayer: (f, latlng) => {
+              const p = f.properties || {};
+              const teks = p.Keterangan || p.Kode || p.ID || "";
+              
+              return L.marker(latlng, {
+                icon: L.divIcon({
+                  className: 'point-name-label',
+                  // UBAH TINGGI/UKURAN HURUF DI font-size (contoh: 16px, 18px, 20px)
+                  html: `<span style="font-size: 16px; font-weight: bold; color: #e67e22; text-shadow: 1px 1px 2px #000;">${teks}</span>`,
+                  iconSize: null
+                })
+              });
+            },
+            onEachFeature: (f, l) => {
+              const p = f.properties || {};
+              // Perbaikan variabel: gunakan 'kode' (huruf kecil) agar tidak error
+              const kode = p.Kode !== undefined ? `Keterangan Kode ${p.ID}` : (p.Keterangan || "Keterangan Area");
+              l.bindPopup(`<b>Keterangan:</b> ${kode}`);
+            }
+          }).addTo(groupKeterangan);
+        }
+      });
+
+      // 5. Layer Lokasi Camp (Membaca kolom code)
+      const houseIcon = L.divIcon({
+        className: '',
+        html: `<div class="camp-icon-container">
+                 <svg viewBox="0 0 24 24">
+                   <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                 </svg>
+               </div>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+      });
+
+      loadGeoJsonFile("Camp_leaflet.geojson").then(campData => {
+        if (campData) {
+          L.geoJSON(campData, {
+            pointToLayer: (f, latlng) => L.marker(latlng, { icon: houseIcon }),
+            onEachFeature: (f, l) => {
+              const p = f.properties || {};
+              const desc = p.Desc_ || (p.code !== undefined ? `Camp ${p.code}` : "Camp Seismik");
+              l.bindPopup(`<b>⛺ Lokasi Camp:</b> ${desc}`);
+            }
+          }).addTo(groupCamp);
+        }
+      });
     }
 
     async function initAppData() {
@@ -552,7 +685,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         loadExtraGeoJsonFiles();
       } catch (err) {
         console.error("Detail Error GeoJSON:", err);
-        alert("⚠️ Gagal memuat file utama GeoJSON dari Storage Supabase.");
+        alert("⚠️ Gagal memuat file utama GeoJSON.");
       }
     }
 
@@ -600,7 +733,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
           labels: ['Topo (1)', 'Rintis (2)', 'Bridge (3)', 'Drilling (4)', 'Belum (0)'],
           datasets: [{
             data: [statS.topo, statS.rintis, statS.bridging, statS.drilling, statS.uncompleted],
-            backgroundColor: ['#ffc107', '#28a745', '#343a40', '#8b0000', '#e9ecef']
+            backgroundColor: ['#ffc107', '#28a745', '#343a40', '#8b0000', '#D2B48C']
           }]
         },
         options: {
@@ -631,7 +764,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
           labels: ['Topo (1)', 'Rintis (2)', 'Bridge (3)', 'Recording (5)', 'Belum (0)'],
           datasets: [{
             data: [statR.topo, statR.rintis, statR.bridging, statR.recording, statR.uncompleted],
-            backgroundColor: ['#ffc107', '#28a745', '#343a40', '#0055ff', '#e9ecef']
+            backgroundColor: ['#ffc107', '#28a745', '#343a40', '#00008b', '#A9A9A9']
           }]
         },
         options: {
@@ -791,20 +924,44 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
     L.control.layers(
       { "Peta Jalan": baseOSM, "Satelit": baseSat },
-      { "Source (S)": groupSource, "Receiver (R)": groupReceiver, "Label Poin": groupPointLabels, "Layer Lain (Jalan/BM)": groupExtraLayers },
+      { 
+        "Source (S)": groupSource, 
+        "Receiver (R)": groupReceiver, 
+        "Label Poin": groupPointLabels, 
+        "Akses Jalan": groupJalan,
+        "BM GPS": groupBM,
+        "Label Lintasan": groupLintasan,
+        "Keterangan": groupKeterangan,
+        "Camp Seismik": groupCamp
+      },
       { position: "topright" }
     ).addTo(map);
+
+    // Event listener ganti basemap untuk ubah warna label teks harian
+    map.on("baselayerchange", function(e) {
+      if (e.name && e.name.toLowerCase().includes("satelit")) {
+        currentMapTheme = "dark";
+      } else {
+        currentMapTheme = "light";
+      }
+      updatePointLabels();
+    });
   
     map.pm.addControls({ position: 'topleft', drawMarker: true, drawPolyline: true, drawPolygon: true, editMode: true, removalMode: true });
 
-    function getPointColor(properties, defaultColor) {
+    // Fungsi Pengatur Warna Titik
+    function getPointColor(properties, descType) {
       const code = parseInt(properties.status_code, 10) || 0;
-      if (code === 5) return "#00008b"; 
-      if (code === 4) return "#8b0000"; 
-      if (code === 3) return "#000000"; 
-      if (code === 2) return "#28a745"; 
-      if (code === 1) return "#ffc107"; 
-      return defaultColor; 
+      
+      if (code === 5) return "#00008b"; // Recording (Biru Tua)
+      if (code === 4) return "#8b0000"; // Drilling (Merah Marun)
+      if (code === 3) return "#000000"; // Bridging (Hitam)
+      if (code === 2) return "#28a745"; // Rintis (Hijau)
+      if (code === 1) return "#ffc107"; // Topo (Kuning)
+      
+      // Default / Kosong (Status 0)
+      const isSource = String(descType || properties.Desc_ || "").trim().toUpperCase() === "S";
+      return isSource ? "#D2B48C" : "#A9A9A9"; // Cokelat Muda untuk Source, Abu-abu untuk Receiver
     }
 
     function getPointName(p) {
@@ -836,7 +993,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
       if (featuresS.length > 0) {
         const layerS = L.geoJSON({ type: "FeatureCollection", features: featuresS }, {
-          pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 3, fillColor: getPointColor(f.properties || {}, "#8b0000"), stroke: false, fillOpacity: 0.85 }),
+          pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 3, fillColor: getPointColor(f.properties || {}, "S"), stroke: false, fillOpacity: 0.85 }),
           onEachFeature: (f, l) => { bindPopup(f, l); groupSource.addLayer(l); }
         });
         loadedLayers.push(layerS);
@@ -845,7 +1002,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   
       if (featuresR.length > 0) {
         const layerR = L.geoJSON({ type: "FeatureCollection", features: featuresR }, {
-          pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 3, fillColor: getPointColor(f.properties || {}, "#0055ff"), stroke: false, fillOpacity: 0.85 }),
+          pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 3, fillColor: getPointColor(f.properties || {}, "R"), stroke: false, fillOpacity: 0.85 }),
           onEachFeature: (f, l) => { bindPopup(f, l); groupReceiver.addLayer(l); }
         });
         loadedLayers.push(layerR);
@@ -861,13 +1018,21 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       groupPointLabels.clearLayers();
       if (map.getZoom() >= MIN_ZOOM_FOR_LABELS) {
         const bounds = map.getBounds();
+        const textClass = (currentMapTheme === "dark") ? "text-white" : "text-black";
+
         allFeatures.forEach(f => {
           if (f.geometry && f.geometry.coordinates) {
             const latlng = L.latLng(f.geometry.coordinates[1], f.geometry.coordinates[0]);
             if (bounds.contains(latlng)) {
               const labelText = getPointName(f.properties);
               if (labelText) {
-                L.marker(latlng, { icon: L.divIcon({ className: 'point-name-label', html: labelText, iconSize: null }) }).addTo(groupPointLabels);
+                L.marker(latlng, { 
+                  icon: L.divIcon({ 
+                    className: `point-name-label ${textClass}`, 
+                    html: labelText, 
+                    iconSize: null 
+                  }) 
+                }).addTo(groupPointLabels);
               }
             }
           }
