@@ -158,7 +158,8 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   <div class="top-controls-container">
     <div class="block-selector-box">
       <select id="mainSelectBlock">
-        <option value="East_Block">East</option>
+        <option value="EastA_Block_leaflet">East A</option>
+        <option value="EastB_Block_leaflet">East B</option>
         <option value="Central_Block">Central</option>
         <option value="West_Block">West</option>
         <option value="ALL" selected>Semua Blok</option>
@@ -196,7 +197,8 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       <div style="background:#fff; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; font-size: 12px;">
         <b>Blok Ditinjau:</b>
         <select id="dashboardSelectBlock" style="padding:5px; font-weight:bold; border-radius:4px; border:1px solid #007bff; color:#007bff; font-size: 12px;">
-          <option value="East_Block">East_Block</option>
+          <option value="EastA_Block_leaflet">EastA_Block</option>
+          <option value="EastB_Block_leaflet">EastB_Block</option>
           <option value="Central_Block">Central_Block</option>
           <option value="West_Block">West_Block</option>
           <option value="ALL" selected>Semua Blok</option>
@@ -263,7 +265,8 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       </p>
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <select id="uploadTargetBlock" style="padding: 8px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
-          <option value="East_Block">East_Block</option>
+          <option value="EastA_Block_leaflet">EastA</option>
+          <option value="EastB_Block_leaflet">EastB</option>
           <option value="Central_Block" selected>Central_Block</option>
           <option value="West_Block">West_Block</option>
           <option value="ALL">Semua Blok</option>
@@ -279,7 +282,8 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       <p style="font-size: 10px; color: #666; margin-bottom: 8px;">Format: <code>TANGGAL-KRU-LINE-TRAWAL-TRAKHIR-STATUS</code></p>
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <select id="adminRangeTargetBlock" style="padding: 7px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
-          <option value="East_Block">East_Block</option>
+          <option value="EastA_Block_leaflet">EastA_Block</option>
+          <option value="EastB_Block_leaflet">EastB_Block</option>
           <option value="Central_Block" selected>Central_Block</option>
           <option value="West_Block">West_Block</option>
         </select>
@@ -294,7 +298,8 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       <p style="font-size: 10px; color: #666; margin-bottom: 8px;">Format: <code>TANGGAL-KRU-LINE-ID-STATUS</code> (Opsional Koordinat Baru di belakang)</p>
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <select id="adminTargetBlock" style="padding: 7px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
-          <option value="East_Block">East_Block</option>
+          <option value="EastA_Block_leaflet">EastA_Block</option>
+          <option value="EastB_Block_leaflet">EastB_Block</option>
           <option value="Central_Block" selected>Central_Block</option>
           <option value="West_Block">West_Block</option>
         </select>
@@ -312,7 +317,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbXp5amN1cWJ5eG1jaXhvamtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjg5NzcsImV4cCI6MjE0Mzg0NDk3N30.dpyM0bPeUExLWR9d0CsIRU7C5B1ZD4EN1VY4eNd_KYc";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  let rawData = { East_Block: null, Central_Block: null, West_Block: null };
+  let rawData = { EastA_Block_leaflet: null, EastB_Block_leaflet: null, Central_Block: null, West_Block: null };
   let cloudProgressMap = {};
   let loadedLayers = [];
   let allFeatures = [];
@@ -324,7 +329,8 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
   function normalizeBlockName(name) {
     if (!name) return "";
     let clean = String(name).trim().toLowerCase();
-    if (clean.includes("east")) return "east";
+    if (clean.includes("easta")) return "easta";
+    if (clean.includes("eastb")) return "eastb";
     if (clean.includes("central") || clean.includes("tengah")) return "central";
     if (clean.includes("west") || clean.includes("barat")) return "west";
     return clean;
@@ -395,7 +401,8 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
   function applyCloudDataToGeoJSON() {
     const blockMapping = [
-      { keyName: "East_Block", norm: "east" },
+      { keyName: "EastA_Block_leaflet", norm: "easta" },
+      { keyName: "EastB_Block_leaflet", norm: "eastb"},
       { keyName: "Central_Block", norm: "central" },
       { keyName: "West_Block", norm: "west" }
     ];
@@ -671,7 +678,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         // PERBAIKAN: Memuat EastA dan EastB secara terpisah, lalu menggabungkannya menjadi East_Block
         const [eastAData, eastBData, centData, westData] = await Promise.all([
           loadGeoJsonFile("EastA_Block_leaflet.geojson"),
-          loadGeoJsonFile("EastB_Block_leafket.geojson"),
+          loadGeoJsonFile("EastB_Block_leaflet.geojson"),
           loadGeoJsonFile("Central_Block.geojson"),
           loadGeoJsonFile("West_Block.geojson")
         ]);
@@ -684,7 +691,8 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
           combinedEastFeatures = combinedEastFeatures.concat(eastBData.features);
         }
 
-        rawData.East_Block = { type: "FeatureCollection", features: combinedEastFeatures };
+        rawData.EastA_Block_leaflet = { type: "FeatureCollection", features: combinedEastFeatures };
+        rawData.EastB_Block_leaflet = eastBData;
         rawData.Central_Block = centData;
         rawData.West_Block = westData;
 
@@ -701,7 +709,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
     function renderChartsAndStats(selectedBlock) {
       let featuresS = [], featuresR = [];
-      const blocks = selectedBlock === "ALL" ? ["East_Block", "Central_Block", "West_Block"] : [selectedBlock];
+      const blocks = selectedBlock === "ALL" ? ["EastA_Block_leasflet", "EastB_Block_leaflet", "Central_Block", "West_Block"] : [selectedBlock];
       
       blocks.forEach(b => {
         if (rawData[b] && Array.isArray(rawData[b].features)) {
@@ -984,7 +992,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       allFeatures = [];
   
       let featuresS = [], featuresR = [];
-      const blocks = selectedBlock === "ALL" ? ["East_Block", "Central_Block", "West_Block"] : [selectedBlock];
+      const blocks = selectedBlock === "ALL" ? ["EastA_Block_leaflet", "EastB_Block_leaflet", "Central_Block", "West_Block"] : [selectedBlock];
       
       blocks.forEach(b => {
         if (rawData[b] && Array.isArray(rawData[b].features)) {
@@ -1106,7 +1114,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
             if (isNaN(trAwal) || isNaN(trAkhir)) return;
 
             const flags = parseStatusFlags(statusCode);
-            const blocksToSearch = targetBlock === "ALL" ? ["East_Block", "Central_Block", "West_Block"] : [targetBlock];
+            const blocksToSearch = targetBlock === "ALL" ? ["EastA_Block_leaflet", "EastB_Block_leaflet", "Central_Block", "West_Block"] : [targetBlock];
 
             blocksToSearch.forEach(b => {
               const blockData = rawData[b];
