@@ -226,7 +226,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       <!-- REKAP PRODUKSI KRU & LINE -->
       <div class="crew-summary-card">
         <h3 style="margin: 0 0 5px 0; font-size: 13px; color: #333;">📋 Rekap Total Produksi Per Tanggal, Kru & Line</h3>
-        <p style="margin: 0 0 10px 0; font-size: 10px; color: #666;">Interval stasiun standar: 50 Meter (0.050 km / SP)</p>
+        <p style="margin: 0 0 10px 0; font-size: 10px; color: #666;">Interval stasiun standar: 12.5 Meter (0.0125 km / SP)</p>
         <div style="overflow-x: auto;">
           <table class="crew-table">
             <thead>
@@ -234,12 +234,14 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
                 <th>Tanggal</th>
                 <th>Nama Kru</th>
                 <th>Line</th>
+                <th style="text-align: center;">Dari TR</th>
+                <th style="text-align: center;">Sampai TR</th>
                 <th style="text-align: center;">Total SP</th>
                 <th style="text-align: right;">Total Panjang (km)</th>
               </tr>
             </thead>
             <tbody id="crewSummaryTableBody">
-              <tr><td colspan="5" style="text-align:center; color:#888;">Memuat data rekap...</td></tr>
+              <tr><td colspan="7" style="text-align:center; color:#888;">Memuat data rekap...</td></tr>
             </tbody>
           </table>
         </div>
@@ -826,71 +828,101 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     }
 
     function renderCrewSummaryTable(selectedBlock) {
-      const tbody = document.getElementById("crewSummaryTableBody");
-      const dbData = window.cachedProgressData || [];
+  const tbody = document.getElementById("crewSummaryTableBody");
+  const dbData = window.cachedProgressData || [];
 
-      if (dbData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#888;">Belum ada data progress tercatat.</td></tr>`;
-        return;
-      }
+  if (dbData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#888;">Belum ada data progress tercatat.</td></tr>`;
+    return;
+  }
 
-      let crewMap = {};
-      const normSelectedBlock = normalizeBlockName(selectedBlock);
+  let crewMap = {};
+  const normSelectedBlock = normalizeBlockName(selectedBlock);
 
-      dbData.forEach(row => {
-        const normRowBlock = normalizeBlockName(row.block);
-        if (selectedBlock !== "ALL" && normRowBlock !== normSelectedBlock) return;
+  dbData.forEach(row => {
+    const normRowBlock = normalizeBlockName(row.block);
+    if (selectedBlock !== "ALL" && normRowBlock !== normSelectedBlock) return;
 
-        let kru = row.kru ? String(row.kru).trim() : "Kru Undefined";
-        let line = row.line ? String(row.line).trim() : "-";
-        let tgl = row.tanggal ? String(row.tanggal).trim() : "-";
-        let key = `${kru}_${line}`;
+    let kru = row.kru ? String(row.kru).trim() : "Kru Undefined";
+    let line = row.line ? String(row.line).trim() : "-";
+    let tgl = row.tanggal ? String(row.tanggal).trim() : "-";
+    let trVal = parseFloat(row.tr);
+    let key = `${kru}_${line}`;
 
-        if (!crewMap[key]) {
-          crewMap[key] = { kru: kru, line: line, totalSp: 0, dates: new Set() };
-        }
-        crewMap[key].totalSp++;
-        if (tgl !== "-") {
-          crewMap[key].dates.add(tgl);
-        }
-      });
-
-      const keys = Object.keys(crewMap);
-      if (keys.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#888;">Tidak ada data produksi pada blok ini.</td></tr>`;
-        return;
-      }
-
-      keys.sort((a, b) => crewMap[a].kru.localeCompare(crewMap[b].kru) || crewMap[a].line.localeCompare(crewMap[b].line));
-
-      let rowsHtml = "";
-      const spIntervalKm = 0.050;
-
-      keys.forEach(k => {
-        let item = crewMap[k];
-        let totalKm = (item.totalSp * spIntervalKm).toFixed(3);
-        
-        let arrDates = Array.from(item.dates).sort();
-        let displayTanggal = "-";
-        if (arrDates.length === 1) {
-          displayTanggal = arrDates[0];
-        } else if (arrDates.length > 1) {
-          displayTanggal = `${arrDates[0]} s/d ${arrDates[arrDates.length - 1]}`;
-        }
-
-        rowsHtml += `
-          <tr>
-            <td><span style="background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #495057;">${displayTanggal}</span></td>
-            <td><b>${item.kru}</b></td>
-            <td>Line ${item.line}</td>
-            <td style="text-align: center;">${item.totalSp.toLocaleString('id-ID')} SP</td>
-            <td style="text-align: right;"><b>${totalKm} km</b></td>
-          </tr>
-        `;
-      });
-
-      tbody.innerHTML = rowsHtml;
+    if (!crewMap[key]) {
+      crewMap[key] = { kru: kru, line: line, dates: new Set(), trSet: new Set() };
     }
+    
+    if (tgl !== "-") {
+      crewMap[key].dates.add(tgl);
+    }
+    
+    if (!isNaN(trVal)) {
+      crewMap[key].trSet.add(trVal);
+    }
+  });
+
+  const keys = Object.keys(crewMap);
+  if (keys.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#888;">Tidak ada data produksi pada blok ini.</td></tr>`;
+    return;
+  }
+
+  keys.sort((a, b) => crewMap[a].kru.localeCompare(crewMap[b].kru) || crewMap[a].line.localeCompare(crewMap[b].line));
+
+  let rowsHtml = "";
+  
+  // Parameter lapangan
+  const trIntervalMeter = 12.5; // Jarak antar TR = 12.5m
+  const spIntervalMeter = 50.0; // Jarak antar SP = 50m
+
+  keys.forEach(k => {
+    let item = crewMap[k];
+    
+    let arrDates = Array.from(item.dates).sort();
+    let displayTanggal = "-";
+    if (arrDates.length === 1) {
+      displayTanggal = arrDates[0];
+    } else if (arrDates.length > 1) {
+      displayTanggal = `${arrDates[0]} s/d ${arrDates[arrDates.length - 1]}`;
+    }
+
+    let minTr = "-";
+    let maxTr = "-";
+    let totalSpCount = 0;
+    let totalKm = "0.000";
+
+    if (item.trSet.size > 0) {
+      let trArray = Array.from(item.trSet).sort((a, b) => a - b);
+      minTr = trArray[0];
+      maxTr = trArray[trArray.length - 1];
+      
+      let deltaTr = maxTr - minTr; // Contoh: 2279 - 1950 = 329
+      let totalMeter = deltaTr * trIntervalMeter; // 329 * 12.5 = 4112.5 m
+      
+      // Total Jarak dalam km
+      totalKm = (totalMeter / 1000).toFixed(4); // 4.1125 km
+      
+      // Total SP berdasarkan interval 50 meter (4 TR = 1 SP)
+      // Gunakan Math.round() atau .toFixed(1) sesuai kebutuhan desimal SP Anda
+      totalSpCount = (totalMeter / spIntervalMeter).toFixed(2); // 82.25 SP
+    }
+
+    rowsHtml += `
+      <tr>
+        <td><span style="background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #495057;">${displayTanggal}</span></td>
+        <td><b>${item.kru}</b></td>
+        <td>Line ${item.line}</td>
+        <td style="text-align: center;">${minTr}</td>
+        <td style="text-align: center;">${maxTr}</td>
+        <td style="text-align: center;"><b>${totalSpCount} SP</b></td>
+        <td style="text-align: right;"><b>${totalKm} km</b></td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = rowsHtml;
+}
 
     document.getElementById("btn-export-excel").addEventListener("click", async () => {
       const btnExport = document.getElementById("btn-export-excel");
@@ -923,7 +955,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       });
 
       let csvContent = "No,Tanggal,Kru,Blok,Line,Dari_Stasiun,Sampai_Stasiun,Total_Point,Panjang_KM\n";
-      const stationIntervalKm = 0.050;
+      const stationIntervalKm = 0.0125;
       let no = 1;
 
       const sortedKeys = Object.keys(grouped).sort((a, b) => grouped[a].tanggal.localeCompare(grouped[b].tanggal));
