@@ -700,11 +700,12 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
             style: { color: '#00ffff', weight: 3, opacity: 0.9 },
             pointToLayer: (f, latlng) => {
               const p = f.properties || {};
-              const labelText = p.TEXTSTRING || p.Text || p.Line || p.Name || "Lintasan";
+              const labelText = p.TEXTSTRING || p.Text || p.Line || p.Name || '';
+              const angle = p.TEXT_ANGLE || 0;
               return L.marker(latlng, {
                 icon: L.divIcon({
                   className: 'point-name-label text-white',
-                  html: `<span style="color:#000000; font-weight:bold;">${labelText}</span>`,
+                  html: `<span style="color:#000000; font-weight:bold; display:inline-block; transform: rotate(${angle}deg); transform-origin: center;">${labelText}</span>`,
                   iconSize: null
                 })
               });
