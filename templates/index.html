@@ -82,7 +82,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 
 /* Base Style Label Poin */
 .point-name-label { 
-  font-size: 14px; 
+  font-size: 9px; 
   font-weight: bold; 
   white-space: nowrap; 
   pointer-events: none; 
@@ -91,7 +91,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 /* Mode Satelit (Background Gelap -> Teks Putih) */
 .point-name-label.text-white {
   color: #ffffff !important;
-  /*text-shadow: 1px 1px 2px #ecdfdf, -1px -1px 2px #000000, 1px -1px 2px #000000, -1px 1px 2px #000000;*/
+  text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000, 1px -1px 2px #000000, -1px 1px 2px #000000;
 }
 
 /* Mode Peta Jalan / OSM (Background Terang -> Teks Hitam) */
@@ -313,41 +313,45 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
 <script>
   Chart.register(ChartDataLabels);
 
-  // PLUGIN KUSTOM: MENAMPILKAN TOTAL POIN DILANJUTKAN TOTAL KUMULATIF KM DI TENGAH DONUT CHART
+  // PLUGIN KUSTOM: MENAMPILKAN TOTAL POIN & TOTAL KUMULATIF KM DI TENGAH DONUT CHART (PERFECTLY CENTERED)
   const centerTextPlugin = {
     id: 'centerText',
     beforeDraw(chart) {
-      const { width, height, ctx } = chart;
+      const { chartArea } = chart;
+      if (!chartArea) return;
+
+      const ctx = chart.ctx;
       ctx.save();
       
+      // Ambil titik pusat doughnut chart berdasarkan area rendering chart-nya
+      const centerX = (chartArea.left + chartArea.right) / 2;
+      const centerY = (chartArea.top + chartArea.bottom) / 2;
+
       const dataset = chart.data.datasets[0];
       const totalPoints = dataset.data.reduce((acc, curr) => acc + curr, 0);
-      
-      // Ambil nilai total km kumulatif dari konfigurasi chart
       const totalKmText = chart.config.options.customCumulativeKm || "0.000";
-
       const textPointsNum = totalPoints.toLocaleString('id-ID');
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      // 1. Baris Pertama: Total Poin
+      // 1. Baris Pertama: Total Poin (Gunakan offset simetris dari centerY)
       ctx.font = 'bold 9px sans-serif';
       ctx.fillStyle = '#6c757d';
-      ctx.fillText("TOTAL POIN", width / 2, (height / 2) - 22);
+      ctx.fillText("TOTAL POIN", centerX, centerY - 18);
 
-      ctx.font = 'bold 15px sans-serif';
+      ctx.font = 'bold 14px sans-serif';
       ctx.fillStyle = '#212529';
-      ctx.fillText(textPointsNum, width / 2, (height / 2) - 6);
+      ctx.fillText(textPointsNum, centerX, centerY - 4);
 
-      // 2. Baris Kedua (Di Bawah Total Poin): Total Kumulatif Jarak
+      // 2. Baris Kedua: Total Kumulatif Jarak
       ctx.font = 'bold 9px sans-serif';
       ctx.fillStyle = '#6c757d';
-      ctx.fillText("KUMULATIF JARAK", width / 2, (height / 2) + 12);
+      ctx.fillText("KUMULATIF JARAK", centerX, centerY + 12);
 
-      ctx.font = 'bold 13px sans-serif';
+      ctx.font = 'bold 12px sans-serif';
       ctx.fillStyle = '#28a745';
-      ctx.fillText(`${totalKmText} km`, width / 2, (height / 2) + 26);
+      ctx.fillText(`${totalKmText} km`, centerX, centerY + 24);
       
       ctx.restore();
     }
@@ -521,7 +525,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     return s;
   }
 
-  // FUNGSI HITUNG TOTAL KUMULATIF JARAK (KM) DARI SELURUH KRU & BARIS DATA
   function getOverallCumulativeKm(selectedBlock) {
     const dbData = window.cachedProgressData || [];
     if (dbData.length === 0) return "0.000";
@@ -569,9 +572,21 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     
     L.control.zoom({ position: "topleft" }).addTo(map);
   
-    const baseOSM = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
-    const baseSat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 });
-  
+    // OPTION BASELAYERS PETA
+    const baseOSM = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 });
+    const baseSatEsri = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 });
+    
+    // TILES GOOGLE SATELLITE & GOOGLE HYBRID (TERBANYAK DIGUNAKAN KARENA JERNIH)
+    const baseGoogleSat = L.tileLayer("https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {
+      maxZoom: 20,
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+    }).addTo(map); // Default awal aktif Google Satelit
+
+    const baseGoogleHybrid = L.tileLayer("https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", {
+      maxZoom: 20,
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+    });
+
     const groupSource = L.layerGroup().addTo(map);
     const groupReceiver = L.layerGroup().addTo(map);
     const groupPointLabels = L.layerGroup().addTo(map);
@@ -700,12 +715,11 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
             style: { color: '#00ffff', weight: 3, opacity: 0.9 },
             pointToLayer: (f, latlng) => {
               const p = f.properties || {};
-              const labelText = p.TEXTSTRING || p.Text || p.Line || p.Name || '';
-              const angle = p.TEXT_ANGLE || 0;
+              const labelText = p.TEXTSTRING || p.Text || p.Line || p.Name || "Lintasan";
               return L.marker(latlng, {
                 icon: L.divIcon({
                   className: 'point-name-label text-white',
-                  html: `<span style="color:#000000; font-weight:bold; display:inline-block; transform: rotate(${angle}deg); transform-origin: center;">${labelText}</span>`,
+                  html: `<span style="color:#000000; font-weight:bold;">${labelText}</span>`,
                   iconSize: null
                 })
               });
@@ -815,7 +829,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       let statS = calculateProgress({ features: featuresS });
       let statR = calculateProgress({ features: featuresR });
 
-      // Hitung total kumulatif km dari seluruh produksi kru untuk blok ini
       const totalKmOverall = getOverallCumulativeKm(selectedBlock);
 
       document.getElementById("modal-stats-summary").innerHTML = `
@@ -849,7 +862,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          customCumulativeKm: totalKmOverall, // Passing data ke plugin
+          customCumulativeKm: totalKmOverall,
           plugins: {
             legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
             datalabels: {
@@ -882,7 +895,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          customCumulativeKm: totalKmOverall, // Passing data ke plugin
+          customCumulativeKm: totalKmOverall,
           plugins: {
             legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
             datalabels: {
@@ -900,7 +913,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       });
     }
 
-    // FUNGSI REKAP DENGAN PERHITUNGAN KUMULATIF DARI KESELURUHAN SEMUA KRU
     function renderCrewSummaryTable(selectedBlock) {
       const tbody = document.getElementById("crewSummaryTableBody");
       const dbData = window.cachedProgressData || [];
@@ -942,7 +954,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
         return;
       }
 
-      // Urutkan berdasarkan Tanggal ascending, lalu Kru, lalu Line
       groupedList.sort((a, b) => {
         if (a.tanggal !== b.tanggal) return a.tanggal.localeCompare(b.tanggal);
         if (a.kru !== b.kru) return a.kru.localeCompare(b.kru);
@@ -953,7 +964,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       const trIntervalMeter = 12.5; 
       const spIntervalMeter = 50.0; 
 
-      let totalCumulativeMeter = 0; // Akumulasi keseluruhan lintas semua kru & tanggal
+      let totalCumulativeMeter = 0;
 
       groupedList.forEach(item => {
         let minTr = "-";
@@ -974,7 +985,6 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
           totalSpCount = (dailyMeter / spIntervalMeter).toFixed(2);
         }
 
-        // Akumulasikan seluruh produksi harian secara terus menerus
         totalCumulativeMeter += dailyMeter;
         let cumulativeKm = (totalCumulativeMeter / 1000).toFixed(3);
 
@@ -1064,8 +1074,14 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       document.body.appendChild(a); a.click(); a.remove();
     });
 
+    // Pilihan Layer Peta Google Satelit & Hybrid di Pojok Kanan Atas
     L.control.layers(
-      { "Peta Jalan": baseOSM, "Satelit": baseSat },
+      { 
+        "Google Satellite": baseGoogleSat, 
+        "Google Hybrid (Dengan Label)": baseGoogleHybrid,
+        "Esri Satellite": baseSatEsri, 
+        "OpenStreetMap": baseOSM 
+      },
       { 
         "Source (S)": groupSource, 
         "Receiver (R)": groupReceiver, 
@@ -1080,7 +1096,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
     ).addTo(map);
 
     map.on("baselayerchange", function(e) {
-      if (e.name && e.name.toLowerCase().includes("satelit")) {
+      if (e.name && (e.name.toLowerCase().includes("satel") || e.name.toLowerCase().includes("hybrid"))) {
         currentMapTheme = "dark";
       } else {
         currentMapTheme = "light";
