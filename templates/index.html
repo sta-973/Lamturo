@@ -1,156 +1,257 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Plugin Chart DataLabels untuk menampilkan persentase di atas grafik -->
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-<!-- Library Supabase JS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Seismik 2D Lamturo</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Seismik 2D Lamturo</title>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Library Chart.js & Plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  
+  <!-- Library Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
-<script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<style>
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
+  <!-- Geoman Leaflet Plugin -->
+  <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
+  <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
 
-#map { height: 100vh; width: 100vw; background: #222; position: relative; }
+  <style>
+    /* ==========================================
+   DARK MODE PERMANEN UNTUK DASHBOARD & MODAL
+   ========================================== */
 
-/* Layout Atas untuk Mobile */
-.top-controls-container {
-  position: absolute; top: 10px; left: 55px; right: 60px; z-index: 1000;
-  display: flex; gap: 6px; align-items: center; justify-content: space-between;
+/* Background Halaman Modal & Dashboard */
+.modal-page {
+  background-color: #121212 !important;
+  color: #e0e0e0 !important;
 }
 
-.block-selector-box {
-  background: #ffffff; padding: 4px 6px; border-radius: 8px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.3); font-size: 10px; font-weight: bold;
-  white-space: nowrap; flex-shrink: 0;
+/* Header & Title Modal */
+.modal-header-nav {
+  background-color: #1e1e1e !important;
+  border-bottom: 1px solid #333 !important;
 }
-.block-selector-box select {
-  padding: 3px; font-weight: bold; border-radius: 4px; border: 1px solid #007bff; color: #007bff; font-size: 10px;
-}
-
-.search-box {
-  background: #ffffff; flex-grow: 1; max-width: 180px;
-  padding: 2px; border-radius: 20px; box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-}
-.search-box input {
-  width: 100%; padding: 5px 8px; border: none; border-radius: 20px;
-  text-align: center; font-weight: bold; font-size: 10px; outline: none;
-}
-
-.action-buttons-group {
-  position: absolute; top: 60px; right: 10px; display: flex; flex-direction: column;
-  gap: 6px; z-index: 1000;
-}
-.btn-action {
-  background: #28a745; color: #ffffff; padding: 6px 10px; border-radius: 16px;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.4); font-size: 10px; font-weight: bold; cursor: pointer;
-  border: none; outline: none; transition: 0.2s; white-space: nowrap;
-}
-.btn-action:active { transform: scale(0.95); }
-.btn-export { background: #007bff; }
-.btn-dash { background: #6f42c1; }
-.btn-upload { background: #ffc107; color: #333; }
-.btn-location { background: #17a2b8; color: #fff; }
-
-/* Menu Popup Export */
-.export-menu-popup {
-  display: none; position: absolute; top: 175px; right: 10px; z-index: 1001;
-  background: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  overflow: hidden; flex-direction: column; width: 150px;
-}
-.export-menu-popup button {
-  padding: 10px; border: none; background: white; text-align: left; font-size: 11px;
-  font-weight: bold; color: #333; cursor: pointer; border-bottom: 1px solid #eee;
-}
-.export-menu-popup button:hover { background: #f0f0f0; }
-
-#coord-info {
-  position: absolute; bottom: 80px; right: 10px;
-  background: rgba(0, 0, 0, 0.85); color: #ffffff; padding: 5px 8px;
-  border-radius: 10px; font-size: 12px; font-family: monospace; z-index: 1000;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.4); text-align: right; pointer-events: none;
-}
-
-/* Base Style Label Poin */
-.point-name-label { 
-  font-size: 14px; 
-  font-weight: bold; 
-  white-space: nowrap; 
-  pointer-events: none; 
-}
-
-/* Mode Satelit (Background Gelap -> Teks Putih) */
-.point-name-label.text-white {
+.modal-title-text {
   color: #ffffff !important;
 }
 
-/* Mode Peta Jalan / OSM (Background Terang -> Teks Hitam) */
-.point-name-label.text-black {
-  color: #000000 !important;
-  text-shadow: 1px 1px 2px #ffffff, -1px -1px 2px #ffffff, 1px -1px 2px #ffffff, -1px 1px 2px #ffffff;
+/* Card Statistik (Stat Cards) & Box Grafik */
+.stat-card, 
+.chart-box, 
+.form-card, 
+.crew-summary-card {
+  background-color: #1e1e1e !important;
+  border: 1px solid #333333 !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* Icon Camp Styling */
-.camp-icon-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #dc3545;
-  border: 2px solid #ffffff;
-  border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-  width: 26px;
-  height: 26px;
+/* Judul Card & Angka Statistik */
+.stat-card .stat-value,
+.stat-card h3,
+.chart-box h3,
+.form-card h3 {
+  color: #ffffff !important;
 }
-.camp-icon-container svg {
-  fill: #ffffff;
-  width: 14px;
-  height: 14px;
+.stat-card .stat-label {
+  color: #aaa !important;
 }
 
-.modal-page {
-  display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  background: #f8f9fa; z-index: 99999; flex-direction: column; overflow-y: auto; font-family: sans-serif;
+/* Tabel Data Crew / Progress */
+.crew-table-container {
+  background-color: #1e1e1e !important;
 }
-.modal-header {
-  background: #343a40; color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;
-  position: sticky; top: 0; z-index: 100000;
+.crew-table {
+  color: #e0e0e0 !important;
 }
-.modal-header h2 { font-size: 13px; margin: 0; }
-.btn-close { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; }
-.modal-body { padding: 15px; max-width: 1200px; margin: 0 auto; width: 100%; }
+.crew-table th {
+  background-color: #2a2a2a !important;
+  color: #38ef7d !important; /* Warna aksen hijau neon agar tegas */
+  border-bottom: 2px solid #444 !important;
+}
+.crew-table td {
+  border-bottom: 1px solid #333 !important;
+  color: #d1d5db !important;
+}
+.crew-table tr:nth-child(even) {
+  background-color: #181818 !important;
+}
+.crew-table tr:hover {
+  background-color: #252525 !important;
+}
 
-.stats-summary-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px; margin-bottom: 15px; }
-@media(min-width: 600px) { .stats-summary-grid { grid-template-columns: repeat(2, 1fr); } }
-.stat-card { background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); border-left: 5px solid #007bff; }
-.stat-card h4 { margin: 0 0 5px 0; font-size: 11px; color: #666; text-transform: uppercase; }
+/* Form Input & Select Filter */
+.filter-select, 
+.form-control,
+input[type="text"], 
+input[type="date"], 
+select {
+  background-color: #2a2a2a !important;
+  color: #ffffff !important;
+  border: 1px solid #444444 !important;
+}
+.filter-select:focus, 
+.form-control:focus {
+  border-color: #11998e !important;
+  outline: none !important;
+}
 
-/* DUA GRAFIK LINGKARAN DENGAN GRID RESPONSUS */
-.charts-wrapper { display: grid; grid-template-columns: repeat(1, 1fr); gap: 15px; margin-bottom: 15px; }
-@media(min-width: 768px) { .charts-wrapper { grid-template-columns: repeat(2, 1fr); } }
+/* Scrollbar Tema Gelap */
+.modal-page::-webkit-scrollbar,
+.crew-table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.modal-page::-webkit-scrollbar-track,
+.crew-table-container::-webkit-scrollbar-track {
+  background: #121212;
+}
+.modal-page::-webkit-scrollbar-thumb,
+.crew-table-container::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+.modal-page::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
 
-.chart-box { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }
-.chart-box h3 { margin: 0 0 10px 0; font-size: 12px; color: #333; }
-.chart-canvas-holder { position: relative; height: 270px; width: 100%; }
+    #map { height: 100vh; width: 100vw; background: #222; position: relative; }
 
-.form-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; }
+    /* Layout Atas untuk Mobile */
+    .top-controls-container {
+      position: absolute; top: 10px; left: 55px; right: 60px; z-index: 1000;
+      display: flex; gap: 6px; align-items: center; justify-content: space-between;
+    }
 
-/* Styling Tabel Ringkasan Kru */
-.crew-summary-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.crew-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; text-align: left; }
-.crew-table th { background: #343a40; color: #fff; padding: 7px 10px; font-weight: 600; }
-.crew-table td { padding: 7px 10px; border-bottom: 1px solid #eee; }
-.crew-table tr:nth-child(even) { background-color: #f9f9f9; }
-</style>
+    .block-selector-box {
+      background: #ffffff; padding: 4px 6px; border-radius: 8px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3); font-size: 10px; font-weight: bold;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .block-selector-box select {
+      padding: 3px; font-weight: bold; border-radius: 4px; border: 1px solid #007bff; color: #007bff; font-size: 10px;
+    }
+
+    .search-box {
+      background: #ffffff; flex-grow: 1; max-width: 180px;
+      padding: 2px; border-radius: 20px; box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    }
+    .search-box input {
+      width: 100%; padding: 5px 8px; border: none; border-radius: 20px;
+      text-align: center; font-weight: bold; font-size: 10px; outline: none;
+    }
+
+    .action-buttons-group {
+      position: absolute; top: 60px; right: 10px; display: flex; flex-direction: column;
+      gap: 6px; z-index: 1000;
+    }
+    .btn-action {
+      background: #28a745; color: #ffffff; padding: 6px 10px; border-radius: 16px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.4); font-size: 10px; font-weight: bold; cursor: pointer;
+      border: none; outline: none; transition: 0.2s; white-space: nowrap;
+    }
+    .btn-action:active { transform: scale(0.95); }
+    .btn-export { background: #007bff; }
+    .btn-dash { background: #6f42c1; }
+    .btn-upload { background: #ffc107; color: #333; }
+    .btn-location { background: #17a2b8; color: #fff; }
+
+    /* Menu Popup Export */
+    .export-menu-popup {
+      display: none; position: absolute; top: 175px; right: 10px; z-index: 1001;
+      background: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      overflow: hidden; flex-direction: column; width: 150px;
+    }
+    .export-menu-popup button {
+      padding: 10px; border: none; background: white; text-align: left; font-size: 11px;
+      font-weight: bold; color: #333; cursor: pointer; border-bottom: 1px solid #eee;
+    }
+    .export-menu-popup button:hover { background: #f0f0f0; }
+
+    #coord-info {
+      position: absolute; bottom: 80px; right: 10px;
+      background: rgba(0, 0, 0, 0.85); color: #ffffff; padding: 5px 8px;
+      border-radius: 10px; font-size: 12px; font-family: monospace; z-index: 1000;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.4); text-align: right; pointer-events: none;
+    }
+
+    /* Base Style Label Poin */
+    .point-name-label { 
+      font-size: 14px; 
+      font-weight: bold; 
+      white-space: nowrap; 
+      pointer-events: none; 
+    }
+
+    /* Mode Satelit (Background Gelap -> Teks Putih) */
+    .point-name-label.text-white {
+      color: #ffffff !important;
+    }
+
+    /* Mode Peta Jalan / OSM (Background Terang -> Teks Hitam) */
+    .point-name-label.text-black {
+      color: #000000 !important;
+      text-shadow: 1px 1px 2px #ffffff, -1px -1px 2px #ffffff, 1px -1px 2px #ffffff, -1px 1px 2px #ffffff;
+    }
+
+    /* Icon Camp Styling */
+    .camp-icon-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #dc3545;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      width: 26px;
+      height: 26px;
+    }
+    .camp-icon-container svg {
+      fill: #ffffff;
+      width: 14px;
+      height: 14px;
+    }
+
+    .modal-page {
+      display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #f8f9fa; z-index: 99999; flex-direction: column; overflow-y: auto; font-family: sans-serif;
+    }
+    .modal-header {
+      background: #343a40; color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; z-index: 100000;
+    }
+    .modal-header h2 { font-size: 13px; margin: 0; }
+    .btn-close { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; }
+    .modal-body { padding: 15px; max-width: 1200px; margin: 0 auto; width: 100%; }
+
+    .stats-summary-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px; margin-bottom: 15px; }
+    @media(min-width: 600px) { .stats-summary-grid { grid-template-columns: repeat(2, 1fr); } }
+    .stat-card { background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); border-left: 5px solid #007bff; }
+    .stat-card h4 { margin: 0 0 5px 0; font-size: 11px; color: #666; text-transform: uppercase; }
+
+    /* DUA GRAFIK LINGKARAN DENGAN GRID RESPONSUS */
+    .charts-wrapper { display: grid; grid-template-columns: repeat(1, 1fr); gap: 15px; margin-bottom: 15px; }
+    @media(min-width: 768px) { .charts-wrapper { grid-template-columns: repeat(2, 1fr); } }
+
+    .chart-box { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }
+    .chart-box h3 { margin: 0 0 10px 0; font-size: 12px; color: #333; }
+    .chart-canvas-holder { position: relative; height: 270px; width: 100%; }
+
+    .form-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; }
+
+    /* Styling Tabel Ringkasan Kru */
+    .crew-summary-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .crew-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; text-align: left; }
+    .crew-table th { background: #343a40; color: #fff; padding: 7px 10px; font-weight: 600; }
+    .crew-table td { padding: 7px 10px; border-bottom: 1px solid #eee; }
+    .crew-table tr:nth-child(even) { background-color: #f9f9f9; }
+  </style>
 </head>
 <body>
 
@@ -237,7 +338,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
                 <th style="text-align: center;">Sampai TR</th>
                 <th style="text-align: center;">Total SP</th>
                 <th style="text-align: right;">Jarak Harian (km)</th>
-                <th style="text-align: right; background: #28a745; color: #fff;">Kumulatif Total (km)</th>
+                <th style="text-align: right; background: #000000; color: #ffffff;">Kumulatif Total (km)</th>
               </tr>
             </thead>
             <tbody id="crewSummaryTableBody">
@@ -340,7 +441,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       ctx.fillText("TOTAL POIN", width / 2, (height / 2) - 22 + yOffset);
 
       ctx.font = 'bold 15px sans-serif';
-      ctx.fillStyle = '#212529';
+      ctx.fillStyle = '#ffffff';
       ctx.fillText(textPointsNum, width / 2, (height / 2) - 6 + yOffset);
 
       // 2. Baris Kedua (Di Bawah Total Poin): Total Kumulatif Jarak
@@ -835,7 +936,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
       const totalKmOverall = getOverallCumulativeKm(selectedBlock);
 
       document.getElementById("modal-stats-summary").innerHTML = `
-        <div class="stat-card" style="border-left-color: #8b0000;">
+        <div class="stat-card" style="border-left-color: #ffffff;">
           <h4>Total Source (S): ${statS.total.toLocaleString('id-ID')} Poin</h4>
           <div style="font-size:10px; color:#555; margin-top:3px;">
             Topo: ${statS.topo.toLocaleString('id-ID')} | Rintis: ${statS.rintis.toLocaleString('id-ID')} | Bridge: ${statS.bridging.toLocaleString('id-ID')} | <b>Drill: ${statS.drilling.toLocaleString('id-ID')}</b> | Belum: ${statS.uncompleted.toLocaleString('id-ID')}
@@ -867,7 +968,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
           maintainAspectRatio: false,
           customCumulativeKm: totalKmOverall, // Passing data ke plugin
           plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+            legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, font: { size: 10 } } },
             datalabels: {
               formatter: (value, ctx) => {
                 let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
@@ -900,7 +1001,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
           maintainAspectRatio: false,
           customCumulativeKm: totalKmOverall, // Passing data ke plugin
           plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+            legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, font: { size: 10 } } },
             datalabels: {
               formatter: (value, ctx) => {
                 let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
@@ -1003,7 +1104,7 @@ html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, Bl
             <td style="text-align: center;">${maxTr}</td>
             <td style="text-align: center;"><b>${totalSpCount} SP</b></td>
             <td style="text-align: right;">${dailyKm} km</td>
-            <td style="text-align: right; font-weight: bold; color: #28a745; background: #f0fff4;">${cumulativeKm} km</td>
+            <td style="text-align: right; font-weight: bold; color: #ffffff; background: #000000;">${cumulativeKm} km</td>
           </tr>
         `;
       });
