@@ -17,6 +17,5 @@
 { "type": "Feature", "properties": { "FID": 11, "ID": "GPS PTM-8037", "Easting": 642463.279, "Northing": 9212657.066, "Elevation": 11.811, "F5": "circle 642463.279,9212657.066 0.5 -text @ 1 0 GPS PTM-8037" }, "geometry": { "type": "Point", "coordinates": [ 112.290061387203394, -7.121172352109264 ] } },
 { "type": "Feature", "properties": { "FID": 12, "ID": "GPS PTM-8038", "Easting": 649447.573, "Northing": 9209709.721000001, "Elevation": 7.934, "F5": "circle 649447.573,9209709.721 0.5 -text @ 1 0 GPS PTM-8038" }, "geometry": { "type": "Point", "coordinates": [ 112.353373491697099, -7.147645638227599 ] } },
 { "type": "Feature", "properties": { "FID": 13, "ID": "GPS PTM-8039", "Easting": 649484.789, "Northing": 9209767.249, "Elevation": 8.474, "F5": "circle 649484.789,9209767.249 0.5 -text @ 1 0 GPS PTM-8039" }, "geometry": { "type": "Point", "coordinates": [ 112.35370891833162, -7.147124401986598 ] } },
-{ "type": "Feature", "properties": { "FID": 14, "ID": "KAYANGAN API", "Easting": 587279.789, "Northing": 9197522.249, "Elevation": 79.474, "F5": "circle 587279.789,9197522.249 0.5 -text @ 1 0 KAYANGAN API" }, "geometry": { "type": "Point", "coordinates": [ 111.79062, -7.25919 ] } }
 ]
 }
