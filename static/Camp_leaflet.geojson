@@ -9,6 +9,6 @@
 { "type": "Feature", "properties": { "FID": 3, "code": 4, "X": 599533.343, "Y": 9209098.168, "Desc_": "BaseCamp", "KODE": "D" }, "geometry": { "type": "Point", "coordinates": [ 111.901416667583248, -7.154282473520189 ] } },
 { "type": "Feature", "properties": { "FID": 4, "code": 5, "X": 598556.734, "Y": 9209935.261, "Desc_": "MesClient", "KODE": "E" }, "geometry": { "type": "Point", "coordinates": [ 111.892558111776736, -7.146728357799608 ] } },
 { "type": "Feature", "properties": { "FID": 5, "code": 6, "X": 569288.745, "Y": 9203998.303, "Desc_": "G.Handak", "KODE": "F" }, "geometry": { "type": "Point", "coordinates": [ 111.627585458563118, -7.200867158345004 ] } },
-{ "type": "Feature", "properties": { "FID": 6, "code": 7, "X": 587279.789, "Y": 9197522.249, "Desc_": "Kayangan Api", "KODE": "G" }, "geometry": { "type": "Point", "coordinates": [ 111.79062, -7.25919 ] } },
+{ "type": "Feature", "properties": { "FID": 6, "code": 7, "X": 587279.789, "Y": 9197522.249, "Desc_": "Kayangan Api", "KODE": "G" }, "geometry": { "type": "Point", "coordinates": [ 111.79062, -7.25919 ] } }
 ]
 }
