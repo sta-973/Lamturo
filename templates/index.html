@@ -22,139 +22,102 @@
 
   <style>
     /* ==========================================
-   DARK MODE PERMANEN UNTUK DASHBOARD & MODAL
-   ========================================== */
+       RESET & BASE STYLES
+       ========================================== */
+    * { 
+      box-sizing: border-box; 
+      -webkit-tap-highlight-color: transparent; 
+    }
+    html, body { 
+      height: 100%; 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+      overflow: hidden; 
+    }
 
-/* Background Halaman Modal & Dashboard */
-.modal-page {
-  background-color: #121212 !important;
-  color: #e0e0e0 !important;
-}
+    #map { 
+      height: 100vh; 
+      width: 100vw; 
+      background: #222; 
+      position: relative; 
+    }
 
-/* Header & Title Modal */
-.modal-header-nav {
-  background-color: #1e1e1e !important;
-  border-bottom: 1px solid #333 !important;
-}
-.modal-title-text {
-  color: #ffffff !important;
-}
-
-/* Card Statistik (Stat Cards) & Box Grafik */
-.stat-card, 
-.chart-box, 
-.form-card, 
-.crew-summary-card {
-  background-color: #1e1e1e !important;
-  border: 1px solid #333333 !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important;
-}
-
-/* Judul Card & Angka Statistik */
-.stat-card .stat-value,
-.stat-card h3,
-.chart-box h3,
-.form-card h3 {
-  color: #ffffff !important;
-}
-.stat-card .stat-label {
-  color: #aaa !important;
-}
-
-/* Tabel Data Crew / Progress */
-.crew-table-container {
-  background-color: #1e1e1e !important;
-}
-.crew-table {
-  color: #e0e0e0 !important;
-}
-.crew-table th {
-  background-color: #2a2a2a !important;
-  color: #38ef7d !important; /* Warna aksen hijau neon agar tegas */
-  border-bottom: 2px solid #444 !important;
-}
-.crew-table td {
-  border-bottom: 1px solid #333 !important;
-  color: #d1d5db !important;
-}
-.crew-table tr:nth-child(even) {
-  background-color: #181818 !important;
-}
-.crew-table tr:hover {
-  background-color: #252525 !important;
-}
-
-/* Form Input & Select Filter */
-.filter-select, 
-.form-control,
-input[type="text"], 
-input[type="date"], 
-select {
-  background-color: #2a2a2a !important;
-  color: #ffffff !important;
-  border: 1px solid #444444 !important;
-}
-.filter-select:focus, 
-.form-control:focus {
-  border-color: #11998e !important;
-  outline: none !important;
-}
-
-/* Scrollbar Tema Gelap */
-.modal-page::-webkit-scrollbar,
-.crew-table-container::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-.modal-page::-webkit-scrollbar-track,
-.crew-table-container::-webkit-scrollbar-track {
-  background: #121212;
-}
-.modal-page::-webkit-scrollbar-thumb,
-.crew-table-container::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 4px;
-}
-.modal-page::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
-
-    #map { height: 100vh; width: 100vw; background: #222; position: relative; }
-
-    /* Layout Atas untuk Mobile */
+    /* ==========================================
+       MAP OVERLAYS & CONTROLS
+       ========================================== */
     .top-controls-container {
-      position: absolute; top: 10px; left: 55px; right: 60px; z-index: 1000;
-      display: flex; gap: 6px; align-items: center; justify-content: space-between;
+      position: absolute; 
+      top: 10px; 
+      left: 55px; 
+      right: 60px; 
+      z-index: 1000;
+      display: flex; 
+      gap: 6px; 
+      align-items: center; 
+      justify-content: space-between;
     }
 
     .block-selector-box {
-      background: #ffffff; padding: 4px 6px; border-radius: 8px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.3); font-size: 10px; font-weight: bold;
-      white-space: nowrap; flex-shrink: 0;
+      background: #ffffff; 
+      padding: 4px 6px; 
+      border-radius: 8px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3); 
+      font-size: 10px; 
+      font-weight: bold;
+      white-space: nowrap; 
+      flex-shrink: 0;
     }
     .block-selector-box select {
-      padding: 3px; font-weight: bold; border-radius: 4px; border: 1px solid #007bff; color: #007bff; font-size: 10px;
+      padding: 3px; 
+      font-weight: bold; 
+      border-radius: 4px; 
+      border: 1px solid #007bff; 
+      color: #007bff; 
+      font-size: 10px;
     }
 
     .search-box {
-      background: #ffffff; flex-grow: 1; max-width: 180px;
-      padding: 2px; border-radius: 20px; box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+      background: #ffffff; 
+      flex-grow: 1; 
+      max-width: 180px;
+      padding: 2px; 
+      border-radius: 20px; 
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
     }
     .search-box input {
-      width: 100%; padding: 5px 8px; border: none; border-radius: 20px;
-      text-align: center; font-weight: bold; font-size: 10px; outline: none;
+      width: 100%; 
+      padding: 5px 8px; 
+      border: none; 
+      border-radius: 20px;
+      text-align: center; 
+      font-weight: bold; 
+      font-size: 12px; 
+      outline: none;
     }
 
     .action-buttons-group {
-      position: absolute; top: 60px; right: 10px; display: flex; flex-direction: column;
-      gap: 6px; z-index: 1000;
+      position: absolute; 
+      top: 60px; 
+      right: 10px; 
+      display: flex; 
+      flex-direction: column;
+      gap: 6px; 
+      z-index: 1000;
     }
     .btn-action {
-      background: #28a745; color: #ffffff; padding: 6px 10px; border-radius: 16px;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.4); font-size: 10px; font-weight: bold; cursor: pointer;
-      border: none; outline: none; transition: 0.2s; white-space: nowrap;
+      background: #28a745; 
+      color: #ffffff; 
+      padding: 6px 10px; 
+      border-radius: 16px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.4); 
+      font-size: 10px; 
+      font-weight: bold; 
+      cursor: pointer;
+      border: none; 
+      outline: none; 
+      transition: 0.2s; 
+      white-space: nowrap;
     }
     .btn-action:active { transform: scale(0.95); }
     .btn-export { background: #007bff; }
@@ -162,45 +125,63 @@ select {
     .btn-upload { background: #ffc107; color: #333; }
     .btn-location { background: #17a2b8; color: #fff; }
 
-    /* Menu Popup Export */
     .export-menu-popup {
-      display: none; position: absolute; top: 175px; right: 10px; z-index: 1001;
-      background: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      overflow: hidden; flex-direction: column; width: 150px;
+      display: none; 
+      position: absolute; 
+      top: 175px; 
+      right: 10px; 
+      z-index: 1001;
+      background: #ffffff; 
+      border-radius: 8px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      overflow: hidden; 
+      flex-direction: column; 
+      width: 150px;
     }
     .export-menu-popup button {
-      padding: 10px; border: none; background: white; text-align: left; font-size: 11px;
-      font-weight: bold; color: #333; cursor: pointer; border-bottom: 1px solid #eee;
+      padding: 10px; 
+      border: none; 
+      background: white; 
+      text-align: left; 
+      font-size: 11px;
+      font-weight: bold; 
+      color: #333; 
+      cursor: pointer; 
+      border-bottom: 1px solid #eee;
     }
     .export-menu-popup button:hover { background: #f0f0f0; }
 
     #coord-info {
-      position: absolute; bottom: 80px; right: 10px;
-      background: rgba(0, 0, 0, 0.85); color: #ffffff; padding: 5px 8px;
-      border-radius: 10px; font-size: 12px; font-family: monospace; z-index: 1000;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.4); text-align: right; pointer-events: none;
+      position: absolute; 
+      bottom: 80px; 
+      right: 10px;
+      background: rgba(0, 0, 0, 0.85); 
+      color: #ffffff; 
+      padding: 5px 8px;
+      border-radius: 10px; 
+      font-size: 12px; 
+      font-family: monospace; 
+      z-index: 1000;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.4); 
+      text-align: right; 
+      pointer-events: none;
     }
 
-    /* Base Style Label Poin */
+    /* ==========================================
+       MAP LABELS & CUSTOM ICONS
+       ========================================== */
     .point-name-label { 
       font-size: 14px; 
       font-weight: bold; 
       white-space: nowrap; 
       pointer-events: none; 
     }
-
-    /* Mode Satelit (Background Gelap -> Teks Putih) */
-    .point-name-label.text-white {
-      color: #ffffff !important;
-    }
-
-    /* Mode Peta Jalan / OSM (Background Terang -> Teks Hitam) */
+    .point-name-label.text-white { color: #ffffff !important; }
     .point-name-label.text-black {
       color: #000000 !important;
       text-shadow: 1px 1px 2px #ffffff, -1px -1px 2px #ffffff, 1px -1px 2px #ffffff, -1px 1px 2px #ffffff;
     }
 
-    /* Icon Camp Styling */
     .camp-icon-container {
       display: flex;
       align-items: center;
@@ -218,39 +199,115 @@ select {
       height: 14px;
     }
 
+    /* ==========================================
+       DARK MODE DASHBOARD & MODAL STYLES
+       ========================================== */
     .modal-page {
-      display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: #f8f9fa; z-index: 99999; flex-direction: column; overflow-y: auto; font-family: sans-serif;
+      display: none; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100vw; 
+      height: 100vh;
+      background-color: #121212 !important; 
+      color: #e0e0e0 !important;
+      z-index: 99999; 
+      flex-direction: column; 
+      overflow-y: auto; 
+      font-family: sans-serif;
     }
+
     .modal-header {
-      background: #343a40; color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;
-      position: sticky; top: 0; z-index: 100000;
+      background-color: #1e1e1e !important;
+      border-bottom: 1px solid #333 !important;
+      color: #fff; 
+      padding: 12px 15px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      position: sticky; 
+      top: 0; 
+      z-index: 100000;
     }
-    .modal-header h2 { font-size: 13px; margin: 0; }
-    .btn-close { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; }
+    .modal-header h2 { font-size: 13px; margin: 0; color: #ffffff !important; }
+    .btn-close { 
+      background: #dc3545; 
+      color: white; 
+      border: none; 
+      padding: 5px 10px; 
+      border-radius: 4px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      font-size: 11px; 
+    }
     .modal-body { padding: 15px; max-width: 1200px; margin: 0 auto; width: 100%; }
+
+    .stat-card, 
+    .chart-box, 
+    .form-card, 
+    .crew-summary-card {
+      background-color: #1e1e1e !important;
+      border: 1px solid #333333 !important;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .stat-card .stat-value,
+    .stat-card h3,
+    .stat-card h4,
+    .chart-box h3,
+    .form-card h3 { color: #ffffff !important; }
 
     .stats-summary-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px; margin-bottom: 15px; }
     @media(min-width: 600px) { .stats-summary-grid { grid-template-columns: repeat(2, 1fr); } }
-    .stat-card { background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); border-left: 5px solid #007bff; }
-    .stat-card h4 { margin: 0 0 5px 0; font-size: 11px; color: #666; text-transform: uppercase; }
+    .stat-card { padding: 12px; border-radius: 8px; border-left: 5px solid #007bff !important; }
+    .stat-card h4 { margin: 0 0 5px 0; font-size: 11px; text-transform: uppercase; }
 
-    /* DUA GRAFIK LINGKARAN DENGAN GRID RESPONSUS */
     .charts-wrapper { display: grid; grid-template-columns: repeat(1, 1fr); gap: 15px; margin-bottom: 15px; }
     @media(min-width: 768px) { .charts-wrapper { grid-template-columns: repeat(2, 1fr); } }
 
-    .chart-box { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }
-    .chart-box h3 { margin: 0 0 10px 0; font-size: 12px; color: #333; }
+    .chart-box { padding: 15px; border-radius: 8px; text-align: center; }
+    .chart-box h3 { margin: 0 0 10px 0; font-size: 12px; }
     .chart-canvas-holder { position: relative; height: 270px; width: 100%; }
 
-    .form-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; }
+    .form-card { padding: 15px; border-radius: 8px; margin-bottom: 15px; }
 
-    /* Styling Tabel Ringkasan Kru */
-    .crew-summary-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .crew-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; text-align: left; }
-    .crew-table th { background: #343a40; color: #fff; padding: 7px 10px; font-weight: 600; }
-    .crew-table td { padding: 7px 10px; border-bottom: 1px solid #eee; }
-    .crew-table tr:nth-child(even) { background-color: #f9f9f9; }
+    .crew-summary-card { padding: 15px; border-radius: 8px; }
+    .crew-table-container { background-color: #1e1e1e !important; }
+    .crew-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; text-align: left; color: #e0e0e0 !important; }
+    .crew-table th { 
+      background-color: #2a2a2a !important; 
+      color: #38ef7d !important; 
+      padding: 7px 10px; 
+      font-weight: 600; 
+      border-bottom: 2px solid #444 !important;
+    }
+    .crew-table td { padding: 7px 10px; border-bottom: 1px solid #333 !important; color: #d1d5db !important; }
+    .crew-table tr:nth-child(even) { background-color: #181818 !important; }
+    .crew-table tr:hover { background-color: #252525 !important; }
+
+    .filter-select, 
+    .form-control,
+    input[type="text"], 
+    input[type="date"], 
+    select {
+      background-color: #2a2a2a !important;
+      color: #ffffff !important;
+      border: 1px solid #444444 !important;
+    }
+    .filter-select:focus, 
+    .form-control:focus {
+      border-color: #11998e !important;
+      outline: none !important;
+    }
+
+    /* Scrollbar Dark Theme */
+    .modal-page::-webkit-scrollbar,
+    .crew-table-container::-webkit-scrollbar { width: 8px; height: 8px; }
+    .modal-page::-webkit-scrollbar-track,
+    .crew-table-container::-webkit-scrollbar-track { background: #121212; }
+    .modal-page::-webkit-scrollbar-thumb,
+    .crew-table-container::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    .modal-page::-webkit-scrollbar-thumb:hover { background: #555; }
   </style>
 </head>
 <body>
@@ -278,7 +335,7 @@ select {
     <button class="btn-action btn-export" id="btn-toggle-export">💾 Export ▾</button>
   </div>
 
-  <!-- Popup Opsi Export -->
+  <!-- Popup Export -->
   <div id="exportMenuPopup" class="export-menu-popup">
     <button id="btn-export-excel">📊 Export Excel (.csv)</button>
     <button id="btn-export-geojson">🗺️ Export GeoJSON</button>
@@ -295,7 +352,7 @@ select {
   </div>
   <div class="modal-body">
     <div style="display: flex; flex-direction: column; gap: 12px;">
-      <div style="background:#231b1b; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; font-size: 12px;">
+      <div style="background:#1e1e1e; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; font-size: 12px; border: 1px solid #333;">
         <b>Blok Ditinjau:</b>
         <select id="dashboardSelectBlock" style="padding:5px; font-weight:bold; border-radius:4px; border:1px solid #007bff; color:#007bff; font-size: 12px;">
           <option value="East_Block">East_Block</option>
@@ -307,7 +364,7 @@ select {
       
       <div class="stats-summary-grid" id="modal-stats-summary"></div>
       
-      <!-- DUA GRAFIK LINGKARAN (SOURCE & RECEIVER) -->
+      <!-- GRAFIK SOURCE & RECEIVER -->
       <div class="charts-wrapper">
         <div class="chart-box">
           <h3>🔴 Proporsi Status Source (S)</h3>
@@ -323,11 +380,11 @@ select {
         </div>
       </div>
 
-      <!-- REKAP PRODUKSI KRU & LINE DENGAN KUMULATIF JARAK KESELURUHAN -->
+      <!-- REKAP PRODUKSI KRU -->
       <div class="crew-summary-card">
-        <h3 style="margin: 0 0 5px 0; font-size: 13px; color: #ffffff;">📋 Rekap Produksi Harian Kru & Jarak Kumulatif Keseluruhan</h3>
-        <p style="margin: 0 0 10px 0; font-size: 10px; color: #ffffff;">Interval TR: 12.5m | Interval SP: 50m (4 TR = 1 SP)</p>
-        <div style="overflow-x: auto;">
+        <h3 style="margin: 0 0 5px 0; font-size: 13px;">📋 Rekap Produksi Harian Kru & Jarak Kumulatif Keseluruhan</h3>
+        <p style="margin: 0 0 10px 0; font-size: 10px; color: #aaa;">Interval TR: 12.5m | Interval SP: 50m (4 TR = 1 SP)</p>
+        <div style="overflow-x: auto;" class="crew-table-container">
           <table class="crew-table">
             <thead>
               <tr>
@@ -354,56 +411,56 @@ select {
 
 <!-- UPDATE PETA MODAL -->
 <div id="upload-page" class="modal-page">
-  <div class="modal-header" style="background: #e0a800; color: #212529;">
-    <h2>🔒 Panel Update Progress Harian (Admin)</h2>
+  <div class="modal-header" style="background: #e0a800 !important;">
+    <h2 style="color: #212529 !important;">🔒 Panel Update Progress Harian (Admin)</h2>
     <button id="btn-close-upload" class="btn-close" style="background:#343a40;">✕ Tutup</button>
   </div>
   <div class="modal-body">
-    <!-- 1. UPLOAD FILE CSV/TXT -->
-    <div class="form-card" style="border-left: 6px solid #ffc107;">
-      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📄 1. Upload File Progress (.csv / .txt)</h3>
-      <p style="font-size: 10px; color: #666; line-height: 1.4; margin-bottom: 12px;">
-        Urutan: <code style="background:#eee; padding:2px 4px;">Tanggal, Kru, Line, Dari_SP, Sampai_SP, Kode_Status</code><br>
+    <!-- 1. UPLOAD CSV/TXT -->
+    <div class="form-card" style="border-left: 6px solid #ffc107 !important;">
+      <h3 style="margin-top: 0; font-size: 13px;">📄 1. Upload File Progress (.csv / .txt)</h3>
+      <p style="font-size: 10px; color: #aaa; line-height: 1.4; margin-bottom: 12px;">
+        Urutan: <code style="background:#333; color:#38ef7d; padding:2px 4px;">Tanggal, Kru, Line, Dari_SP, Sampai_SP, Kode_Status</code><br>
         <small style="color:#888;">Contoh Status: 1=Topo, 2=Rintis, 3=Bridging, 4=Drilling, 5=Recording</small>
       </p>
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <select id="uploadTargetBlock" style="padding: 8px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
+        <select id="uploadTargetBlock" style="padding: 8px; font-weight: bold; border-radius: 4px; font-size: 11px;">
           <option value="East_Block">East_Block</option>
           <option value="Central_Block" selected>Central_Block</option>
           <option value="West_Block">West_Block</option>
           <option value="ALL">Semua Blok</option>
         </select>
-        <input type="file" id="fileReportInput" accept=".txt,.csv" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px; background: #fafafa;">
+        <input type="file" id="fileReportInput" accept=".txt,.csv" style="padding: 8px; border-radius: 4px; font-size: 11px;">
         <button id="btnExecuteUploadFile" style="background: #ffc107; color: #212529; border: none; padding: 9px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Proses & Sync Supabase</button>
       </div>
     </div>
 
     <!-- 2. INPUT MASSAL RANGE TR -->
-    <div class="form-card" style="border-left: 6px solid #007bff;">
-      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📦 2. Input Massal (Range TR)</h3>
-      <p style="font-size: 10px; color: #666; margin-bottom: 8px;">Format: <code>TANGGAL-KRU-LINE-TRAWAL-TRAKHIR-STATUS</code></p>
+    <div class="form-card" style="border-left: 6px solid #007bff !important;">
+      <h3 style="margin-top: 0; font-size: 13px;">📦 2. Input Massal (Range TR)</h3>
+      <p style="font-size: 10px; color: #aaa; margin-bottom: 8px;">Format: <code>TANGGAL-KRU-LINE-TRAWAL-TRAKHIR-STATUS</code></p>
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <select id="adminRangeTargetBlock" style="padding: 7px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
+        <select id="adminRangeTargetBlock" style="padding: 7px; font-weight: bold; border-radius: 4px; font-size: 11px;">
           <option value="East_Block">East_Block</option>
           <option value="Central_Block" selected>Central_Block</option>
           <option value="West_Block">West_Block</option>
         </select>
-        <input type="text" id="adminRangeInputString" placeholder="01/09/2026-Kru1-001-1500-1-5" style="padding: 8px; font-size: 11px; border: 1px solid #ccc; border-radius: 4px;">
+        <input type="text" id="adminRangeInputString" placeholder="01/09/2026-Kru1-001-1500-1-5" style="padding: 8px; font-size: 11px; border-radius: 4px;">
         <button id="btnExecuteRangeInput" style="background: #007bff; color: white; border: none; padding: 8px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Update Massal Harian</button>
       </div>
     </div>
 
     <!-- 3. INPUT SATUAN TITIK -->
-    <div class="form-card" style="border-left: 6px solid #28a745;">
-      <h3 style="margin-top: 0; font-size: 13px; color: #333;">📍 3. Input Satuan Titik</h3>
-      <p style="font-size: 10px; color: #666; margin-bottom: 8px;">Format: <code>TANGGAL-KRU-LINE-ID-STATUS</code> (Opsional Koordinat Baru di belakang)</p>
+    <div class="form-card" style="border-left: 6px solid #28a745 !important;">
+      <h3 style="margin-top: 0; font-size: 13px;">📍 3. Input Satuan Titik</h3>
+      <p style="font-size: 10px; color: #aaa; margin-bottom: 8px;">Format: <code>TANGGAL-KRU-LINE-ID-STATUS</code> (Opsional Koordinat Baru di belakang)</p>
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <select id="adminTargetBlock" style="padding: 7px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; font-size: 11px;">
+        <select id="adminTargetBlock" style="padding: 7px; font-weight: bold; border-radius: 4px; font-size: 11px;">
           <option value="East_Block">East_Block</option>
           <option value="Central_Block" selected>Central_Block</option>
           <option value="West_Block">West_Block</option>
         </select>
-        <input type="text" id="adminInputString" placeholder="01/09/2026-Kru1-001-0011001.0-5" style="padding: 8px; font-size: 11px; border: 1px solid #ccc; border-radius: 4px;">
+        <input type="text" id="adminInputString" placeholder="01/09/2026-Kru1-001-0011001.0-5" style="padding: 8px; font-size: 11px; border-radius: 4px;">
         <button id="btnExecuteAdminInput" style="background: #28a745; color: white; border: none; padding: 8px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Rekam Satuan Harian</button>
       </div>
     </div>
@@ -413,7 +470,7 @@ select {
 <script>
   Chart.register(ChartDataLabels);
 
-  // PLUGIN KUSTOM: MENAMPILKAN TOTAL POIN DILANJUTKAN TOTAL KUMULATIF KM DI TENGAH DONUT CHART
+  // Plugin Chart: Menampilkan Total Poin & Kumulatif KM di Tengah Donut Chart
   const centerTextPlugin = {
     id: 'centerText',
     beforeDraw(chart) {
@@ -422,12 +479,9 @@ select {
       
       const dataset = chart.data.datasets[0];
       const totalPoints = dataset.data.reduce((acc, curr) => acc + curr, 0);
-      
-      // Ambil nilai total km kumulatif dari konfigurasi chart
       const totalKmText = chart.config.options.customCumulativeKm || "0.000";
       const textPointsNum = totalPoints.toLocaleString('id-ID');
 
-      // Pengaturan offset vertikal jika tampilan portrait/mobile khusus chart Receiver agar teks agak naik
       const isPortrait = window.innerHeight > window.innerWidth;
       const isReceiverChart = chart.canvas && chart.canvas.id === 'receiverChart';
       const yOffset = (isPortrait && isReceiverChart) ? -10 : 0;
@@ -437,21 +491,21 @@ select {
 
       // 1. Baris Pertama: Total Poin
       ctx.font = 'bold 9px sans-serif';
-      ctx.fillStyle = '#6c757d';
-      ctx.fillText("TOTAL POIN", width / 2, (height / 2) - 30 + yOffset);
+      ctx.fillStyle = '#aaa';
+      ctx.fillText("TOTAL POIN", width / 2, (height / 2) - 22 + yOffset);
 
       ctx.font = 'bold 15px sans-serif';
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(textPointsNum, width / 2, (height / 2) - 15 + yOffset);
+      ctx.fillText(textPointsNum, width / 2, (height / 2) - 6 + yOffset);
 
-      // 2. Baris Kedua (Di Bawah Total Poin): Total Kumulatif Jarak
+      // 2. Baris Kedua: Total Kumulatif Jarak
       ctx.font = 'bold 9px sans-serif';
-      ctx.fillStyle = '#6c757d';
-      ctx.fillText("KUMULATIF JARAK", width / 2, (height / 2) + 2 + yOffset);
+      ctx.fillStyle = '#aaa';
+      ctx.fillText("KUMULATIF JARAK", width / 2, (height / 2) + 12 + yOffset);
 
       ctx.font = 'bold 13px sans-serif';
-      ctx.fillStyle = '#28a745';
-      ctx.fillText(`${totalKmText} km`, width / 2, (height / 2) + 16 + yOffset);
+      ctx.fillStyle = '#38ef7d';
+      ctx.fillText(`${totalKmText} km`, width / 2, (height / 2) + 26 + yOffset);
       
       ctx.restore();
     }
@@ -557,7 +611,6 @@ select {
 
           const normLine = getFeatureLine(p);
           const normTr = getFeatureTr(p);
-          
           const matchKey = `${b.norm}_${normLine}_${normTr}`;
 
           if (cloudProgressMap[matchKey]) {
@@ -625,7 +678,6 @@ select {
     return s;
   }
 
-  // FUNGSI HITUNG TOTAL KUMULATIF JARAK (KM) DARI SELURUH KRU & BARIS DATA
   function getOverallCumulativeKm(selectedBlock) {
     const dbData = window.cachedProgressData || [];
     if (dbData.length === 0) return "0.000";
@@ -673,21 +725,17 @@ select {
     
     L.control.zoom({ position: "topleft" }).addTo(map);
   
-    // TILE LAYERS BASEMAP
+    // BASEMAPS
     const baseOSM = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 });
     const baseEsriSat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 });
-    
-    // GOOGLE SATELLITE BASEMAP (TANPA LABEL)
     const baseGoogleSat = L.tileLayer("http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {
       maxZoom: 20,
       subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
     });
-
-    // GOOGLE SATELLITE HYBRID BASEMAP (SATELLITE + LABEL JALAN/TEMPAT)
     const baseGoogleHybrid = L.tileLayer("http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}", {
       maxZoom: 20,
       subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-    }).addTo(map); // Default basemap diset ke Google Satellite + Label
+    }).addTo(map);
   
     const groupSource = L.layerGroup().addTo(map);
     const groupReceiver = L.layerGroup().addTo(map);
@@ -931,26 +979,24 @@ select {
 
       let statS = calculateProgress({ features: featuresS });
       let statR = calculateProgress({ features: featuresR });
-
-      // Hitung total kumulatif km dari seluruh produksi kru untuk blok ini
       const totalKmOverall = getOverallCumulativeKm(selectedBlock);
 
       document.getElementById("modal-stats-summary").innerHTML = `
-        <div class="stat-card" style="border-left-color: #ffffff;">
+        <div class="stat-card" style="border-left-color: #ffffff !important;">
           <h4>Total Source (S): ${statS.total.toLocaleString('id-ID')} Poin</h4>
-          <div style="font-size:10px; color:#ffffff; margin-top:3px;">
+          <div style="font-size:10px; color:#aaa; margin-top:3px;">
             Topo: ${statS.topo.toLocaleString('id-ID')} | Rintis: ${statS.rintis.toLocaleString('id-ID')} | Bridge: ${statS.bridging.toLocaleString('id-ID')} | <b>Drill: ${statS.drilling.toLocaleString('id-ID')}</b> | Belum: ${statS.uncompleted.toLocaleString('id-ID')}
           </div>
         </div>
-        <div class="stat-card" style="border-left-color: #ffffff;">
+        <div class="stat-card" style="border-left-color: #0055ff !important;">
           <h4>Total Receiver (R): ${statR.total.toLocaleString('id-ID')} Poin</h4>
-          <div style="font-size:10px; color:#ffffff; margin-top:3px;">
+          <div style="font-size:10px; color:#aaa; margin-top:3px;">
             Topo: ${statR.topo.toLocaleString('id-ID')} | Rintis: ${statR.rintis.toLocaleString('id-ID')} | Bridge: ${statR.bridging.toLocaleString('id-ID')} | <b>Rec: ${statR.recording.toLocaleString('id-ID')}</b> | Belum: ${statR.uncompleted.toLocaleString('id-ID')}
           </div>
         </div>
       `;
 
-      // 1. CHART DOUGHNUT SOURCE (S)
+      // 1. CHART SOURCE (S)
       const ctxSource = document.getElementById('sourceChart').getContext('2d');
       if (chartSourceInstance) chartSourceInstance.destroy();
       
@@ -966,7 +1012,7 @@ select {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          customCumulativeKm: totalKmOverall, // Passing data ke plugin
+          customCumulativeKm: totalKmOverall,
           plugins: {
             legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, font: { size: 10 } } },
             datalabels: {
@@ -976,14 +1022,14 @@ select {
                 return (value * 100 / sum).toFixed(1) + "%";
               },
               color: '#000000',
-              font: { weight: 'bold', size: 14 }
+              font: { weight: 'bold', size: 12 }
             }
           }
         },
         plugins: [centerTextPlugin]
       });
 
-      // 2. CHART DOUGHNUT RECEIVER (R)
+      // 2. CHART RECEIVER (R)
       const ctxReceiver = document.getElementById('receiverChart').getContext('2d');
       if (chartReceiverInstance) chartReceiverInstance.destroy();
 
@@ -999,7 +1045,7 @@ select {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          customCumulativeKm: totalKmOverall, // Passing data ke plugin
+          customCumulativeKm: totalKmOverall,
           plugins: {
             legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, font: { size: 10 } } },
             datalabels: {
@@ -1009,7 +1055,7 @@ select {
                 return (value * 100 / sum).toFixed(1) + "%";
               },
               color: '#000000',
-              font: { weight: 'bold', size: 14 }
+              font: { weight: 'bold', size: 12 }
             }
           }
         },
@@ -1017,7 +1063,6 @@ select {
       });
     }
 
-    // FUNGSI REKAP DENGAN PERHITUNGAN KUMULATIF DARI KESELURUHAN SEMUA KRU
     function renderCrewSummaryTable(selectedBlock) {
       const tbody = document.getElementById("crewSummaryTableBody");
       const dbData = window.cachedProgressData || [];
@@ -1029,7 +1074,6 @@ select {
 
       let groupedList = [];
       const normSelectedBlock = normalizeBlockName(selectedBlock);
-
       let rawGroupMap = {};
 
       dbData.forEach(row => {
@@ -1059,7 +1103,6 @@ select {
         return;
       }
 
-      // Urutkan berdasarkan Tanggal ascending, lalu Kru, lalu Line
       groupedList.sort((a, b) => {
         if (a.tanggal !== b.tanggal) return a.tanggal.localeCompare(b.tanggal);
         if (a.kru !== b.kru) return a.kru.localeCompare(b.kru);
@@ -1069,8 +1112,7 @@ select {
       let rowsHtml = "";
       const trIntervalMeter = 12.5; 
       const spIntervalMeter = 50.0; 
-
-      let totalCumulativeMeter = 0; // Akumulasi keseluruhan lintas semua kru & tanggal
+      let totalCumulativeMeter = 0;
 
       groupedList.forEach(item => {
         let minTr = "-";
@@ -1091,13 +1133,12 @@ select {
           totalSpCount = (dailyMeter / spIntervalMeter).toFixed(2);
         }
 
-        // Akumulasikan seluruh produksi harian secara terus menerus
         totalCumulativeMeter += dailyMeter;
         let cumulativeKm = (totalCumulativeMeter / 1000).toFixed(3);
 
         rowsHtml += `
           <tr>
-            <td><span style="background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #495057;">${item.tanggal}</span></td>
+            <td><span style="background: #2a2a2a; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #38ef7d;">${item.tanggal}</span></td>
             <td><b>${item.kru}</b></td>
             <td>Line ${item.line}</td>
             <td style="text-align: center;">${minTr}</td>
@@ -1178,10 +1219,11 @@ select {
       const a = document.createElement('a');
       a.setAttribute("href", dataStr);
       a.setAttribute("download", `Progress_Seismik_${new Date().toISOString().slice(0,10)}.geojson`);
-      document.body.appendChild(a); a.click(); a.remove();
+      document.body.appendChild(a); 
+      a.click(); 
+      a.remove();
     });
 
-    // PILIHAN BASEMAP DENGAN PETA SATELIT GOOGLE + LABEL
     L.control.layers(
       { 
         "Google Satellite + Label": baseGoogleHybrid, 
@@ -1367,7 +1409,6 @@ select {
               if (blockData && Array.isArray(blockData.features)) {
                 blockData.features.forEach(f => {
                   const p = f.properties || {};
-                  
                   const geoLine = getFeatureLine(p);
                   const geoTr = getFeatureTr(p);
 
