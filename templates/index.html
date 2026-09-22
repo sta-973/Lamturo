@@ -295,7 +295,7 @@ select {
   </div>
   <div class="modal-body">
     <div style="display: flex; flex-direction: column; gap: 12px;">
-      <div style="background:#fff; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; font-size: 12px;">
+      <div style="background:#231b1b; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; font-size: 12px;">
         <b>Blok Ditinjau:</b>
         <select id="dashboardSelectBlock" style="padding:5px; font-weight:bold; border-radius:4px; border:1px solid #007bff; color:#007bff; font-size: 12px;">
           <option value="East_Block">East_Block</option>
@@ -325,8 +325,8 @@ select {
 
       <!-- REKAP PRODUKSI KRU & LINE DENGAN KUMULATIF JARAK KESELURUHAN -->
       <div class="crew-summary-card">
-        <h3 style="margin: 0 0 5px 0; font-size: 13px; color: #333;">📋 Rekap Produksi Harian Kru & Jarak Kumulatif Keseluruhan</h3>
-        <p style="margin: 0 0 10px 0; font-size: 10px; color: #666;">Interval TR: 12.5m | Interval SP: 50m (4 TR = 1 SP)</p>
+        <h3 style="margin: 0 0 5px 0; font-size: 13px; color: #ffffff;">📋 Rekap Produksi Harian Kru & Jarak Kumulatif Keseluruhan</h3>
+        <p style="margin: 0 0 10px 0; font-size: 10px; color: #ffffff;">Interval TR: 12.5m | Interval SP: 50m (4 TR = 1 SP)</p>
         <div style="overflow-x: auto;">
           <table class="crew-table">
             <thead>
@@ -438,20 +438,20 @@ select {
       // 1. Baris Pertama: Total Poin
       ctx.font = 'bold 9px sans-serif';
       ctx.fillStyle = '#6c757d';
-      ctx.fillText("TOTAL POIN", width / 2, (height / 2) - 22 + yOffset);
+      ctx.fillText("TOTAL POIN", width / 2, (height / 2) - 30 + yOffset);
 
       ctx.font = 'bold 15px sans-serif';
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(textPointsNum, width / 2, (height / 2) - 6 + yOffset);
+      ctx.fillText(textPointsNum, width / 2, (height / 2) - 15 + yOffset);
 
       // 2. Baris Kedua (Di Bawah Total Poin): Total Kumulatif Jarak
       ctx.font = 'bold 9px sans-serif';
       ctx.fillStyle = '#6c757d';
-      ctx.fillText("KUMULATIF JARAK", width / 2, (height / 2) + 12 + yOffset);
+      ctx.fillText("KUMULATIF JARAK", width / 2, (height / 2) + 2 + yOffset);
 
       ctx.font = 'bold 13px sans-serif';
       ctx.fillStyle = '#28a745';
-      ctx.fillText(`${totalKmText} km`, width / 2, (height / 2) + 26 + yOffset);
+      ctx.fillText(`${totalKmText} km`, width / 2, (height / 2) + 16 + yOffset);
       
       ctx.restore();
     }
@@ -938,13 +938,13 @@ select {
       document.getElementById("modal-stats-summary").innerHTML = `
         <div class="stat-card" style="border-left-color: #ffffff;">
           <h4>Total Source (S): ${statS.total.toLocaleString('id-ID')} Poin</h4>
-          <div style="font-size:10px; color:#555; margin-top:3px;">
+          <div style="font-size:10px; color:#ffffff; margin-top:3px;">
             Topo: ${statS.topo.toLocaleString('id-ID')} | Rintis: ${statS.rintis.toLocaleString('id-ID')} | Bridge: ${statS.bridging.toLocaleString('id-ID')} | <b>Drill: ${statS.drilling.toLocaleString('id-ID')}</b> | Belum: ${statS.uncompleted.toLocaleString('id-ID')}
           </div>
         </div>
-        <div class="stat-card" style="border-left-color: #0055ff;">
+        <div class="stat-card" style="border-left-color: #ffffff;">
           <h4>Total Receiver (R): ${statR.total.toLocaleString('id-ID')} Poin</h4>
-          <div style="font-size:10px; color:#555; margin-top:3px;">
+          <div style="font-size:10px; color:#ffffff; margin-top:3px;">
             Topo: ${statR.topo.toLocaleString('id-ID')} | Rintis: ${statR.rintis.toLocaleString('id-ID')} | Bridge: ${statR.bridging.toLocaleString('id-ID')} | <b>Rec: ${statR.recording.toLocaleString('id-ID')}</b> | Belum: ${statR.uncompleted.toLocaleString('id-ID')}
           </div>
         </div>
@@ -975,8 +975,8 @@ select {
                 if (sum === 0 || value === 0) return '';
                 return (value * 100 / sum).toFixed(1) + "%";
               },
-              color: '#fff',
-              font: { weight: 'bold', size: 10 }
+              color: '#000000',
+              font: { weight: 'bold', size: 14 }
             }
           }
         },
@@ -1008,8 +1008,8 @@ select {
                 if (sum === 0 || value === 0) return '';
                 return (value * 100 / sum).toFixed(1) + "%";
               },
-              color: '#fff',
-              font: { weight: 'bold', size: 10 }
+              color: '#000000',
+              font: { weight: 'bold', size: 14 }
             }
           }
         },
