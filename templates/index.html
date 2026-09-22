@@ -492,20 +492,20 @@
       // 1. Baris Pertama: Total Poin
       ctx.font = 'bold 9px sans-serif';
       ctx.fillStyle = '#aaa';
-      ctx.fillText("TOTAL POIN", width / 2, (height / 2) - 22 + yOffset);
+      ctx.fillText("TOTAL POIN", width / 2, (height / 2) - 30 + yOffset);
 
       ctx.font = 'bold 15px sans-serif';
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(textPointsNum, width / 2, (height / 2) - 6 + yOffset);
+      ctx.fillText(textPointsNum, width / 2, (height / 2) - 14 + yOffset);
 
       // 2. Baris Kedua: Total Kumulatif Jarak
       ctx.font = 'bold 9px sans-serif';
       ctx.fillStyle = '#aaa';
-      ctx.fillText("KUMULATIF JARAK", width / 2, (height / 2) + 12 + yOffset);
+      ctx.fillText("KUMULATIF JARAK", width / 2, (height / 2) + 4 + yOffset);
 
       ctx.font = 'bold 13px sans-serif';
       ctx.fillStyle = '#38ef7d';
-      ctx.fillText(`${totalKmText} km`, width / 2, (height / 2) + 26 + yOffset);
+      ctx.fillText(`${totalKmText} km`, width / 2, (height / 2) + 16 + yOffset);
       
       ctx.restore();
     }
@@ -1022,7 +1022,7 @@
                 return (value * 100 / sum).toFixed(1) + "%";
               },
               color: '#000000',
-              font: { weight: 'bold', size: 12 }
+              font: { weight: 'bold', size: 14 }
             }
           }
         },
@@ -1055,7 +1055,7 @@
                 return (value * 100 / sum).toFixed(1) + "%";
               },
               color: '#000000',
-              font: { weight: 'bold', size: 12 }
+              font: { weight: 'bold', size: 14 }
             }
           }
         },
