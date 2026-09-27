@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Seismik 2D Lamturo</title>
 
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"> 
+
   <!-- Library Chart.js & Plugins -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -19,296 +22,6 @@
   <!-- Geoman Leaflet Plugin -->
   <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
   <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
-
-  <style>
-    /* ==========================================
-       RESET & BASE STYLES
-       ========================================== */
-    * { 
-      box-sizing: border-box; 
-      -webkit-tap-highlight-color: transparent; 
-    }
-    html, body { 
-      height: 100%; 
-      margin: 0; 
-      padding: 0; 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-      overflow: hidden; 
-    }
-
-    #map { 
-      height: 100vh; 
-      width: 100vw; 
-      background: #222; 
-      position: relative; 
-    }
-
-    /* ==========================================
-       MAP OVERLAYS & CONTROLS
-       ========================================== */
-    .top-controls-container {
-      position: absolute; 
-      top: 10px; 
-      left: 55px; 
-      right: 60px; 
-      z-index: 1000;
-      display: flex; 
-      gap: 6px; 
-      align-items: center; 
-      justify-content: space-between;
-    }
-
-    .block-selector-box {
-      background: #ffffff; 
-      padding: 4px 6px; 
-      border-radius: 8px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.3); 
-      font-size: 10px; 
-      font-weight: bold;
-      white-space: nowrap; 
-      flex-shrink: 0;
-    }
-    .block-selector-box select {
-      padding: 3px; 
-      font-weight: bold; 
-      border-radius: 4px; 
-      border: 1px solid #007bff; 
-      color: #007bff; 
-      font-size: 10px;
-    }
-
-    .search-box {
-      background: #ffffff; 
-      flex-grow: 1; 
-      max-width: 180px;
-      padding: 2px; 
-      border-radius: 20px; 
-      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-    }
-    .search-box input {
-      width: 100%; 
-      padding: 5px 8px; 
-      border: none; 
-      border-radius: 20px;
-      text-align: center; 
-      font-weight: bold; 
-      font-size: 12px; 
-      outline: none;
-    }
-
-    .action-buttons-group {
-      position: absolute; 
-      top: 60px; 
-      right: 10px; 
-      display: flex; 
-      flex-direction: column;
-      gap: 6px; 
-      z-index: 1000;
-    }
-    .btn-action {
-      background: #28a745; 
-      color: #ffffff; 
-      padding: 6px 10px; 
-      border-radius: 16px;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.4); 
-      font-size: 10px; 
-      font-weight: bold; 
-      cursor: pointer;
-      border: none; 
-      outline: none; 
-      transition: 0.2s; 
-      white-space: nowrap;
-    }
-    .btn-action:active { transform: scale(0.95); }
-    .btn-export { background: #007bff; }
-    .btn-dash { background: #6f42c1; }
-    .btn-upload { background: #ffc107; color: #333; }
-    .btn-location { background: #17a2b8; color: #fff; }
-
-    .export-menu-popup {
-      display: none; 
-      position: absolute; 
-      top: 175px; 
-      right: 10px; 
-      z-index: 1001;
-      background: #ffffff; 
-      border-radius: 8px; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      overflow: hidden; 
-      flex-direction: column; 
-      width: 150px;
-    }
-    .export-menu-popup button {
-      padding: 10px; 
-      border: none; 
-      background: white; 
-      text-align: left; 
-      font-size: 11px;
-      font-weight: bold; 
-      color: #333; 
-      cursor: pointer; 
-      border-bottom: 1px solid #eee;
-    }
-    .export-menu-popup button:hover { background: #f0f0f0; }
-
-    #coord-info {
-      position: absolute; 
-      bottom: 80px; 
-      right: 10px;
-      background: rgba(0, 0, 0, 0.85); 
-      color: #ffffff; 
-      padding: 5px 8px;
-      border-radius: 10px; 
-      font-size: 12px; 
-      font-family: monospace; 
-      z-index: 1000;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.4); 
-      text-align: right; 
-      pointer-events: none;
-    }
-
-    /* ==========================================
-       MAP LABELS & CUSTOM ICONS
-       ========================================== */
-    .point-name-label { 
-      font-size: 14px; 
-      font-weight: bold; 
-      white-space: nowrap; 
-      pointer-events: none; 
-    }
-    .point-name-label.text-white { color: #ffffff !important; }
-    .point-name-label.text-black {
-      color: #000000 !important;
-      text-shadow: 1px 1px 2px #ffffff, -1px -1px 2px #ffffff, 1px -1px 2px #ffffff, -1px 1px 2px #ffffff;
-    }
-
-    .camp-icon-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #dc3545;
-      border: 2px solid #ffffff;
-      border-radius: 50%;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-      width: 26px;
-      height: 26px;
-    }
-    .camp-icon-container svg {
-      fill: #ffffff;
-      width: 14px;
-      height: 14px;
-    }
-
-    /* ==========================================
-       DARK MODE DASHBOARD & MODAL STYLES
-       ========================================== */
-    .modal-page {
-      display: none; 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100vw; 
-      height: 100vh;
-      background-color: #121212 !important; 
-      color: #e0e0e0 !important;
-      z-index: 99999; 
-      flex-direction: column; 
-      overflow-y: auto; 
-      font-family: sans-serif;
-    }
-
-    .modal-header {
-      background-color: #1e1e1e !important;
-      border-bottom: 1px solid #333 !important;
-      color: #fff; 
-      padding: 12px 15px; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center;
-      position: sticky; 
-      top: 0; 
-      z-index: 100000;
-    }
-    .modal-header h2 { font-size: 13px; margin: 0; color: #ffffff !important; }
-    .btn-close { 
-      background: #dc3545; 
-      color: white; 
-      border: none; 
-      padding: 5px 10px; 
-      border-radius: 4px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      font-size: 11px; 
-    }
-    .modal-body { padding: 15px; max-width: 1200px; margin: 0 auto; width: 100%; }
-
-    .stat-card, 
-    .chart-box, 
-    .form-card, 
-    .crew-summary-card {
-      background-color: #1e1e1e !important;
-      border: 1px solid #333333 !important;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important;
-    }
-
-    .stat-card .stat-value,
-    .stat-card h3,
-    .stat-card h4,
-    .chart-box h3,
-    .form-card h3 { color: #ffffff !important; }
-
-    .stats-summary-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px; margin-bottom: 15px; }
-    @media(min-width: 600px) { .stats-summary-grid { grid-template-columns: repeat(2, 1fr); } }
-    .stat-card { padding: 12px; border-radius: 8px; border-left: 5px solid #007bff !important; }
-    .stat-card h4 { margin: 0 0 5px 0; font-size: 11px; text-transform: uppercase; }
-
-    .charts-wrapper { display: grid; grid-template-columns: repeat(1, 1fr); gap: 15px; margin-bottom: 15px; }
-    @media(min-width: 768px) { .charts-wrapper { grid-template-columns: repeat(2, 1fr); } }
-
-    .chart-box { padding: 15px; border-radius: 8px; text-align: center; }
-    .chart-box h3 { margin: 0 0 10px 0; font-size: 12px; }
-    .chart-canvas-holder { position: relative; height: 270px; width: 100%; }
-
-    .form-card { padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-
-    .crew-summary-card { padding: 15px; border-radius: 8px; }
-    .crew-table-container { background-color: #1e1e1e !important; }
-    .crew-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; text-align: left; color: #e0e0e0 !important; }
-    .crew-table th { 
-      background-color: #2a2a2a !important; 
-      color: #38ef7d !important; 
-      padding: 7px 10px; 
-      font-weight: 600; 
-      border-bottom: 2px solid #444 !important;
-    }
-    .crew-table td { padding: 7px 10px; border-bottom: 1px solid #333 !important; color: #d1d5db !important; }
-    .crew-table tr:nth-child(even) { background-color: #181818 !important; }
-    .crew-table tr:hover { background-color: #252525 !important; }
-
-    .filter-select, 
-    .form-control,
-    input[type="text"], 
-    input[type="date"], 
-    select {
-      background-color: #2a2a2a !important;
-      color: #ffffff !important;
-      border: 1px solid #444444 !important;
-    }
-    .filter-select:focus, 
-    .form-control:focus {
-      border-color: #11998e !important;
-      outline: none !important;
-    }
-
-    /* Scrollbar Dark Theme */
-    .modal-page::-webkit-scrollbar,
-    .crew-table-container::-webkit-scrollbar { width: 8px; height: 8px; }
-    .modal-page::-webkit-scrollbar-track,
-    .crew-table-container::-webkit-scrollbar-track { background: #121212; }
-    .modal-page::-webkit-scrollbar-thumb,
-    .crew-table-container::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-    .modal-page::-webkit-scrollbar-thumb:hover { background: #555; }
-  </style>
 </head>
 <body>
 
@@ -417,7 +130,7 @@
   </div>
   <div class="modal-body">
     <!-- 1. UPLOAD CSV/TXT -->
-    <div class="form-card" style="border-left: 6px solid #ffc107 !important;">
+    <div class="form-card" style="border-left: 6px solid #00ff00 !important;">
       <h3 style="margin-top: 0; font-size: 13px;">📄 1. Upload File Progress (.csv / .txt)</h3>
       <p style="font-size: 10px; color: #aaa; line-height: 1.4; margin-bottom: 12px;">
         Urutan: <code style="background:#333; color:#38ef7d; padding:2px 4px;">Tanggal, Kru, Line, Dari_SP, Sampai_SP, Kode_Status</code><br>
@@ -431,7 +144,7 @@
           <option value="ALL">Semua Blok</option>
         </select>
         <input type="file" id="fileReportInput" accept=".txt,.csv" style="padding: 8px; border-radius: 4px; font-size: 11px;">
-        <button id="btnExecuteUploadFile" style="background: #ffc107; color: #212529; border: none; padding: 9px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Proses & Sync Supabase</button>
+        <button id="btnExecuteUploadFile" style="background: #00ff00; color: #212529; border: none; padding: 9px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Proses & Sync Supabase</button>
       </div>
     </div>
 
@@ -470,7 +183,6 @@
 <script>
   Chart.register(ChartDataLabels);
 
-  // Plugin Chart: Menampilkan Total Poin & Kumulatif KM di Tengah Donut Chart
   const centerTextPlugin = {
     id: 'centerText',
     beforeDraw(chart) {
@@ -489,23 +201,21 @@
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      // 1. Baris Pertama: Total Poin
       ctx.font = 'bold 9px sans-serif';
       ctx.fillStyle = '#aaa';
-      ctx.fillText("TOTAL POIN", width / 2, (height / 2) - 30 + yOffset);
+      ctx.fillText("TOTAL POIN", width / 2, (height / 2) - 46 + yOffset);
 
       ctx.font = 'bold 15px sans-serif';
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(textPointsNum, width / 2, (height / 2) - 14 + yOffset);
+      ctx.fillText(textPointsNum, width / 2, (height / 2) - 30 + yOffset);
 
-      // 2. Baris Kedua: Total Kumulatif Jarak
       ctx.font = 'bold 9px sans-serif';
       ctx.fillStyle = '#aaa';
-      ctx.fillText("KUMULATIF JARAK", width / 2, (height / 2) + 4 + yOffset);
+      ctx.fillText("KUMULATIF JARAK", width / 2, (height / 2) - 6 + yOffset);
 
       ctx.font = 'bold 13px sans-serif';
       ctx.fillStyle = '#38ef7d';
-      ctx.fillText(`${totalKmText} km`, width / 2, (height / 2) + 16 + yOffset);
+      ctx.fillText(`${totalKmText} km`, width / 2, (height / 2) + 10 + yOffset);
       
       ctx.restore();
     }
@@ -746,6 +456,7 @@
     const groupLintasan = L.layerGroup().addTo(map);
     const groupKeterangan = L.layerGroup().addTo(map);
     const groupCamp = L.layerGroup().addTo(map);
+    const groupHazard = L.layerGroup().addTo(map);
 
     let userMarker = null;
     document.getElementById("btn-current").onclick = () => {
@@ -931,6 +642,43 @@
           }).addTo(groupCamp);
         }
       });
+
+      // LOAD HAZARD MAP
+      loadGeoJsonFile("HazardMap_leaflet.geojson").then(hazardData => {
+        if (hazardData) {
+          L.geoJSON(hazardData, {
+            style: {
+              color: '#ff0000',
+              weight: 2,
+              fillColor: '#ff4d4d',
+              fillOpacity: 0.4,
+              dashArray: '5, 5'
+            },
+            pointToLayer: (f, latlng) => {
+              return L.circleMarker(latlng, {
+                radius: 7,
+                fillColor: '#ff0000',
+                color: '#ffffff',
+                weight: 2,
+                fillOpacity: 0.9
+              });
+            },
+            onEachFeature: (f, l) => {
+              const p = f.properties || {};
+              const namaHazard = p.Hazard_Type || p.Type || p.Keterangan || p.Name || p.ID || "Area Bahaya";
+              const deskripsi = p.Desc_ || p.Description || p.Keterangan || p.KETERANGAN;
+              
+              l.bindPopup(`
+                <div style="font-size:11px; font-family:sans-serif;">
+                  <b style="color:#d9534f; font-size:12px;">⚠️ HAZARD AREA</b><br>
+                  <b>Jenis:</b> ${namaHazard}<br>
+                  <b>Keterangan:</b> ${deskripsi}
+                </div>
+              `);
+            }
+          }).addTo(groupHazard);
+        }
+      });
     }
 
     async function initAppData() {
@@ -996,7 +744,6 @@
         </div>
       `;
 
-      // 1. CHART SOURCE (S)
       const ctxSource = document.getElementById('sourceChart').getContext('2d');
       if (chartSourceInstance) chartSourceInstance.destroy();
       
@@ -1006,7 +753,7 @@
           labels: ['Topo (1)', 'Rintis (2)', 'Bridge (3)', 'Drilling (4)', 'Belum (0)'],
           datasets: [{
             data: [statS.topo, statS.rintis, statS.bridging, statS.drilling, statS.uncompleted],
-            backgroundColor: ['#ffc107', '#28a745', '#343a40', '#8b0000', '#D2B48C']
+            backgroundColor: ['#00ff00', '#28a745', '#343a40', '#8b0000', '#D2B48C']
           }]
         },
         options: {
@@ -1029,7 +776,6 @@
         plugins: [centerTextPlugin]
       });
 
-      // 2. CHART RECEIVER (R)
       const ctxReceiver = document.getElementById('receiverChart').getContext('2d');
       if (chartReceiverInstance) chartReceiverInstance.destroy();
 
@@ -1039,7 +785,7 @@
           labels: ['Topo (1)', 'Rintis (2)', 'Bridge (3)', 'Recording (5)', 'Belum (0)'],
           datasets: [{
             data: [statR.topo, statR.rintis, statR.bridging, statR.recording, statR.uncompleted],
-            backgroundColor: ['#ffc107', '#28a745', '#343a40', '#00008b', '#A9A9A9']
+            backgroundColor: ['#00ff00', '#28a745', '#343a40', '#00008b', '#A9A9A9']
           }]
         },
         options: {
@@ -1239,7 +985,8 @@
         "BM GPS": groupBM,
         "Label Lintasan": groupLintasan,
         "Keterangan": groupKeterangan,
-        "Camp Seismik": groupCamp
+        "Camp Seismik": groupCamp,
+        "⚠️ Hazard Map": groupHazard
       },
       { position: "topright" }
     ).addTo(map);
@@ -1262,7 +1009,7 @@
       if (code === 4) return "#8b0000";
       if (code === 3) return "#000000";
       if (code === 2) return "#28a745";
-      if (code === 1) return "#ffc107";
+      if (code === 1) return "#00ff00";
       
       const isSource = String(descType || properties.Desc_ || "").trim().toUpperCase() === "S";
       return isSource ? "#D2B48C" : "#A9A9A9";
