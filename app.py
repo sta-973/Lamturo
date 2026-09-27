@@ -5,48 +5,104 @@ from flask import (
     Flask,
     jsonify,
     make_response,
+    redirect,
     render_template,
     request,
     send_from_directory,
+    session,
+    url_for,
 )
 from pyproj import Transformer
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
+
+# Secret key untuk mengaktifkan fitur session/cookie login Flask
+app.secret_key = os.getenv("SECRET_KEY", "bgp_seismik_secret_key_2026_xyz")
 
 # Password utama proyek (Mendukung environment variable Vercel atau default 'BGPbisa3x')
 DEFAULT_PASSWORD = "BGPbisa3x"
 PROJECT_PASSWORD = os.getenv("ADMIN_PASSWORD", DEFAULT_PASSWORD)
 
 # Jalur penyimpanan file survey lokal (Vercel read-only filesystem handling)
-PICK_FILE = os.path.join("/tmp", "survey_picks.geojson") if os.getenv("VERCEL") else os.path.join("static", "survey_picks.geojson")
+PICK_FILE = (
+    os.path.join("/tmp", "survey_picks.geojson")
+    if os.getenv("VERCEL")
+    else os.path.join("static", "survey_picks.geojson")
+)
 
 # Transformer Koordinat: WGS84 (EPSG:4326) <-> UTM Zone 49S (EPSG:32749)
 transformer_to_utm = Transformer.from_crs("EPSG:4326", "EPSG:32749", always_xy=True)
 transformer_to_wgs = Transformer.from_crs("EPSG:32749", "EPSG:4326", always_xy=True)
 
 
+# ==========================================
+# ROUTE AKSES & AUTHENTICATION (LOGIN/LOGOUT)
+# ==========================================
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """Halaman Form Login khusus untuk Client / Kru"""
+    error = None
+    if request.method == "POST":
+        input_pass = request.form.get("password", "").strip()
+        current_pass = PROJECT_PASSWORD.strip()
+
+        # Verifikasi password (Mendukung case-insensitive & default password)
+        if (
+            input_pass == current_pass
+            or input_pass.upper() == current_pass.upper()
+            or input_pass == DEFAULT_PASSWORD
+        ):
+            session["logged_in"] = True
+            return redirect(url_for("index"))
+        else:
+            error = "Password salah! Silakan periksa kembali."
+
+    return render_template("login.html", error=error)
+
+
+@app.route("/logout")
+def logout():
+    """Mengakhiri sesi login pengguna"""
+    session.pop("logged_in", None)
+    return redirect(url_for("login"))
+
+
 @app.route("/")
 def index():
+    """Halaman Utama WebGIS (Perlu Login)"""
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
     return render_template("index.html")
 
 
 @app.route("/api/verify-phone", methods=["POST"])
 def verify_phone():
-    """Verifikasi password akses kru / admin"""
+    """Verifikasi password akses via API / Frontend AJAX"""
     data = request.get_json() or {}
     input_pass = data.get("password") or data.get("phone") or ""
     input_pass = str(input_pass).strip()
 
-    # Pengecekan case-insensitive & memprioritaskan password baru BGPbisa3x
     current_pass = PROJECT_PASSWORD.strip()
-    
-    if input_pass == current_pass or input_pass.upper() == current_pass.upper() or input_pass == DEFAULT_PASSWORD:
+
+    if (
+        input_pass == current_pass
+        or input_pass.upper() == current_pass.upper()
+        or input_pass == DEFAULT_PASSWORD
+    ):
+        session["logged_in"] = True  # Simpan status login juga di session
         return jsonify({"status": "success", "message": "Akses diterima"}), 200
-    
-    return jsonify({
-        "status": "error",
-        "message": "Password salah atau akses ditolak"
-    }), 401
+
+    return (
+        jsonify({"status": "error", "message": "Password salah atau akses ditolak"}),
+        401,
+    )
+
+
+# ==========================================
+# ROUTE API SURVEI & KOORDINAT
+# ==========================================
 
 
 @app.route("/api/convert-coords", methods=["POST"])
@@ -57,20 +113,28 @@ def convert_coords():
     northing = data.get("northing")
 
     if easting is None or northing is None:
-        return jsonify(
-            {"status": "error", "message": "Easting dan Northing wajib diisi"}
-        ), 400
+        return (
+            jsonify(
+                {"status": "error", "message": "Easting dan Northing wajib diisi"}
+            ),
+            400,
+        )
 
     try:
         lng, lat = transformer_to_wgs.transform(float(easting), float(northing))
-        return jsonify({
-            "status": "success",
-            "zone": "UTM 49S",
-            "easting": float(easting),
-            "northing": float(northing),
-            "longitude": round(lng, 7),
-            "latitude": round(lat, 7),
-        }), 200
+        return (
+            jsonify(
+                {
+                    "status": "success",
+                    "zone": "UTM 49S",
+                    "easting": float(easting),
+                    "northing": float(northing),
+                    "longitude": round(lng, 7),
+                    "latitude": round(lat, 7),
+                }
+            ),
+            200,
+        )
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -87,9 +151,10 @@ def save_pick_point():
     alt = data.get("alt", 0)
 
     if lat is None or lng is None:
-        return jsonify(
-            {"status": "error", "message": "Koordinat GPS tidak valid"}
-        ), 400
+        return (
+            jsonify({"status": "error", "message": "Koordinat GPS tidak valid"}),
+            400,
+        )
 
     try:
         # 1. Konversi WGS84 ke UTM Zone 49S
@@ -139,17 +204,27 @@ def save_pick_point():
         with open(PICK_FILE, "w", encoding="utf-8") as f:
             json.dump(geojson_data, f, indent=2)
 
-        return jsonify({
-            "status": "success",
-            "message": f"Point '{point_name}' ({block_name}) tersimpan!",
-            "feature": new_feature,
-        }), 200
+        return (
+            jsonify(
+                {
+                    "status": "success",
+                    "message": f"Point '{point_name}' ({block_name}) tersimpan!",
+                    "feature": new_feature,
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": f"Gagal memproses data: {str(e)}",
-        }), 500
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": f"Gagal memproses data: {str(e)}",
+                }
+            ),
+            500,
+        )
 
 
 @app.route("/api/get-picks", methods=["GET"])
