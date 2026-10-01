@@ -564,7 +564,7 @@
             pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: '#ff00ff', color: '#ffffff', weight: 2, fillOpacity: 0.95 }),
             onEachFeature: (f, l) => {
               const p = f.properties || {};
-              l.bindPopup(`<b>BM GPS:</b> ${p.ID || p.Name || p.BM_NAME || 'Benchmark Point'}`);
+              l.bindPopup(`<b>BM GPS:</b> ${p.kode || p.Name || p.BM_NAME || 'Benchmark Point'}`);
             }
           }).addTo(groupBM);
         }
