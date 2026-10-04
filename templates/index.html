@@ -19,33 +19,89 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+  <!-- Leaflet Routing Machine CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.min.js"></script>
+
   <!-- Geoman Leaflet Plugin -->
   <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
   <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
 </head>
 <body>
 
-<div id="map">
-  <div class="top-controls-container">
-    <div class="block-selector-box">
-      <select id="mainSelectBlock">
-        <option value="East_Block">East Block</option>
-        <option value="Central_Block">Central</option>
-        <option value="West_Block">West</option>
-        <option value="ALL" selected>Semua Blok</option>
-      </select>
+  <!-- CONTAINER PETA -->
+  <div id="map">
+    <!-- Kontrol Atas (Pilihan Blok & Pencarian) -->
+    <div class="top-controls-container">
+      <div class="block-selector-box">
+        <select id="mainSelectBlock">
+          <option value="East_Block">East Block</option>
+          <option value="Central_Block">Central</option>
+          <option value="West_Block">West</option>
+          <option value="ALL" selected>Semua Blok</option>
+        </select>
+      </div>
+
+      <div class="search-box">
+        <input id="searchBox" type="text" placeholder="🔍 Cari ID Stasiun...">
+      </div>
     </div>
     
-    <div class="search-box">
-      <input id="searchBox" type="text" placeholder="🔍 Cari ID...">
+    <!-- Tombol Aksi Kanan / Melayang -->
+    <div class="action-buttons-group">
+      <button class="btn-action btn-dash" id="btn-open-dashboard">📊 Dashboard</button>
+      <button class="btn-action btn-upload" id="btn-open-upload">🔒 Update Peta</button>
+      <button class="btn-action btn-location" id="btn-current" title="Tampilkan lokasi saya">📍 Lokasi Saya</button>
+      <button class="btn-action btn-nav" id="btn-toggle-nav-panel" onclick="toggleNavMenu()" title="Menu Navigasi & Jarak">🧭 Navigasi</button>
+      <button class="btn-action btn-export" id="btn-toggle-export">💾 Export ▾</button>
+      <button class="btn-action btn-hse" onclick="toggleHseBoard()">🛡️ HSE Board</button>
     </div>
   </div>
-  
-  <div class="action-buttons-group">
-    <button class="btn-action btn-dash" id="btn-open-dashboard">📊 Dashboard</button>
-    <button class="btn-action btn-upload" id="btn-open-upload">🔒 Update Peta</button>
-    <button class="btn-action btn-location" id="btn-current" title="Tampilkan lokasi saya">📍 Lokasi Saya</button>
-    <button class="btn-action btn-export" id="btn-toggle-export">💾 Export ▾</button>
+
+  <!-- HSE PERFORMANCE BOARD MODAL (Diletakkan di Luar #map agar melayang sempurna) -->
+  <div id="hse-board" class="hse-board-modal" style="display: none;">
+    <div class="hse-header">
+      <span class="hse-title-text">HSE PERFORMANCE BOARD</span>
+      <button class="hse-close-btn" onclick="toggleHseBoard()">&times;</button>
+    </div>
+    
+    <table class="hse-table">
+      <tr><td>DATE</td><td id="hse-date" align="right"></td></tr>
+      <tr><td>DAY / POB</td><td align="right"><span id="hse-day"></span> <span id="hse-pob"></span></td></tr>
+      <tr><td>MANHOURS</td><td id="hse-manhours" align="right"></td></tr>
+      <tr><td>TOTAL FAT</td><td id="hse-fat" align="right"></td></tr>
+      <tr><td>TOTAL LTI</td><td id="hse-lti" align="right"></td></tr>
+      <tr><td>TOTAL RWC</td><td id="hse-rwc" align="right"></td></tr>
+      <tr><td>TOTAL MTC</td><td id="hse-mtc" align="right"></td></tr>
+      <tr><td>TOTAL FAC</td><td id="hse-fac" align="right"></td></tr>
+      <tr><td>TOTAL NM</td><td id="hse-nm" align="right"></td></tr>
+      <tr><td>TOTAL UA/UC</td><td id="hse-uauc" align="right"></td></tr>
+    </table>
+  </div>
+
+  <!-- PANEL MENU NAVIGASI (BARU) -->
+  <div id="navMenuPanel" class="nav-menu-panel">
+    <div class="nav-panel-header">
+      <span>🧭 Menu Navigasi & Ukur Jarak</span>
+      <button id="btn-close-nav-panel" class="btn-panel-close">✕</button>
+    </div>
+    <div class="nav-panel-body">
+      <label class="nav-label">Pilih Mode Navigasi:</label>
+      <select id="navModeSelect" class="nav-select">
+        <option value="straight">📐 Line Lurus (Garis + Jarak Direct)</option>
+        <option value="road">🚗 Ikut Jalan Google Map (Routing Road)</option>
+      </select>
+
+      <div class="nav-btn-stack">
+        <button id="btn-start-nav" class="btn-nav-action btn-primary-nav">📍 Mulai dari Lokasi Saya ke ID Stasiun</button>
+        <button id="btn-pick-map-nav" class="btn-nav-action btn-secondary-nav">👆 Klik 2 Titik Manual di Peta</button>
+        <button id="btn-clear-nav" class="btn-nav-action btn-danger-nav">🗑️ Hapus Garis Navigasi</button>
+      </div>
+
+      <div id="navResultBox" class="nav-result-box" style="display: none;">
+        <span id="navResultText">Jarak: -</span>
+      </div>
+    </div>
   </div>
 
   <!-- Popup Export -->
@@ -55,7 +111,6 @@
   </div>
 
   <div id="coord-info">Lat: -, Lon: -</div>
-</div>
 
 <!-- DASHBOARD MODAL -->
 <div id="dashboard-page" class="modal-page">
@@ -183,6 +238,7 @@
 <script>
   Chart.register(ChartDataLabels);
 
+  // Plugin Chart: Menampilkan Total Poin & Kumulatif KM di Tengah Donut Chart
   const centerTextPlugin = {
     id: 'centerText',
     beforeDraw(chart) {
@@ -201,6 +257,7 @@
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
+      // 1. Baris Pertama: Total Poin
       ctx.font = 'bold 9px sans-serif';
       ctx.fillStyle = '#aaa';
       ctx.fillText("TOTAL POIN", width / 2, (height / 2) - 46 + yOffset);
@@ -209,6 +266,7 @@
       ctx.fillStyle = '#ffffff';
       ctx.fillText(textPointsNum, width / 2, (height / 2) - 30 + yOffset);
 
+      // 2. Baris Kedua: Total Kumulatif Jarak
       ctx.font = 'bold 9px sans-serif';
       ctx.fillStyle = '#aaa';
       ctx.fillText("KUMULATIF JARAK", width / 2, (height / 2) - 6 + yOffset);
@@ -233,6 +291,13 @@
   
   let chartSourceInstance = null;
   let chartReceiverInstance = null;
+
+  // VARIABEL GLOBAL NAVIGASI & GARIS
+  let routingControl = null;
+  let customNavPolyline = null;
+  let customNavMarkers = [];
+  let isPickingPointsOnMap = false;
+  let pickedPoints = [];
 
   function normalizeBlockName(name) {
     if (!name) return "";
@@ -428,11 +493,107 @@
     return (totalMeter / 1000).toFixed(3);
   }
 
+  // FUNGSIONALITAS BERSIH APLIKASI NAVIGASI
+  window.clearAllNavigation = function() {
+    if (routingControl) {
+      window.currentMap.removeControl(routingControl);
+      routingControl = null;
+    }
+    if (customNavPolyline) {
+      window.currentMap.removeLayer(customNavPolyline);
+      customNavPolyline = null;
+    }
+    if (customNavMarkers.length > 0) {
+      customNavMarkers.forEach(m => window.currentMap.removeLayer(m));
+      customNavMarkers = [];
+    }
+    pickedPoints = [];
+    isPickingPointsOnMap = false;
+
+    const navBox = document.getElementById("navResultBox");
+    if (navBox) navBox.style.display = "none";
+  };
+
+  window.drawNavigationRoute = function(lat1, lng1, lat2, lng2, mode, titleLabel) {
+    window.clearAllNavigation();
+
+    const resultBox = document.getElementById("navResultBox");
+    const resultText = document.getElementById("navResultText");
+
+    if (mode === "straight") {
+      const p1 = L.latLng(lat1, lng1);
+      const p2 = L.latLng(lat2, lng2);
+      const meters = p1.distanceTo(p2);
+
+      let distFormatted = meters >= 1000 ? (meters / 1000).toFixed(3) + " km" : meters.toFixed(1) + " meter";
+
+      customNavPolyline = L.polyline([p1, p2], { color: '#00e5ff', weight: 5, dashArray: '8, 8' }).addTo(window.currentMap);
+
+      const m1 = L.marker(p1).addTo(window.currentMap).bindPopup("📍 Titik Awal").openPopup();
+      const m2 = L.marker(p2).addTo(window.currentMap).bindPopup(`🎯 Titik Tujuan: ${titleLabel || ''}<br><b>Jarak: ${distFormatted}</b>`);
+      
+      customNavMarkers.push(m1, m2);
+
+      const bounds = L.latLngBounds([p1, p2]);
+      window.currentMap.fitBounds(bounds, { padding: [50, 50] });
+
+      if (resultBox && resultText) {
+        resultText.innerHTML = `📐 <b>Jarak Lurus Direct:</b> <span style="color:#38ef7d; font-size:14px;">${distFormatted}</span>`;
+        resultBox.style.display = "block";
+      }
+    } else {
+      routingControl = L.Routing.control({
+        waypoints: [L.latLng(lat1, lng1), L.latLng(lat2, lng2)],
+        routeWhileDragging: false,
+        lineOptions: { styles: [{ color: '#ff007f', opacity: 0.9, weight: 6 }] },
+        show: true,
+        addWaypoints: false,
+        collapsible: true
+      }).addTo(window.currentMap);
+
+      routingControl.on('routesfound', function(e) {
+        const routes = e.routes;
+        if (routes && routes.length > 0) {
+          const totalDistanceMeters = routes[0].summary.totalDistance;
+          let distFormatted = totalDistanceMeters >= 1000 ? (totalDistanceMeters / 1000).toFixed(3) + " km" : totalDistanceMeters.toFixed(1) + " meter";
+
+          if (resultBox && resultText) {
+            resultText.innerHTML = `🚗 <b>Jarak Rute Jalan (Google Map):</b> <span style="color:#38ef7d; font-size:14px;">${distFormatted}</span>`;
+            resultBox.style.display = "block";
+          }
+        }
+      });
+    }
+  };
+
+  window.navigateToTarget = function(destLat, destLng, destName) {
+    if (!navigator.geolocation) {
+      alert("⚠️ Akses Geolocation tidak didukung di perangkat ini.");
+      return;
+    }
+
+    const selectedMode = document.getElementById("navModeSelect") ? document.getElementById("navModeSelect").value : "straight";
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const userLat = pos.coords.latitude;
+        const userLng = pos.coords.longitude;
+        window.drawNavigationRoute(userLat, userLng, destLat, destLng, selectedMode, destName);
+        window.currentMap.closePopup();
+      },
+      (err) => {
+        alert("⚠️️ Gagal mengambil posisi presisi Anda. Pastikan Izin GPS/Lokasi Aktif!");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   document.addEventListener("DOMContentLoaded", function() {
     const map = L.map("map", { 
       preferCanvas: true, zoomControl: false, tap: true, touchZoom: true 
-    }).setView([-7.15, 111.88], 13);
+    }).setView([-7.1, 112.2], 13);
     
+    window.currentMap = map;
     L.control.zoom({ position: "topleft" }).addTo(map);
   
     // BASEMAPS
@@ -484,6 +645,66 @@
         }
       });
     }
+
+    // HANDLER EVENT PANEL MENU NAVIGASI (BARU)
+    const navMenuPanel = document.getElementById("navMenuPanel");
+    const btnToggleNav = document.getElementById("btn-toggle-nav-panel");
+    const btnCloseNav = document.getElementById("btn-close-nav-panel");
+
+    btnToggleNav.addEventListener("click", () => {
+      navMenuPanel.style.display = (navMenuPanel.style.display === "flex") ? "none" : "flex";
+    });
+
+    btnCloseNav.addEventListener("click", () => {
+      navMenuPanel.style.display = "none";
+    });
+
+    document.getElementById("btn-clear-nav").addEventListener("click", () => {
+      window.clearAllNavigation();
+      alert("🧹 Garis navigasi telah dibersihkan.");
+    });
+
+    document.getElementById("btn-start-nav").addEventListener("click", () => {
+      const searchBoxVal = document.getElementById("searchBox").value.trim().toLowerCase();
+      if (!searchBoxVal) {
+        alert("⚠️ Ketikkan dulu ID Stasiun di kolom pencarian atas (misal: ID Stasiun/TR), atau klik tombol 'Rute Ke Sini' pada titik popup peta!");
+        return;
+      }
+
+      let foundFeature = allFeatures.find(f => {
+        const p = f.properties || {};
+        return String(p.ID || "").trim().toLowerCase() === searchBoxVal || String(p.NEWID || "").trim().toLowerCase() === searchBoxVal;
+      });
+
+      if (foundFeature && foundFeature.geometry && foundFeature.geometry.coordinates) {
+        const targetLng = foundFeature.geometry.coordinates[0];
+        const targetLat = foundFeature.geometry.coordinates[1];
+        const pointName = getPointName(foundFeature.properties);
+        window.navigateToTarget(targetLat, targetLng, pointName);
+      } else {
+        alert("⚠️ ID Stasiun dari kolom pencarian tidak ditemukan pada peta!");
+      }
+    });
+
+    document.getElementById("btn-pick-map-nav").addEventListener("click", () => {
+      window.clearAllNavigation();
+      isPickingPointsOnMap = true;
+      alert("👇 Silakan KLIK DUA TITIK secara berurutan di Peta untuk mengukur jarak.");
+    });
+
+    map.on("click", function(e) {
+      if (!isPickingPointsOnMap) return;
+
+      pickedPoints.push(e.latlng);
+      const marker = L.marker(e.latlng).addTo(map).bindPopup(`Titik ${pickedPoints.length}`).openPopup();
+      customNavMarkers.push(marker);
+
+      if (pickedPoints.length === 2) {
+        isPickingPointsOnMap = false;
+        const selectedMode = document.getElementById("navModeSelect").value;
+        window.drawNavigationRoute(pickedPoints[0].lat, pickedPoints[0].lng, pickedPoints[1].lat, pickedPoints[1].lng, selectedMode, "Titik Pilihan Manual");
+      }
+    });
 
     const dashboardPage = document.getElementById("dashboard-page");
     const uploadPage = document.getElementById("upload-page");
@@ -561,10 +782,24 @@
       loadGeoJsonFile("East_GPS.geojson").then(bmData => {
         if (bmData) {
           L.geoJSON(bmData, {
-            pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: '#ff00ff', color: '#ffffff', weight: 2, fillOpacity: 0.95 }),
+            pointToLayer: (f, latlng) => {
+                const squareIcon = L.divIcon({
+                    className: 'custom-square-marker',
+                    html: `<div style="
+                        width: 12px;
+                        height: 12px;
+                        background-color: #0000FF;
+                        border: 2px solid #0000ff;
+                        box-shadow: 0 0 3px rgba(0,0,0,0.5);
+                    "></div>`,
+                    iconSize: [12, 12],
+                    iconAnchor: [6, 6]
+                });
+                return L.marker(latlng, { icon: squareIcon });
+            },
             onEachFeature: (f, l) => {
               const p = f.properties || {};
-              l.bindPopup(`<b>BM GPS:</b> ${p.kode || p.Name || p.BM_NAME || 'Benchmark Point'}`);
+              l.bindPopup(`<b>BM GPS:</b> ${p.kode || 'Benchmark Point'}`);
             }
           }).addTo(groupBM);
         }
@@ -643,38 +878,27 @@
         }
       });
 
-      // LOAD HAZARD MAP
-      loadGeoJsonFile("HazardMap_leaflet.geojson").then(hazardData => {
+      loadGeoJsonFile("hazardMap_leaflet.geojson").then(hazardData => {
         if (hazardData) {
           L.geoJSON(hazardData, {
             style: {
-              color: '#ff0000',
+              color: '#dc3545',
               weight: 2,
-              fillColor: '#ff4d4d',
-              fillOpacity: 0.4,
+              fillColor: '#dc3545',
+              fillOpacity: 0.45,
               dashArray: '5, 5'
             },
-            pointToLayer: (f, latlng) => {
-              return L.circleMarker(latlng, {
-                radius: 7,
-                fillColor: '#ff0000',
-                color: '#ffffff',
-                weight: 2,
-                fillOpacity: 0.9
-              });
-            },
+            pointToLayer: (f, latlng) => L.circleMarker(latlng, {
+              radius: 7,
+              fillColor: '#dc3545',
+              color: '#ffffff',
+              weight: 2,
+              fillOpacity: 0.9
+            }),
             onEachFeature: (f, l) => {
               const p = f.properties || {};
-              const namaHazard = p.Hazard_Type || p.Type || p.Keterangan || p.Name || p.ID || "Area Bahaya";
-              const deskripsi = p.Desc_ || p.Description || p.Keterangan || p.KETERANGAN;
-              
-              l.bindPopup(`
-                <div style="font-size:11px; font-family:sans-serif;">
-                  <b style="color:#d9534f; font-size:12px;">⚠️ HAZARD AREA</b><br>
-                  <b>Jenis:</b> ${namaHazard}<br>
-                  <b>Keterangan:</b> ${deskripsi}
-                </div>
-              `);
+              const infoHazard = p.KETERANGAN || p.Nama || p.Keterangan || p.Desc_ || "Area Potensi Bahaya / Hazard";
+              l.bindPopup(`<b style="color:#dc3545;">⚠️ Hazard Map:</b> ${infoHazard}`);
             }
           }).addTo(groupHazard);
         }
@@ -718,7 +942,7 @@
       blocks.forEach(b => {
         if (rawData[b] && Array.isArray(rawData[b].features)) {
           rawData[b].features.forEach(f => {
-            const desc = String(f.properties?.Desc_ || "").trim().toUpperCase();
+            const desc = String(f.properties?.Desc_ || f.properties?.Type || f.properties?.Point_Type || "").trim().toUpperCase();
             if (desc === "S") featuresS.push(f);
             else if (desc === "R") featuresR.push(f);
           });
@@ -744,6 +968,7 @@
         </div>
       `;
 
+      // 1. CHART SOURCE (S)
       const ctxSource = document.getElementById('sourceChart').getContext('2d');
       if (chartSourceInstance) chartSourceInstance.destroy();
       
@@ -776,6 +1001,7 @@
         plugins: [centerTextPlugin]
       });
 
+      // 2. CHART RECEIVER (R)
       const ctxReceiver = document.getElementById('receiverChart').getContext('2d');
       if (chartReceiverInstance) chartReceiverInstance.destroy();
 
@@ -986,7 +1212,7 @@
         "Label Lintasan": groupLintasan,
         "Keterangan": groupKeterangan,
         "Camp Seismik": groupCamp,
-        "⚠️ Hazard Map": groupHazard
+        "Hazard Area ⚠️": groupHazard
       },
       { position: "topright" }
     ).addTo(map);
@@ -1011,13 +1237,13 @@
       if (code === 2) return "#28a745";
       if (code === 1) return "#00ff00";
       
-      const isSource = String(descType || properties.Desc_ || "").trim().toUpperCase() === "S";
+      const isSource = String(descType || properties.Desc_ || properties.Type || properties.Point_Type || "").trim().toUpperCase() === "S";
       return isSource ? "#D2B48C" : "#A9A9A9";
     }
 
     function getPointName(p) {
       if (!p) return "";
-      return p.NEWID && p.NEWID.trim() !== "" ? p.NEWID : (p.ID || "");
+      return p.NEWID && String(p.NEWID).trim() !== "" ? p.NEWID : (p.ID || p.Point_Name || p.Point || "");
     }
   
     function renderBlockOnMap(selectedBlock) {
@@ -1032,9 +1258,9 @@
       blocks.forEach(b => {
         if (rawData[b] && Array.isArray(rawData[b].features)) {
           rawData[b].features.forEach(f => {
-            const desc = String(f.properties?.Desc_ || "").trim().toUpperCase();
+            const desc = String(f.properties?.Desc_ || f.properties?.Type || f.properties?.Point_Type || "R").trim().toUpperCase();
             if (desc === "S") featuresS.push(f);
-            else if (desc === "R") featuresR.push(f);
+            else featuresR.push(f);
             allFeatures.push(f);
           });
         }
@@ -1042,13 +1268,25 @@
   
       let bounds = L.latLngBounds([]);
 
+      // Helper penyaring koordinat presisi agar peta tidak melompat ke luar wilayah proyek
+      const addValidLatLngsToBounds = (layerGroup) => {
+        layerGroup.eachLayer(layer => {
+          if (layer.getLatLng) {
+            const latlng = layer.getLatLng();
+            if (latlng && !isNaN(latlng.lat) && !isNaN(latlng.lng) && latlng.lat !== 0 && latlng.lng !== 0) {
+              bounds.extend(latlng);
+            }
+          }
+        });
+      };
+
       if (featuresS.length > 0) {
         const layerS = L.geoJSON({ type: "FeatureCollection", features: featuresS }, {
           pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 3, fillColor: getPointColor(f.properties || {}, "S"), stroke: false, fillOpacity: 0.85 }),
           onEachFeature: (f, l) => { bindPopup(f, l); groupSource.addLayer(l); }
         });
         loadedLayers.push(layerS);
-        bounds.extend(layerS.getBounds());
+        addValidLatLngsToBounds(layerS);
       }
   
       if (featuresR.length > 0) {
@@ -1057,10 +1295,16 @@
           onEachFeature: (f, l) => { bindPopup(f, l); groupReceiver.addLayer(l); }
         });
         loadedLayers.push(layerR);
-        bounds.extend(layerR.getBounds());
+        addValidLatLngsToBounds(layerR);
       }
   
-      if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30] });
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+      } else {
+        map.setView([-7.1, 112.2], 13);
+      }
+
+      setTimeout(() => { map.invalidateSize(); }, 300);
       updatePointLabels();
     }
   
@@ -1095,9 +1339,12 @@
     function bindPopup(feature, layer) {
       const p = feature.properties || {};
       const pointName = getPointName(p) || p.ID || "Poin";
-      const infoKru = p.Kru && p.Kru.trim() !== "" ? `${p.Kru} (${p.Tanggal})` : '- Belum ada data -';
+      const infoKru = p.Kru && String(p.Kru).trim() !== "" ? `${p.Kru} (${p.Tanggal})` : '- Belum ada data -';
       const geoLine = getFeatureLine(p);
       const geoTr = getFeatureTr(p);
+      
+      const lat = feature.geometry && feature.geometry.coordinates ? feature.geometry.coordinates[1] : 0;
+      const lng = feature.geometry && feature.geometry.coordinates ? feature.geometry.coordinates[0] : 0;
 
       layer.bindPopup(`
         <div style="font-size:11px; font-family:sans-serif;">
@@ -1105,7 +1352,10 @@
           <b>Line:</b> ${geoLine || '-'} | <b>Tr:</b> ${isNaN(geoTr) ? '-' : geoTr}<br>
           <b>Pelaksana:</b> <span style="color: #28a745; font-weight: bold;">${infoKru}</span><br>
           <hr style="margin:3px 0">
-          <b>Status:</b> Topo(${p.topo||0}) | Rintis(${p.rintis||0}) | Bridge(${p.bridging||0}) | Drill(${p.drilling||0}) | Rec(${p.recording||0})
+          <b>Status:</b> Topo(${p.topo||0}) | Rintis(${p.rintis||0}) | Bridge(${p.bridging||0}) | Drill(${p.drilling||0}) | Rec(${p.recording||0})<br>
+          <button class="btn-route-action" onclick="window.navigateToTarget(${lat}, ${lng}, '${pointName}')" style="margin-top:5px; width:100%; padding:4px; background:#007bff; color:#fff; border:none; border-radius:3px; cursor:pointer;">
+            🧭 Rute Ke Sini
+          </button>
         </div>
       `);
     }
@@ -1351,6 +1601,8 @@
       document.getElementById("coord-info").innerHTML = `Lat: ${e.latlng.lat.toFixed(5)}, Lon: ${e.latlng.lng.toFixed(5)}`;
     });
   });
+  
 </script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
