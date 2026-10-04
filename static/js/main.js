@@ -1,343 +1,201 @@
 /* ==========================================================================
-   WEBGIS SEISMIK - MAIN JAVASCRIPT (FIXED & INTEGRATED)
+   WEBGIS SEISMIK - MAIN JAVASCRIPT (NAVIGASI LENGKAP & SAFE)
    ========================================================================== */
 
-// DEKLARASI VARIABEL GLOBAL
-let allFeaturesData = []; 
-let userLatLng = null;          
-let routingControl = null;      
-let navigationLine = null;      
-let userMarker = null;  
+   const HSE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZa0Yw0Jjcg0dVWp6yQIoqvb5OaxpMmsFH9c7hizyN9hBLLVO9VT9u_BrnJ3AQu9WsempAjxDZQ9JL/pub?gid=0&single=true&output=csv";
 
-document.addEventListener("DOMContentLoaded", function () {
-    console.log("JavaScript main.js berhasil dimuat!");
-
-    const searchInput = document.getElementById("searchBox");
-    const selectBlock = document.getElementById("mainSelectBlock");
-    const btnCurrent = document.getElementById("btn-current");
-
-    // ----------------------------------------------------------------------
-    // 1. INISIALISASI PETA LEAFLET & BASEMAPS
-    // ----------------------------------------------------------------------
-    const mapElement = document.getElementById("map");
-    if (!mapElement) {
-        console.error("Elemen <div id='map'> tidak ditemukan di HTML!");
-        return;
-    }
-
-    if (typeof map === "undefined" || !map) {
-        window.map = L.map("map", {
-            center: [-2.5, 117.0], 
-            zoom: 5,
-            zoomControl: false 
-        });
-    }
-
-    L.control.zoom({ position: "bottomright" }).addTo(map);
-
-    const googleHybrid = L.tileLayer("https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", {
-        maxZoom: 20,
-        subdomains: ["mt0", "mt1", "mt2", "mt3"],
-        attribution: "&copy; Google Maps"
-    });
-
-    const osmMap = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "&copy; OpenStreetMap contributors"
-    });
-
-    googleHybrid.addTo(map);
-
-    const baseMaps = {
-        "Google Satellite + Label": googleHybrid,
-        "Peta Jalan (OSM)": osmMap
-    };
-
-    // OVERLAY LAYERS
-    const layerSource = L.layerGroup().addTo(map);
-    const layerReceiver = L.layerGroup().addTo(map);
-    const layerLabelPoin = L.layerGroup().addTo(map);
-    const layerAksesJalan = L.layerGroup().addTo(map);
-    const layerBMGPS = L.layerGroup().addTo(map);
-    const layerLabelLintasan = L.layerGroup().addTo(map);
-    const layerKeterangan = L.layerGroup().addTo(map);
-    const layerCampSeismik = L.layerGroup().addTo(map);
-    const layerHazardMap = L.layerGroup().addTo(map);
-
-    const overlayMaps = {
-        "Source (S)": layerSource,
-        "Receiver (R)": layerReceiver,
-        "Label Poin": layerLabelPoin,
-        "Akses Jalan": layerAksesJalan,
-        "BM GPS": layerBMGPS,
-        "Label Lintasan": layerLabelLintasan,
-        "Keterangan": layerKeterangan,
-        "Camp Seismik": layerCampSeismik,
-        "⚠️ Hazard Map": layerHazardMap
-    };
-
-    L.control.layers(baseMaps, overlayMaps, { position: "topright" }).addTo(map);
-
-    // ----------------------------------------------------------------------
-    // 2. LOGIKA GPS / LOKASI PENGGUNA (btn-current)
-    // ----------------------------------------------------------------------
-    if (btnCurrent) {
-        btnCurrent.onclick = () => {
-            if (!navigator.geolocation) {
-                return alert("Geolocation tidak didukung oleh browser Anda.");
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const { latitude, longitude } = pos.coords;
-                    
-                    // Update variabel global lokasi pengguna
-                    userLatLng = { lat: latitude, lng: longitude };
-
-                    // Render / update marker lokasi pengguna
-                    if (!userMarker) {
-                        userMarker = L.marker([latitude, longitude], {
-                            icon: L.icon({
-                                iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-                                iconSize: [32, 32],
-                                iconAnchor: [16, 32]
-                            })
-                        }).addTo(map).bindPopup("<b>📍 Posisi Anda Saat Ini</b>").openPopup();
-                    } else {
-                        userMarker.setLatLng([latitude, longitude]);
-                    }
-
-                    map.flyTo([latitude, longitude], 16);
-                    console.log("GPS Terdeteksi:", userLatLng);
-                },
-                (err) => {
-                    alert("Gagal mengambil GPS: " + err.message + "\nPastikan izin lokasi diaktifkan.");
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
-        };
-    }
-
-    // ----------------------------------------------------------------------
-    // 3. PEMBACAAN DATA SURVEI DARI BACKEND FLASK (/api/get-picks)
-    // ----------------------------------------------------------------------
-    function loadSurveyPicks() {
-        fetch("/api/get-picks")
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.features) {
-                    allFeaturesData = data.features;
-                    renderMapFeatures(allFeaturesData);
-                }
-            })
-            .catch(err => console.error("Gagal memuat data survey picks:", err));
-    }
-
-    function renderMapFeatures(features, filterQuery = "") {
-        layerSource.clearLayers();
-        layerReceiver.clearLayers();
-
-        const selectedBlock = selectBlock?.value || "ALL";
-        const bounds = L.latLngBounds();
-        let hasValidPoints = false;
-
-        features.forEach(feature => {
-            const props = feature.properties || {};
-            const coords = feature.geometry?.coordinates; 
-
-            if (!coords || coords.length < 2) return;
-
-            const pointName = (props.Point_Name || props.ID || props.id || props.name || "Poin").toString();
-            const blockName = props.Block || "East_Block";
-            const pointType = props.Type || props.Point_Type || "S"; 
-            const lat = coords[1];
-            const lng = coords[0];
-
-            if (selectedBlock !== "ALL" && blockName !== selectedBlock) return;
-            if (filterQuery !== "" && !pointName.toLowerCase().includes(filterQuery)) return;
-
-            const marker = L.circleMarker([lat, lng], {
-                radius: 7,
-                fillColor: pointType === "S" ? "#e74c3c" : getBlockColor(blockName),
-                color: "#ffffff",
-                weight: 1.5,
-                opacity: 1,
-                fillOpacity: 0.85
-            });
-
-            // Popup Poin Stasiun Seismik
-            const popupContent = `
-                <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 1.5;">
-                    <b style="color: #007bff; font-size: 13px;">📍 ID: ${pointName}</b> (${props.Desc_ || pointType})<br>
-                    <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ccc;">
-                    <b>Blok:</b> ${blockName}<br>
-                    <b>Easting:</b> ${props.Easting_UTM49S || '-'}<br>
-                    <b>Northing:</b> ${props.Northing_UTM49S || '-'}<br>
-                    <b>Elevasi:</b> ${props.Elevation || 0} m<br>
-                    <b>Lat/Lng:</b> ${lat.toFixed(6)}, ${lng.toFixed(6)}<br>
-                    <div style="margin-top:6px; text-align:center;">
-                        <button onclick="window.drawNavigationLine(${lat}, ${lng}, '${pointName}')" 
-                                style="background:#e67e22; color:white; border:none; padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold; width:100%;">
-                          🧭 Tampilkan Garis Navigasi
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            marker.bindPopup(popupContent);
-            marker.pointName = pointName; 
-            
-            if (pointType === "R") {
-                layerReceiver.addLayer(marker);
-            } else {
-                layerSource.addLayer(marker);
-            }
-
-            bounds.extend([lat, lng]);
-            hasValidPoints = true;
-        });
-
-        if (hasValidPoints && (selectedBlock !== "ALL" || filterQuery !== "")) {
-            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 17 });
-        }
-    }
-
-    function getBlockColor(block) {
-        switch (block) {
-            case "East_Block": return "#e74c3c";    
-            case "Central_Block": return "#3498db"; 
-            case "West_Block": return "#2ecc71";    
-            default: return "#f39c12";              
-        }
-    }
-
-    loadSurveyPicks();
-
-    // ----------------------------------------------------------------------
-    // 4. FUNGSI GARIS NAVIGASI DIRECT-LINE (GLOBAL ACCESSIBLE)
-    // ----------------------------------------------------------------------
-    window.drawNavigationLine = function(targetLat, targetLng, pointName) {
-        // Jika GPS real belum aktif, buat titik simulasi sementara
-        if (!userLatLng) {
-            userLatLng = { lat: targetLat - 0.005, lng: targetLng - 0.005 };
-            
-            if (userMarker) map.removeLayer(userMarker);
-            userMarker = L.marker([userLatLng.lat, userLatLng.lng])
-                .addTo(map)
-                .bindPopup("<b>📍 Posisi Acuan Awal (Simulasi)</b>")
-                .openPopup();
-        }
-
-        // Hapus routing control lama jika ada
-        if (routingControl) {
-            try { map.removeControl(routingControl); } catch(e){}
-            routingControl = null;
-        }
-
-        drawDirectLine(userLatLng, targetLat, targetLng, pointName);
-
-        // Fallback Leaflet Routing Machine (opsional jika library dimuat)
-        if (typeof L.Routing !== 'undefined') {
-            try {
-                routingControl = L.Routing.control({
-                    waypoints: [
-                        L.latLng(userLatLng.lat, userLatLng.lng),
-                        L.latLng(targetLat, targetLng)
-                    ],
-                    routeWhileDragging: false,
-                    addWaypoints: false,
-                    draggableWaypoints: false,
-                    fitSelectedRoutes: true,
-                    lineOptions: {
-                        styles: [{ color: '#e67e22', opacity: 0.9, weight: 6 }]
-                    },
-                    createMarker: function() { return null; }
-                }).addTo(map);
-            } catch (err) {
-                console.warn("L.Routing error, menggunakan garis lurus direct.", err);
-            }
-        }
-    };
-
-    function drawDirectLine(startLatLng, targetLat, targetLng, pointName) {
-        if (navigationLine) {
-            try { map.removeLayer(navigationLine); } catch(e){}
-        }
-
-        const startPoint = L.latLng(startLatLng.lat, startLatLng.lng);
-        const targetPoint = L.latLng(targetLat, targetLng);
-
-        // Hitung Jarak Geodesik
-        const distanceMeter = startPoint.distanceTo(targetPoint);
-        const distanceText = distanceMeter >= 1000 
-            ? (distanceMeter / 1000).toFixed(3) + " km" 
-            : Math.round(distanceMeter) + " m";
-
-        // Garis Oranye Putus-Putus
-        navigationLine = L.polyline([startPoint, targetPoint], {
-            color: '#ff6b00',
-            weight: 4,
-            opacity: 0.9,
-            dashArray: '8, 8'
-        }).addTo(map);
-
-        navigationLine.bringToFront();
-
-        // Popup Jarak
-        navigationLine.bindPopup(`
-            <div style="font-size:11px; font-family:sans-serif;">
-              <b>🧭 Garis Lurus Ke Target</b><br>
-              <b>ID Titik:</b> ${pointName}<br>
-              <b>Jarak Direct:</b> <span style="color:#ff6b00; font-weight:bold;">${distanceText}</span>
-            </div>
-        `).openPopup();
-
-        map.fitBounds(navigationLine.getBounds(), { padding: [80, 80] });
-    }
-
-    // ----------------------------------------------------------------------
-    // 5. FITUR PENCARIAN & FILTER BLOK
-    // ----------------------------------------------------------------------
-    if (searchInput) {
-        searchInput.addEventListener("input", function () {
-            const query = this.value.trim().toLowerCase();
-            renderMapFeatures(allFeaturesData, query);
-
-            if (query !== "") {
-                let foundMarker = false;
-
-                [layerSource, layerReceiver].forEach(layerGroup => {
-                    layerGroup.eachLayer(layer => {
-                        if (!foundMarker && layer.pointName && layer.pointName.toLowerCase() === query) {
-                            foundMarker = true;
-                            const targetLatLng = layer.getLatLng();
-                            
-                            map.flyTo(targetLatLng, 17, { duration: 1 });
-                            
-                            setTimeout(() => {
-                                layer.openPopup();
-                                window.drawNavigationLine(targetLatLng.lat, targetLatLng.lng, layer.pointName);
-                            }, 600);
-                        }
-                    });
-                });
-            } else {
-                if (routingControl) {
-                    try { map.removeControl(routingControl); } catch(e){}
-                    routingControl = null;
-                }
-                if (navigationLine) {
-                    try { map.removeLayer(navigationLine); } catch(e){}
-                    navigationLine = null;
-                }
-            }
-        });
-    }
-
-    if (selectBlock) {
-        selectBlock.addEventListener("change", function () {
-            const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
-            renderMapFeatures(allFeaturesData, query);
-        });
-    }
-});
+   // Helper Referensi Peta Aktif dari index.html
+   function getActiveMap() {
+       return window.currentMap || window.map || null;
+   }
+   
+   // --------------------------------------------------------------------------
+   // 1. LOGIKA HSE BOARD (GOOGLE SHEETS INTEGRATION)
+   // --------------------------------------------------------------------------
+   function renderDigits(value) {
+       if (value === undefined || value === null || value === "") {
+           return '<span class="hse-digit-box">0</span>';
+       }
+       return String(value).trim().split('').map(char => {
+           if (char === ' ') return '&nbsp;';
+           return `<span class="hse-digit-box">${char}</span>`;
+       }).join('');
+   }
+   
+   window.loadHseData = function () {
+       fetch(HSE_SHEET_CSV_URL)
+           .then(response => {
+               if (!response.ok) throw new Error("Gagal mengambil data dari Google Sheets");
+               return response.text();
+           })
+           .then(csvText => {
+               const lines = csvText.split('\n');
+               const data = {};
+   
+               lines.forEach(line => {
+                   const parts = line.split(',');
+                   if (parts.length >= 2) {
+                       const rawKey = parts[0].trim().toLowerCase();
+                       const cleanKey = rawKey.replace(/[^a-z0-9]/g, '');
+                       const value = parts[1].trim();
+   
+                       data[rawKey] = value;
+                       data[cleanKey] = value;
+                   }
+               });
+   
+               const getVal = (...keys) => {
+                   for (let k of keys) {
+                       const normalized = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+                       if (data[normalized] !== undefined) return data[normalized];
+                       if (data[k.toLowerCase()] !== undefined) return data[k.toLowerCase()];
+                   }
+                   return "0";
+               };
+   
+               if (document.getElementById('hse-date'))     document.getElementById('hse-date').innerHTML     = renderDigits(getVal('date'));
+               if (document.getElementById('hse-day'))      document.getElementById('hse-day').innerHTML      = renderDigits(getVal('day'));
+               if (document.getElementById('hse-pob'))      document.getElementById('hse-pob').innerHTML      = renderDigits(getVal('pob'));
+               if (document.getElementById('hse-manhours')) document.getElementById('hse-manhours').innerHTML = renderDigits(getVal('manhours'));
+               if (document.getElementById('hse-fat'))      document.getElementById('hse-fat').innerHTML      = renderDigits(getVal('fat'));
+               if (document.getElementById('hse-lti'))      document.getElementById('hse-lti').innerHTML      = renderDigits(getVal('lti'));
+               if (document.getElementById('hse-rwc'))      document.getElementById('hse-rwc').innerHTML      = renderDigits(getVal('rwc'));
+               if (document.getElementById('hse-mtc'))      document.getElementById('hse-mtc').innerHTML      = renderDigits(getVal('mtc'));
+               if (document.getElementById('hse-fac'))      document.getElementById('hse-fac').innerHTML      = renderDigits(getVal('fac'));
+               if (document.getElementById('hse-nm'))       document.getElementById('hse-nm').innerHTML       = renderDigits(getVal('nm'));
+               if (document.getElementById('hse-uauc'))     document.getElementById('hse-uauc').innerHTML     = renderDigits(getVal('ua_uc', 'ua/uc', 'uauc', 'ua uc', 'ua_uc_total'));
+           })
+           .catch(err => console.warn("Peringatan HSE Board:", err));
+   };
+   
+   // --------------------------------------------------------------------------
+   // 2. TOGGLE MODAL PANELS (HSE BOARD & NAVIGASI)
+   // --------------------------------------------------------------------------
+   window.toggleHseBoard = function() {
+       const hsePanel = document.getElementById("hse-board") || 
+                        document.getElementById("hseBoardModal") || 
+                        document.querySelector(".hse-board-modal");
+   
+       if (hsePanel) {
+           const isHidden = window.getComputedStyle(hsePanel).display === "none";
+           if (isHidden) {
+               hsePanel.style.display = "block";
+               if (typeof window.loadHseData === 'function') {
+                   window.loadHseData();
+               }
+           } else {
+               hsePanel.style.display = "none";
+           }
+       }
+   };
+   
+   window.toggleNavMenu = function() {
+       const navPanel = document.getElementById("navMenuPanel") || document.querySelector(".nav-menu-panel");
+       if (navPanel) {
+           const isHidden = window.getComputedStyle(navPanel).display === "none";
+           navPanel.style.display = isHidden ? "flex" : "none";
+       }
+   };
+   
+   // --------------------------------------------------------------------------
+   // 3. FUNGSI NAVIGASI & GARIS
+   // --------------------------------------------------------------------------
+   window.drawNavigationLine = function (targetLat, targetLng, pointName) {
+       const activeMap = getActiveMap();
+       if (!activeMap) return alert("Peta belum siap!");
+   
+       const navMode = document.getElementById("navModeSelect")?.value || "straight";
+   
+       if (!window.userLatLng) {
+           window.userLatLng = { lat: targetLat - 0.005, lng: targetLng - 0.005 };
+   
+           if (window.userMarker) activeMap.removeLayer(window.userMarker);
+           window.userMarker = L.marker([window.userLatLng.lat, window.userLatLng.lng])
+               .addTo(activeMap)
+               .bindPopup("<b>📍 Posisi Acuan Awal</b>")
+               .openPopup();
+       }
+   
+       if (typeof window.clearAllNavigation === 'function') {
+           window.clearAllNavigation();
+       }
+   
+       if (navMode === "road" && typeof L.Routing !== 'undefined') {
+           try {
+               window.routingControl = L.Routing.control({
+                   waypoints: [
+                       L.latLng(window.userLatLng.lat, window.userLatLng.lng),
+                       L.latLng(targetLat, targetLng)
+                   ],
+                   routeWhileDragging: false,
+                   addWaypoints: false,
+                   draggableWaypoints: false,
+                   fitSelectedRoutes: true,
+                   lineOptions: {
+                       styles: [{ color: '#e67e22', opacity: 0.9, weight: 6 }]
+                   },
+                   createMarker: function () { return null; }
+               }).addTo(activeMap);
+           } catch (err) {
+               drawDirectLine(window.userLatLng, targetLat, targetLng, pointName);
+           }
+       } else {
+           drawDirectLine(window.userLatLng, targetLat, targetLng, pointName);
+       }
+   };
+   
+   function drawDirectLine(startLatLng, targetLat, targetLng, pointName) {
+       const activeMap = getActiveMap();
+       if (!activeMap) return;
+   
+       const startPoint = L.latLng(startLatLng.lat, startLatLng.lng);
+       const targetPoint = L.latLng(targetLat, targetLng);
+   
+       const distanceMeter = startPoint.distanceTo(targetPoint);
+       const distanceText = distanceMeter >= 1000
+           ? (distanceMeter / 1000).toFixed(3) + " km"
+           : Math.round(distanceMeter) + " m";
+   
+       if (window.navigationLine) {
+           activeMap.removeLayer(window.navigationLine);
+       }
+   
+       window.navigationLine = L.polyline([startPoint, targetPoint], {
+           color: '#ff6b00',
+           weight: 4,
+           opacity: 0.9,
+           dashArray: '8, 8'
+       }).addTo(activeMap);
+   
+       window.navigationLine.bringToFront();
+   
+       window.navigationLine.bindPopup(`
+           <div style="font-size:11px; font-family:sans-serif;">
+             <b>🧭 Garis Lurus Ke Target</b><br>
+             <b>ID Poin:</b> ${pointName}<br>
+             <b>Jarak Direct:</b> <span style="color:#ff6b00; font-weight:bold;">${distanceText}</span>
+           </div>
+       `).openPopup();
+   
+       const resBox = document.getElementById("navResultBox");
+       const resText = document.getElementById("navResultText");
+       if (resBox && resText) {
+           resBox.style.display = "block";
+           resText.innerHTML = `<b>Target:</b> ${pointName} | <b>Jarak:</b> ${distanceText}`;
+       }
+   
+       activeMap.fitBounds(window.navigationLine.getBounds(), { padding: [80, 80] });
+   }
+   
+   // Inisialisasi DOM & Binding Event Panel Navigasi
+   document.addEventListener("DOMContentLoaded", function () {
+       console.log("JavaScript main.js (Safe Nav Version) berhasil dimuat!");
+       window.loadHseData();
+   
+       const btnClose = document.getElementById("btn-close-nav-panel");
+       const navPanel = document.getElementById("navMenuPanel");
+   
+       if (btnClose && navPanel) {
+           btnClose.onclick = () => navPanel.style.display = "none";
+       }
+   });
