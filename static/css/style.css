@@ -1,11 +1,17 @@
+/* ==========================================================================
+   WEBGIS SEISMIK - MASTER STYLESHEET
+   ========================================================================== */
+
 /* ==========================================
-   RESET & BASE STYLES
+   1. RESET & BASE STYLES
    ========================================== */
    * { 
     box-sizing: border-box; 
     -webkit-tap-highlight-color: transparent; 
   }
-  html, body { 
+  
+  html, 
+  body { 
     height: 100%; 
     margin: 0; 
     padding: 0; 
@@ -16,12 +22,12 @@
   #map { 
     height: 100vh; 
     width: 100vw; 
-    background: #222; 
+    background: #222222; 
     position: relative; 
   }
   
   /* ==========================================
-     MAP OVERLAYS & CONTROLS
+     2. MAP OVERLAYS & TOP CONTROLS
      ========================================== */
   .top-controls-container {
     position: absolute; 
@@ -39,12 +45,13 @@
     background: #ffffff; 
     padding: 4px 6px; 
     border-radius: 8px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.3); 
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3); 
     font-size: 10px; 
     font-weight: bold;
     white-space: nowrap; 
     flex-shrink: 0;
   }
+  
   .block-selector-box select {
     padding: 3px; 
     font-weight: bold; 
@@ -60,8 +67,9 @@
     max-width: 180px;
     padding: 2px; 
     border-radius: 20px; 
-    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
   }
+  
   .search-box input {
     width: 100%; 
     padding: 5px 8px; 
@@ -73,6 +81,9 @@
     outline: none;
   }
   
+  /* ==========================================
+     3. ACTION BUTTONS & POPUPS
+     ========================================== */
   .action-buttons-group {
     position: absolute; 
     top: 60px; 
@@ -82,51 +93,90 @@
     gap: 6px; 
     z-index: 1000;
   }
+  
   .btn-action {
     background: #28a745; 
     color: #ffffff; 
     padding: 6px 10px; 
     border-radius: 16px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.4); 
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4); 
     font-size: 10px; 
     font-weight: bold; 
     cursor: pointer;
     border: none; 
     outline: none; 
-    transition: 0.2s; 
+    transition: all 0.2s ease-in-out; 
     white-space: nowrap;
   }
-  .btn-action:active { transform: scale(0.95); }
-  .btn-export { background: #007bff; }
-  .btn-dash { background: #6f42c1; }
-  .btn-upload { background: #41b404; color: #333; }
-  .btn-location { background: #17a2b8; color: #fff; }
+  
+  .btn-action:active { 
+    transform: scale(0.95); 
+  }
+  
+  .btn-export   { background: #007bff; }
+  .btn-dash     { background: #6f42c1; }
+  .btn-upload   { background: #41b404; color: #333333; }
+  .btn-location { background: #17a2b8; color: #ffffff; }
+  
+  /* Floating GPS Navigation Button */
+  .btn-gps-nav {
+    background-color: #ffffff;
+    color: #2c3e50;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .btn-gps-nav:hover {
+    background-color: #f8f9fa;
+    color: #007bff;
+    border-color: #007bff;
+    transform: translateY(-1px);
+  }
+  
+  .btn-gps-nav:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
   
   .export-menu-popup {
     display: none; 
     position: absolute; 
-    top: 175px; 
-    right: 10px; 
+    top: 100%; 
+    right: 0; 
+    margin-top: 5px;
     z-index: 1001;
     background: #ffffff; 
     border-radius: 8px; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     overflow: hidden; 
     flex-direction: column; 
     width: 150px;
   }
+  
   .export-menu-popup button {
     padding: 10px; 
     border: none; 
-    background: white; 
+    background: #ffffff; 
     text-align: left; 
     font-size: 11px;
     font-weight: bold; 
-    color: #333; 
+    color: #333333; 
     cursor: pointer; 
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #eeeeee;
   }
-  .export-menu-popup button:hover { background: #f0f0f0; }
+  
+  .export-menu-popup button:hover { 
+    background: #f0f0f0; 
+  }
   
   #coord-info {
     position: absolute; 
@@ -139,13 +189,13 @@
     font-size: 12px; 
     font-family: monospace; 
     z-index: 1000;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.4); 
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4); 
     text-align: right; 
     pointer-events: none;
   }
   
   /* ==========================================
-     MAP LABELS & CUSTOM ICONS
+     4. MAP LABELS & CUSTOM ICONS
      ========================================== */
   .point-name-label { 
     font-size: 14px; 
@@ -153,7 +203,11 @@
     white-space: nowrap; 
     pointer-events: none; 
   }
-  .point-name-label.text-white { color: #ffffff !important; }
+  
+  .point-name-label.text-white { 
+    color: #ffffff !important; 
+  }
+  
   .point-name-label.text-black {
     color: #000000 !important;
     text-shadow: 1px 1px 2px #ffffff, -1px -1px 2px #ffffff, 1px -1px 2px #ffffff, -1px 1px 2px #ffffff;
@@ -166,18 +220,24 @@
     background: #dc3545;
     border: 2px solid #ffffff;
     border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     width: 26px;
     height: 26px;
   }
+  
   .camp-icon-container svg {
     fill: #ffffff;
     width: 14px;
     height: 14px;
   }
   
+  /* Sembunyikan kontrol zoom bawaan Leaflet di kanan bawah */
+  .leaflet-bottom.leaflet-right .leaflet-control-zoom {
+    display: none !important;
+  }
+  
   /* ==========================================
-     DARK MODE DASHBOARD & MODAL STYLES
+     5. DARK MODE DASHBOARD & MODALS
      ========================================== */
   .modal-page {
     display: none; 
@@ -196,8 +256,8 @@
   
   .modal-header {
     background-color: #1e1e1e !important;
-    border-bottom: 1px solid #333 !important;
-    color: #fff; 
+    border-bottom: 1px solid #333333 !important;
+    color: #ffffff; 
     padding: 12px 15px; 
     display: flex; 
     justify-content: space-between; 
@@ -206,10 +266,16 @@
     top: 0; 
     z-index: 100000;
   }
-  .modal-header h2 { font-size: 13px; margin: 0; color: #ffffff !important; }
+  
+  .modal-header h2 { 
+    font-size: 13px; 
+    margin: 0; 
+    color: #ffffff !important; 
+  }
+  
   .btn-close { 
     background: #dc3545; 
-    color: white; 
+    color: #ffffff; 
     border: none; 
     padding: 5px 10px; 
     border-radius: 4px; 
@@ -217,8 +283,15 @@
     cursor: pointer; 
     font-size: 11px; 
   }
-  .modal-body { padding: 15px; max-width: 1200px; margin: 0 auto; width: 100%; }
   
+  .modal-body { 
+    padding: 15px; 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    width: 100%; 
+  }
+  
+  /* Card Structures */
   .stat-card, 
   .chart-box, 
   .form-card, 
@@ -232,36 +305,114 @@
   .stat-card h3,
   .stat-card h4,
   .chart-box h3,
-  .form-card h3 { color: #ffffff !important; }
+  .form-card h3 { 
+    color: #ffffff !important; 
+  }
   
-  .stats-summary-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px; margin-bottom: 15px; }
-  @media(min-width: 600px) { .stats-summary-grid { grid-template-columns: repeat(2, 1fr); } }
-  .stat-card { padding: 12px; border-radius: 8px; border-left: 5px solid #007bff !important; }
-  .stat-card h4 { margin: 0 0 5px 0; font-size: 11px; text-transform: uppercase; }
+  /* Grid Layouts */
+  .stats-summary-grid { 
+    display: grid; 
+    grid-template-columns: repeat(1, 1fr); 
+    gap: 10px; 
+    margin-bottom: 15px; 
+  }
   
-  .charts-wrapper { display: grid; grid-template-columns: repeat(1, 1fr); gap: 15px; margin-bottom: 15px; }
-  @media(min-width: 768px) { .charts-wrapper { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 600px) { 
+    .stats-summary-grid { 
+      grid-template-columns: repeat(2, 1fr); 
+    } 
+  }
   
-  .chart-box { padding: 15px; border-radius: 8px; text-align: center; }
-  .chart-box h3 { margin: 0 0 10px 0; font-size: 12px; }
-  .chart-canvas-holder { position: relative; height: 270px; width: 100%; }
+  .stat-card { 
+    padding: 12px; 
+    border-radius: 8px; 
+    border-left: 5px solid #007bff !important; 
+  }
   
-  .form-card { padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+  .stat-card h4 { 
+    margin: 0 0 5px 0; 
+    font-size: 11px; 
+    text-transform: uppercase; 
+  }
   
-  .crew-summary-card { padding: 15px; border-radius: 8px; }
-  .crew-table-container { background-color: #1e1e1e !important; }
-  .crew-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; text-align: left; color: #e0e0e0 !important; }
+  .charts-wrapper { 
+    display: grid; 
+    grid-template-columns: repeat(1, 1fr); 
+    gap: 15px; 
+    margin-bottom: 15px; 
+  }
+  
+  @media (min-width: 768px) { 
+    .charts-wrapper { 
+      grid-template-columns: repeat(2, 1fr); 
+    } 
+  }
+  
+  .chart-box { 
+    padding: 15px; 
+    border-radius: 8px; 
+    text-align: center; 
+  }
+  
+  .chart-box h3 { 
+    margin: 0 0 10px 0; 
+    font-size: 12px; 
+  }
+  
+  .chart-canvas-holder { 
+    position: relative; 
+    height: 270px; 
+    width: 100%; 
+  }
+  
+  .form-card { 
+    padding: 15px; 
+    border-radius: 8px; 
+    margin-bottom: 15px; 
+  }
+  
+  .crew-summary-card { 
+    padding: 15px; 
+    border-radius: 8px; 
+  }
+  
+  /* Tables */
+  .crew-table-container { 
+    background-color: #1e1e1e !important; 
+  }
+  
+  .crew-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 11px; 
+    margin-top: 8px; 
+    text-align: left; 
+    color: #e0e0e0 !important; 
+  }
+  
   .crew-table th { 
     background-color: #2a2a2a !important; 
     color: #38ef7d !important; 
     padding: 7px 10px; 
     font-weight: 600; 
-    border-bottom: 2px solid #444 !important;
+    border-bottom: 2px solid #444444 !important;
   }
-  .crew-table td { padding: 7px 10px; border-bottom: 1px solid #333 !important; color: #d1d5db !important; }
-  .crew-table tr:nth-child(even) { background-color: #181818 !important; }
-  .crew-table tr:hover { background-color: #252525 !important; }
   
+  .crew-table td { 
+    padding: 7px 10px; 
+    border-bottom: 1px solid #333333 !important; 
+    color: #d1d5db !important; 
+  }
+  
+  .crew-table tr:nth-child(even) { 
+    background-color: #181818 !important; 
+  }
+  
+  .crew-table tr:hover { 
+    background-color: #252525 !important; 
+  }
+  
+  /* Form Controls */
   .filter-select, 
   .form-control,
   input[type="text"], 
@@ -271,6 +422,7 @@
     color: #ffffff !important;
     border: 1px solid #444444 !important;
   }
+  
   .filter-select:focus, 
   .form-control:focus {
     border-color: #11998e !important;
@@ -279,9 +431,192 @@
   
   /* Scrollbar Dark Theme */
   .modal-page::-webkit-scrollbar,
-  .crew-table-container::-webkit-scrollbar { width: 8px; height: 8px; }
+  .crew-table-container::-webkit-scrollbar { 
+    width: 8px; 
+    height: 8px; 
+  }
+  
   .modal-page::-webkit-scrollbar-track,
-  .crew-table-container::-webkit-scrollbar-track { background: #121212; }
+  .crew-table-container::-webkit-scrollbar-track { 
+    background: #121212; 
+  }
+  
   .modal-page::-webkit-scrollbar-thumb,
-  .crew-table-container::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-  .modal-page::-webkit-scrollbar-thumb:hover { background: #555; }
+  .crew-table-container::-webkit-scrollbar-thumb { 
+    background: #333333; 
+    border-radius: 4px; 
+  }
+  
+  .modal-page::-webkit-scrollbar-thumb:hover { 
+    background: #555555; 
+  }
+  
+  /* ==========================================
+     6. HAZARD MAP & ROUTING STYLES
+     ========================================== */
+  .leaflet-routing-container {
+    background-color: rgba(30, 30, 30, 0.95) !important;
+    color: #ffffff !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    max-width: 280px !important;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid #444444 !important;
+  }
+  
+  .leaflet-routing-alt tr:hover {
+    background-color: #333333 !important;
+  }
+  
+  .btn-route-action {
+    background: #007bff;
+    color: #ffffff;
+    border: none;
+    padding: 6px 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    margin-top: 6px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  
+  .btn-route-action:hover {
+    background: #0056b3;
+  }
+  
+  /* ==========================================
+     7. HSE BOARD MODAL & COMPONENTS
+     ========================================== */
+  .btn-action.btn-hse {
+    background-color: #003366; /* Biru Navy HSE */
+    color: #ffffff;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .btn-action.btn-hse:hover {
+    background-color: #002244;
+  }
+  
+  .hse-board-modal {
+    position: absolute;
+    top: 70px;
+    right: 170px; /* Di sebelah kiri tombol navigasi */
+    z-index: 2000;
+    background: #ffffff;
+    border: 2px solid #003366;
+    border-radius: 12px;
+    padding: 12px;
+    width: 280px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    font-family: Arial, sans-serif;
+  }
+  
+  .hse-header {
+    background-color: #003366;
+    color: #ffffff;
+    padding: 8px 10px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .hse-title-text {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+  }
+  
+  .hse-close-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+  }
+  
+  .hse-close-btn:hover {
+    color: #ff4d4d;
+  }
+  
+  .hse-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .hse-table td {
+    padding: 4px 2px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #f1e6e6;
+  }
+  
+  .hse-digit-box {
+    display: inline-block;
+    background-color: #f0f0f0;
+    border: 1px solid #888888;
+    border-radius: 3px;
+    padding: 1px 4px;
+    margin: 0 1px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    color: #000000;
+  }
+ /* ==========================================
+   7. HSE BOARD & NAV PANEL FIX (STABLE OVERLAY)
+   ========================================== */
+
+/* Panel Navigasi */
+.nav-menu-panel, 
+#navMenuPanel {
+  position: absolute;
+  top: 70px;
+  right: 20px;
+  left: auto;
+  z-index: 3000 !important;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  width: 320px;
+  padding: 15px;
+  font-family: Arial, sans-serif;
+  display: none; /* Default tersembunyi */
+}
+
+/* Modal / Panel HSE Board */
+#hseBoardModal, 
+.hse-board-panel, 
+.hse-board-modal {
+  position: absolute;
+  top: 70px;
+  left: 60px;
+  right: auto;
+  z-index: 3000 !important; /* Di atas Leaflet Control */
+  background: #1e293b;
+  color: #ffffff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+  width: 320px;
+  max-width: 90vw;
+  display: none; /* Default tersembunyi */
+}
+
+/* Pastikan Leaflet Controls tidak menutupi Pop-up Modal */
+.leaflet-top, 
+.leaflet-bottom {
+  z-index: 1000 !important;
+}
