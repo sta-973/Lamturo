@@ -58,7 +58,7 @@
     </div>
   </div>
 
-  <!-- HSE PERFORMANCE BOARD MODAL (Diletakkan di Luar #map agar melayang sempurna) -->
+  <!-- HSE PERFORMANCE BOARD MODAL -->
   <div id="hse-board" class="hse-board-modal" style="display: none;">
     <div class="hse-header">
       <span class="hse-title-text">HSE PERFORMANCE BOARD</span>
@@ -71,7 +71,7 @@
         <td>DAY / POB</td>
         <td align="right">
           <span id="hse-day"></span>
-          <span style="color:#ffFFFf; margin: 0 4px; font-weight:bold;">/</span> 
+          <span style="color:#ffffff; margin: 0 4px; font-weight:bold;">/</span> 
           <span id="hse-pob"></span>
         </td>
       </tr>
@@ -86,8 +86,8 @@
     </table>
   </div>
 
-  <!-- PANEL MENU NAVIGASI (BARU) -->
-  <div id="navMenuPanel" class="nav-menu-panel">
+  <!-- PANEL MENU NAVIGASI -->
+  <div id="navMenuPanel" class="nav-menu-panel" style="display: none;">
     <div class="nav-panel-header">
       <span>🧭 Menu Navigasi & Ukur Jarak</span>
       <button id="btn-close-nav-panel" class="btn-panel-close">✕</button>
@@ -112,7 +112,7 @@
   </div>
 
   <!-- Popup Export -->
-  <div id="exportMenuPopup" class="export-menu-popup">
+  <div id="exportMenuPopup" class="export-menu-popup" style="display: none;">
     <button id="btn-export-excel">📊 Export Excel (.csv)</button>
     <button id="btn-export-geojson">🗺️ Export GeoJSON</button>
   </div>
@@ -264,7 +264,6 @@
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      // 1. Baris Pertama: Total Poin
       ctx.font = 'bold 9px sans-serif';
       ctx.fillStyle = '#aaa';
       ctx.fillText("TOTAL POIN", width / 2, (height / 2) - 46 + yOffset);
@@ -273,7 +272,6 @@
       ctx.fillStyle = '#ffffff';
       ctx.fillText(textPointsNum, width / 2, (height / 2) - 30 + yOffset);
 
-      // 2. Baris Kedua: Total Kumulatif Jarak
       ctx.font = 'bold 9px sans-serif';
       ctx.fillStyle = '#aaa';
       ctx.fillText("KUMULATIF JARAK", width / 2, (height / 2) - 6 + yOffset);
@@ -407,7 +405,6 @@
             p.drilling = String(cp.drilling || "0");
             p.recording = String(cp.recording || "0");
             
-            // Tentukan status_code tertinggi
             let st = 0;
             if (String(p.recording) === "5" || String(p.recording) === "1") st = 5;
             else if (String(p.drilling) === "4" || String(p.drilling) === "1") st = 4;
@@ -424,33 +421,13 @@
     console.log(`🎯 Berhasil mencocokkan ${matchCount} titik ke peta GeoJSON.`);
   }
 
-  async function initAppData() {
-    await fetchCloudProgress();
-
-    try {
-      const [eastAData, eastBData, centData, westData] = await Promise.all([
-        loadGeoJsonFile("EastA_Block_leaflet.geojson"),
-        loadGeoJsonFile("EastB_Block_leaflet.geojson"),
-        loadGeoJsonFile("Central_Block.geojson"),
-        loadGeoJsonFile("West_Block.geojson")
-      ]);
-
-      let combinedEastFeatures = [];
-      if (eastAData && Array.isArray(eastAData.features)) combinedEastFeatures = combinedEastFeatures.concat(eastAData.features);
-      if (eastBData && Array.isArray(eastBData.features)) combinedEastFeatures = combinedEastFeatures.concat(eastBData.features);
-
-      rawData.East_Block = { type: "FeatureCollection", features: combinedEastFeatures };
-      rawData.Central_Block = centData;
-      rawData.West_Block = westData;
-
-      // TEMPELKAN DATA CLOUD TERLEBIH DAHULU SEBELUM DILAKUKAN RENDER PETA
-      applyCloudDataToGeoJSON();
-      renderBlockOnMap(document.getElementById("mainSelectBlock").value);
-      loadExtraGeoJsonFiles();
-    } catch (err) {
-      console.error("Detail Error GeoJSON:", err);
-      alert("⚠️ Gagal memuat file utama GeoJSON.");
+  async function saveProgressToCloud(recordsArray) {
+    const { error } = await supabaseClient.from("progress_seismik").upsert(recordsArray, { onConflict: 'block,line,tr,tanggal' });
+    if (error) {
+      alert("⚠️ Gagal sync ke Cloud: " + error.message);
+      return false;
     }
+    return true;
   }
 
   function parseStatusFlags(statusCode) {
@@ -484,7 +461,6 @@
 
     return s;
   }
-
 
   function getOverallCumulativeKm(selectedBlock) {
     const dbData = window.cachedProgressData || [];
@@ -526,7 +502,14 @@
     return (totalMeter / 1000).toFixed(3);
   }
 
-  // FUNGSIONALITAS BERSIH APLIKASI NAVIGASI
+  // FUNGSIONALITAS NAVIGASI & HAPUS GARIS
+  window.toggleNavMenu = function() {
+    const navMenuPanel = document.getElementById("navMenuPanel");
+    if (navMenuPanel) {
+      navMenuPanel.style.display = (navMenuPanel.style.display === "flex") ? "none" : "flex";
+    }
+  };
+
   window.clearAllNavigation = function() {
     if (routingControl) {
       window.currentMap.removeControl(routingControl);
@@ -562,8 +545,10 @@
 
       customNavPolyline = L.polyline([p1, p2], { color: '#00e5ff', weight: 5, dashArray: '8, 8' }).addTo(window.currentMap);
 
-      const m1 = L.marker(p1).addTo(window.currentMap).bindPopup("📍 Titik Awal").openPopup();
-      const m2 = L.marker(p2).addTo(window.currentMap).bindPopup(`🎯 Titik Tujuan: ${titleLabel || ''}<br><b>Jarak: ${distFormatted}</b>`);
+      const closeBtnHtml = `<br><button onclick="window.clearAllNavigation()" style="margin-top:6px; background:#dc3545; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; cursor:pointer;">✕ Hapus Garis Navigasi</button>`;
+
+      const m1 = L.marker(p1).addTo(window.currentMap).bindPopup(`📍 Titik Awal ${closeBtnHtml}`).openPopup();
+      const m2 = L.marker(p2).addTo(window.currentMap).bindPopup(`🎯 Titik Tujuan: ${titleLabel || ''}<br><b>Jarak: ${distFormatted}</b> ${closeBtnHtml}`);
       
       customNavMarkers.push(m1, m2);
 
@@ -571,7 +556,7 @@
       window.currentMap.fitBounds(bounds, { padding: [50, 50] });
 
       if (resultBox && resultText) {
-        resultText.innerHTML = `📐 <b>Jarak Lurus Direct:</b> <span style="color:#38ef7d; font-size:14px;">${distFormatted}</span>`;
+        resultText.innerHTML = `📐 <b>Jarak Lurus Direct:</b> <span style="color:#38ef7d; font-size:14px;">${distFormatted}</span> <button onclick="window.clearAllNavigation()" style="margin-left:8px; background:#dc3545; color:#fff; border:none; padding:2px 6px; border-radius:3px; cursor:pointer;">✕ Close</button>`;
         resultBox.style.display = "block";
       }
     } else {
@@ -591,7 +576,7 @@
           let distFormatted = totalDistanceMeters >= 1000 ? (totalDistanceMeters / 1000).toFixed(3) + " km" : totalDistanceMeters.toFixed(1) + " meter";
 
           if (resultBox && resultText) {
-            resultText.innerHTML = `🚗 <b>Jarak Rute Jalan (Google Map):</b> <span style="color:#38ef7d; font-size:14px;">${distFormatted}</span>`;
+            resultText.innerHTML = `🚗 <b>Jarak Rute Jalan (Google Map):</b> <span style="color:#38ef7d; font-size:14px;">${distFormatted}</span> <button onclick="window.clearAllNavigation()" style="margin-left:8px; background:#dc3545; color:#fff; border:none; padding:2px 6px; border-radius:3px; cursor:pointer;">✕ Close</button>`;
             resultBox.style.display = "block";
           }
         }
@@ -612,10 +597,9 @@
         const userLat = pos.coords.latitude;
         const userLng = pos.coords.longitude;
         window.drawNavigationRoute(userLat, userLng, destLat, destLng, selectedMode, destName);
-        window.currentMap.closePopup();
       },
       (err) => {
-        alert("⚠️️ Gagal mengambil posisi presisi Anda. Pastikan Izin GPS/Lokasi Aktif!");
+        alert("⚠ Gagal mengambil posisi presisi Anda. Pastikan Izin GPS/Lokasi Aktif!");
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -651,6 +635,7 @@
     const groupKeterangan = L.layerGroup().addTo(map);
     const groupCamp = L.layerGroup().addTo(map);
     const groupHazard = L.layerGroup().addTo(map);
+    const groupPartes = L.layerGroup().addTo(map); // LAYER BARU PARTES
 
     let userMarker = null;
     document.getElementById("btn-current").onclick = () => {
@@ -679,18 +664,12 @@
       });
     }
 
-    // HANDLER EVENT PANEL MENU NAVIGASI (BARU)
-    const navMenuPanel = document.getElementById("navMenuPanel");
-    const btnToggleNav = document.getElementById("btn-toggle-nav-panel");
     const btnCloseNav = document.getElementById("btn-close-nav-panel");
-
-    btnToggleNav.addEventListener("click", () => {
-      navMenuPanel.style.display = (navMenuPanel.style.display === "flex") ? "none" : "flex";
-    });
-
-    btnCloseNav.addEventListener("click", () => {
-      navMenuPanel.style.display = "none";
-    });
+    if (btnCloseNav) {
+      btnCloseNav.addEventListener("click", () => {
+        document.getElementById("navMenuPanel").style.display = "none";
+      });
+    }
 
     document.getElementById("btn-clear-nav").addEventListener("click", () => {
       window.clearAllNavigation();
@@ -771,13 +750,17 @@
       renderCrewSummaryTable(e.target.value);
     });
 
-    document.getElementById("btn-toggle-export").addEventListener("click", (e) => {
+    // MEMPERBAIKI HANDLER EVENT EXPORT POPUP
+    const btnToggleExport = document.getElementById("btn-toggle-export");
+    btnToggleExport.addEventListener("click", (e) => {
       e.stopPropagation();
-      exportMenuPopup.style.display = exportMenuPopup.style.display === "flex" ? "none" : "flex";
+      exportMenuPopup.style.display = (exportMenuPopup.style.display === "flex") ? "none" : "flex";
     });
 
-    document.addEventListener("click", () => {
-      exportMenuPopup.style.display = "none";
+    document.addEventListener("click", (e) => {
+      if (!exportMenuPopup.contains(e.target) && e.target !== btnToggleExport) {
+        exportMenuPopup.style.display = "none";
+      }
     });
 
     async function loadGeoJsonFile(filename) {
@@ -796,7 +779,6 @@
             return JSON.parse(text);
           }
         }
-        console.warn(`File ${filename} tidak ditemukan.`);
         return null;
       } catch (err) {
         console.error(`Error loading ${filename}:`, err);
@@ -805,6 +787,29 @@
     }
 
     async function loadExtraGeoJsonFiles() {
+      // PROSES LOAD FILE GEOJSON PARTES (EAST, CENTRAL, WEST)
+      Promise.all([
+        loadGeoJsonFile("east_partes_leaflet.geojson"),
+        loadGeoJsonFile("central_partes_leaflet.geojson"),
+        loadGeoJsonFile("west_partes_leaflet.geojson")
+      ]).then(([eastPartes, centPartes, westPartes]) => {
+        const renderPartes = (data, labelPrefix) => {
+          if (!data) return;
+          L.geoJSON(data, {
+            style: { color: '#e040fb', weight: 2, opacity: 0.8 },
+            pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 3, fillColor: '#e040fb', stroke: false, fillOpacity: 0.8 }),
+            onEachFeature: (f, l) => {
+              const p = f.properties || {};
+              l.bindPopup(`<b>Partes ${labelPrefix}:</b> ${p.ID || p.Line || 'Titik Partes'}`);
+            }
+          }).addTo(groupPartes);
+        };
+
+        renderPartes(eastPartes, "East");
+        renderPartes(centPartes, "Central");
+        renderPartes(westPartes, "West");
+      });
+
       loadGeoJsonFile("jalan.geojson").then(jalanData => {
         if (jalanData) {
           L.geoJSON(jalanData, { style: { color: '#ff7800', weight: 3, opacity: 0.7 } })
@@ -818,13 +823,7 @@
             pointToLayer: (f, latlng) => {
                 const squareIcon = L.divIcon({
                     className: 'custom-square-marker',
-                    html: `<div style="
-                        width: 12px;
-                        height: 12px;
-                        background-color: #0000FF;
-                        border: 2px solid #0000ff;
-                        box-shadow: 0 0 3px rgba(0,0,0,0.5);
-                    "></div>`,
+                    html: `<div style="width: 12px; height: 12px; background-color: #0000FF; border: 2px solid #0000ff; box-shadow: 0 0 3px rgba(0,0,0,0.5);"></div>`,
                     iconSize: [12, 12],
                     iconAnchor: [6, 6]
                 });
@@ -914,20 +913,8 @@
       loadGeoJsonFile("HazardMap_leaflet.geojson").then(hazardData => {
         if (hazardData) {
           L.geoJSON(hazardData, {
-            style: {
-              color: '#dc3545',
-              weight: 2,
-              fillColor: '#dc3545',
-              fillOpacity: 0.45,
-              dashArray: '5, 5'
-            },
-            pointToLayer: (f, latlng) => L.circleMarker(latlng, {
-              radius: 7,
-              fillColor: '#dc3545',
-              color: '#ffffff',
-              weight: 2,
-              fillOpacity: 0.9
-            }),
+            style: { color: '#dc3545', weight: 2, fillColor: '#dc3545', fillOpacity: 0.45, dashArray: '5, 5' },
+            pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 7, fillColor: '#dc3545', color: '#ffffff', weight: 2, fillOpacity: 0.9 }),
             onEachFeature: (f, l) => {
               const p = f.properties || {};
               const infoHazard = p.KETERANGAN || p.Nama || p.Keterangan || p.Desc_ || "Area Potensi Bahaya / Hazard";
@@ -1001,7 +988,6 @@
         </div>
       `;
 
-      // 1. CHART SOURCE (S)
       const ctxSource = document.getElementById('sourceChart').getContext('2d');
       if (chartSourceInstance) chartSourceInstance.destroy();
       
@@ -1034,7 +1020,6 @@
         plugins: [centerTextPlugin]
       });
 
-      // 2. CHART RECEIVER (R)
       const ctxReceiver = document.getElementById('receiverChart').getContext('2d');
       if (chartReceiverInstance) chartReceiverInstance.destroy();
 
@@ -1158,6 +1143,7 @@
       tbody.innerHTML = rowsHtml;
     }
 
+    // EXPORT TO EXCEL CSV (SUDAH DIPERBAIKI)
     document.getElementById("btn-export-excel").addEventListener("click", async () => {
       const btnExport = document.getElementById("btn-export-excel");
       btnExport.innerText = "⏳ Mengunduh Data...";
@@ -1217,9 +1203,15 @@
       document.body.removeChild(link);
 
       btnExport.innerText = "📊 Export Excel (.csv)";
+      exportMenuPopup.style.display = "none";
     });
 
+    // EXPORT GEOJSON (SUDAH DIPERBAIKI)
     document.getElementById("btn-export-geojson").addEventListener("click", () => {
+      if (!allFeatures || allFeatures.length === 0) {
+        alert("Peta belum memiliki fitur GeoJSON untuk di-export!");
+        return;
+      }
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ type: "FeatureCollection", features: allFeatures }, null, 2));
       const a = document.createElement('a');
       a.setAttribute("href", dataStr);
@@ -1227,6 +1219,7 @@
       document.body.appendChild(a); 
       a.click(); 
       a.remove();
+      exportMenuPopup.style.display = "none";
     });
 
     L.control.layers(
@@ -1243,6 +1236,7 @@
         "Akses Jalan": groupJalan,
         "BM GPS": groupBM,
         "Label Lintasan": groupLintasan,
+        "Partes Area 🟣": groupPartes,
         "Keterangan": groupKeterangan,
         "Camp Seismik": groupCamp,
         "Hazard Area ⚠️": groupHazard
@@ -1301,7 +1295,6 @@
   
       let bounds = L.latLngBounds([]);
 
-      // Helper penyaring koordinat presisi agar peta tidak melompat ke luar wilayah proyek
       const addValidLatLngsToBounds = (layerGroup) => {
         layerGroup.eachLayer(layer => {
           if (layer.getLatLng) {
@@ -1398,7 +1391,7 @@
       const targetBlock = document.getElementById("uploadTargetBlock").value;
       
       if (fileInput.files.length === 0) { 
-        alert("⚠️ Pilih file terlebih dahulu!"); 
+        alert("Pilih file terlebih dahulu!"); 
         return; 
       }
 
@@ -1419,7 +1412,6 @@
             const cleanLine = lineStr.trim();
             if (!cleanLine || cleanLine.startsWith("#") || cleanLine.toLowerCase().startsWith("tanggal") || cleanLine.toLowerCase().startsWith("no")) return;
             
-            // Mengakomodasi pemisah koma, titik koma, atau tab
             const parts = cleanLine.split(/,|\t|;/).map(item => item.replace(/^"|"$/g, '').trim());
             if (parts.length < 6) return;
 
@@ -1476,7 +1468,6 @@
           }
 
           let success = true;
-          // Kirim per kelompok 500 data ke Supabase
           for (let i = 0; i < cloudBatch.length; i += 500) {
             const chunk = cloudBatch.slice(i, i + 500);
             const { error } = await supabaseClient.from("progress_seismik").upsert(chunk, { onConflict: 'block,line,tr,tanggal' });
@@ -1490,7 +1481,7 @@
 
           if (success) {
             alert(`✅ Berhasil sync ${cloudBatch.length} titik ke Supabase!`);
-            document.getElementById("upload-page").style.display = "none";
+            uploadPage.style.display = "none";
             fileInput.value = "";
             await fetchCloudProgress();
             applyCloudDataToGeoJSON();
@@ -1586,14 +1577,22 @@
       }
     });
 
+    // FITUR PENCARIAN & NAVIGASI OTOMATIS DILENGKAPI TOMBOL CLOSE NAVIGASI
     const searchInput = document.getElementById("searchBox");
     searchInput.addEventListener("keypress", function(e) {
       if (e.key === "Enter") {
         const query = searchInput.value.trim().toLowerCase();
         if (!query) return;
+
+        const processTargetFound = (targetLat, targetLng, pointName, layerObj) => {
+          map.setView([targetLat, targetLng], 18);
+          if (layerObj && layerObj.openPopup) layerObj.openPopup();
+
+          // LANGSUNG MEMBUAT GARIS NAVIGASI DARI POSISI SAYA KE STASIUN TARGET
+          window.navigateToTarget(targetLat, targetLng, pointName);
+        };
         
         let foundLayer = null;
-
         loadedLayers.forEach(gl => {
           gl.eachLayer(layer => {
             const p = layer.feature.properties || {};
@@ -1603,28 +1602,26 @@
           });
         });
 
-        if (foundLayer) {
-          map.setView(foundLayer.getLatLng(), 18);
-          foundLayer.openPopup();
+        if (foundLayer && foundLayer.getLatLng) {
+          const latlng = foundLayer.getLatLng();
+          const pName = getPointName(foundLayer.feature.properties);
+          processTargetFound(latlng.lat, latlng.lng, pName, foundLayer);
         } else {
           let globalMatch = allFeatures.find(f => {
             const p = f.properties || {};
             return String(p.ID || "").trim().toLowerCase() === query || String(p.NEWID || "").trim().toLowerCase() === query;
           });
 
-          if (globalMatch) {
+          if (globalMatch && globalMatch.geometry && globalMatch.geometry.coordinates) {
+            const targetLng = globalMatch.geometry.coordinates[0];
+            const targetLat = globalMatch.geometry.coordinates[1];
+            const pName = getPointName(globalMatch.properties);
+
             document.getElementById("mainSelectBlock").value = "ALL";
             renderBlockOnMap("ALL");
+            
             setTimeout(() => {
-              loadedLayers.forEach(gl => {
-                gl.eachLayer(layer => {
-                  const p = layer.feature.properties || {};
-                  if (String(p.ID || "").trim().toLowerCase() === query || String(p.NEWID || "").trim().toLowerCase() === query) {
-                    map.setView(layer.getLatLng(), 18);
-                    layer.openPopup();
-                  }
-                });
-              });
+              processTargetFound(targetLat, targetLng, pName, null);
             }, 300);
           } else {
             alert("ID Stasiun tidak ditemukan!");
@@ -1633,15 +1630,15 @@
         searchInput.blur();
       }
     });
-  
 
-  map.on("mousemove", e => {
-    document.getElementById("coord-info").innerHTML = 'Lat: ' + e.latlng.lat.toFixed(5) + ' | Lng: ' + e.latlng.lng.toFixed(5);
+    map.on("mousemove", e => {
+      document.getElementById("coord-info").innerHTML = 'Lat: ' + e.latlng.lat.toFixed(5) + ' | Lng: ' + e.latlng.lng.toFixed(5);
+    });
+
   });
-
-});
 </script>
 
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
+  
