@@ -20,7 +20,7 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 app.secret_key = os.getenv("SECRET_KEY", "bgp_seismik_secret_key_2026_xyz")
 
 # Password utama proyek (Mendukung environment variable Vercel atau default 'BGPbisa3x')
-DEFAULT_PASSWORD = "BGPbisa3x"
+DEFAULT_PASSWORD = "2dlamturo"
 PROJECT_PASSWORD = os.getenv("ADMIN_PASSWORD", DEFAULT_PASSWORD)
 
 # Jalur penyimpanan file survey lokal (Vercel read-only filesystem handling)
