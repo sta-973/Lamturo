@@ -379,86 +379,112 @@
   }
 
   function applyCloudDataToGeoJSON() {
-    const blockMapping = [
-      { keyName: "East_Block", norm: "east" },
-      { keyName: "Central_Block", norm: "central" },
-      { keyName: "West_Block", norm: "west" }
-    ];
+    if (!cloudProgressMap || Object.keys(cloudProgressMap).length === 0) return;
 
-    blockMapping.forEach(b => {
-      if (rawData[b.keyName] && Array.isArray(rawData[b.keyName].features)) {
-        rawData[b.keyName].features.forEach(f => {
+    const blocks = ["East_Block", "Central_Block", "West_Block"];
+    let matchCount = 0;
+
+    blocks.forEach(blockKey => {
+      if (rawData[blockKey] && Array.isArray(rawData[blockKey].features)) {
+        rawData[blockKey].features.forEach(f => {
           const p = f.properties || {};
-          p.BlockName = b.keyName;
+          p.BlockName = blockKey;
 
-          const normLine = getFeatureLine(p);
-          const normTr = getFeatureTr(p);
-          const matchKey = `${b.norm}_${normLine}_${normTr}`;
+          const geoLine = getFeatureLine(p);
+          const geoTr = getFeatureTr(p);
 
-          if (cloudProgressMap[matchKey]) {
-            const cp = cloudProgressMap[matchKey];
+          const normB1 = normalizeBlockName(blockKey);
+          const cp = cloudProgressMap[`${normB1}_${geoLine}_${geoTr}`] ||
+                     cloudProgressMap[`${blockKey}_${geoLine}_${geoTr}`];
+
+          if (cp) {
+            matchCount++;
             p.Tanggal = cp.tanggal;
             p.Kru = cp.kru;
+            p.topo = String(cp.topo || "0");
+            p.rintis = String(cp.rintis || "0");
+            p.bridging = String(cp.bridging || "0");
+            p.drilling = String(cp.drilling || "0");
+            p.recording = String(cp.recording || "0");
             
-            if (String(cp.recording) === "5" || String(cp.recording) === "1") p.status_code = 5;
-            else if (String(cp.drilling) === "4" || String(cp.drilling) === "1") p.status_code = 4;
-            else if (String(cp.bridging) === "3" || String(cp.bridging) === "1") p.status_code = 3;
-            else if (String(cp.rintis) === "2" || String(cp.rintis) === "1") p.status_code = 2;
-            else if (String(cp.topo) === "1") p.status_code = 1;
-            else p.status_code = 0;
+            // Tentukan status_code tertinggi
+            let st = 0;
+            if (String(p.recording) === "5" || String(p.recording) === "1") st = 5;
+            else if (String(p.drilling) === "4" || String(p.drilling) === "1") st = 4;
+            else if (String(p.bridging) === "3" || String(p.bridging) === "1") st = 3;
+            else if (String(p.rintis) === "2" || String(p.rintis) === "1") st = 2;
+            else if (String(p.topo) === "1") st = 1;
 
-            p.topo = cp.topo;
-            p.rintis = cp.rintis;
-            p.bridging = cp.bridging;
-            p.drilling = cp.drilling;
-            p.recording = cp.recording;
-            if (cp.new_x) p.NewX = cp.new_x;
-            if (cp.new_y) p.NewY = cp.new_y;
-            if (cp.new_z) p.NewZ = cp.new_z;
-            if (cp.new_id) p.NEWID = cp.new_id;
-          } else {
-            p.status_code = 0;
+            p.status_code = st;
           }
         });
       }
     });
+
+    console.log(`🎯 Berhasil mencocokkan ${matchCount} titik ke peta GeoJSON.`);
   }
 
-  async function saveProgressToCloud(recordsArray) {
-    const { error } = await supabaseClient.from("progress_seismik").upsert(recordsArray, { onConflict: 'block,line,tr' });
-    if (error) {
-      alert("⚠️ Gagal sync ke Cloud: " + error.message);
-      return false;
+  async function initAppData() {
+    await fetchCloudProgress();
+
+    try {
+      const [eastAData, eastBData, centData, westData] = await Promise.all([
+        loadGeoJsonFile("EastA_Block_leaflet.geojson"),
+        loadGeoJsonFile("EastB_Block_leaflet.geojson"),
+        loadGeoJsonFile("Central_Block.geojson"),
+        loadGeoJsonFile("West_Block.geojson")
+      ]);
+
+      let combinedEastFeatures = [];
+      if (eastAData && Array.isArray(eastAData.features)) combinedEastFeatures = combinedEastFeatures.concat(eastAData.features);
+      if (eastBData && Array.isArray(eastBData.features)) combinedEastFeatures = combinedEastFeatures.concat(eastBData.features);
+
+      rawData.East_Block = { type: "FeatureCollection", features: combinedEastFeatures };
+      rawData.Central_Block = centData;
+      rawData.West_Block = westData;
+
+      // TEMPELKAN DATA CLOUD TERLEBIH DAHULU SEBELUM DILAKUKAN RENDER PETA
+      applyCloudDataToGeoJSON();
+      renderBlockOnMap(document.getElementById("mainSelectBlock").value);
+      loadExtraGeoJsonFiles();
+    } catch (err) {
+      console.error("Detail Error GeoJSON:", err);
+      alert("⚠️ Gagal memuat file utama GeoJSON.");
     }
-    return true;
   }
 
   function parseStatusFlags(statusCode) {
     const st = parseInt(statusCode, 10) || 0;
     return {
-      topo: (st >= 1) ? "1" : "0",
-      rintis: (st >= 2) ? "2" : "0",
-      bridging: (st >= 3) ? "3" : "0",
-      drilling: (st === 4 || st === 5) ? "4" : "0",
+      topo: (st === 1) ? "1" : "0",
+      rintis: (st === 2) ? "2" : "0",
+      bridging: (st === 3) ? "3" : "0",
+      drilling: (st === 4) ? "4" : "0",
       recording: (st === 5) ? "5" : "0"
     };
   }
 
   function calculateProgress(geojson) {
     let s = { total: geojson.features.length, topo: 0, rintis: 0, bridging: 0, drilling: 0, recording: 0, uncompleted: 0 };
+    
     geojson.features.forEach(f => {
       const p = f.properties || {};
-      const code = parseInt(p.status_code, 10) || 0;
-      
-      if (code === 5) s.recording++;
-      else if (code === 4) s.drilling++;
-      else if (code === 3) s.bridging++;
-      else if (code === 2) s.rintis++;
-      else if (code === 1) s.topo++;
-      else s.uncompleted++;
+      let hasAnyProgress = false;
+
+      if (String(p.topo) === "1") { s.topo++; hasAnyProgress = true; }
+      if (String(p.rintis) === "2" || String(p.rintis) === "1") { s.rintis++; hasAnyProgress = true; }
+      if (String(p.bridging) === "3" || String(p.bridging) === "1") { s.bridging++; hasAnyProgress = true; }
+      if (String(p.drilling) === "4" || String(p.drilling) === "1") { s.drilling++; hasAnyProgress = true; }
+      if (String(p.recording) === "5" || String(p.recording) === "1") { s.recording++; hasAnyProgress = true; }
+
+      if (!hasAnyProgress) {
+        s.uncompleted++;
+      }
     });
+
     return s;
   }
+
 
   function getOverallCumulativeKm(selectedBlock) {
     const dbData = window.cachedProgressData || [];
@@ -1603,13 +1629,15 @@
         searchInput.blur();
       }
     });
-
-    map.on("mousemove", function(e) {
-      document.getElementById("coord-info").innerHTML = `Lat: ${e.latlng.lat.toFixed(5)}, Lon: ${e.latlng.lng.toFixed(5)}`;
-    });
-  });
   
+
+  map.on("mousemove", e => {
+    document.getElementById("coord-info").innerHTML = 'Lat: ' + e.latlng.lat.toFixed(5) + ' | Lng: ' + e.latlng.lng.toFixed(5);
+  });
+
+});
 </script>
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
