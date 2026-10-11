@@ -1398,7 +1398,7 @@
       const targetBlock = document.getElementById("uploadTargetBlock").value;
       
       if (fileInput.files.length === 0) { 
-        alert("Pilih file terlebih dahulu!"); 
+        alert("⚠️ Pilih file terlebih dahulu!"); 
         return; 
       }
 
@@ -1417,9 +1417,10 @@
 
           lines.forEach((lineStr) => {
             const cleanLine = lineStr.trim();
-            if (!cleanLine || cleanLine.startsWith("#") || cleanLine.toLowerCase().startsWith("tanggal")) return;
+            if (!cleanLine || cleanLine.startsWith("#") || cleanLine.toLowerCase().startsWith("tanggal") || cleanLine.toLowerCase().startsWith("no")) return;
             
-            const parts = cleanLine.split(/,|\t|;/).map(item => item.trim());
+            // Mengakomodasi pemisah koma, titik koma, atau tab
+            const parts = cleanLine.split(/,|\t|;/).map(item => item.replace(/^"|"$/g, '').trim());
             if (parts.length < 6) return;
 
             const [tgl, kru, targetLine, trAwalStr, trAkhirStr, statusCode] = [
@@ -1442,7 +1443,7 @@
                   const geoLine = getFeatureLine(p);
                   const geoTr = getFeatureTr(p);
 
-                  const lineMatch = geoLine === normalizeLine(targetLine);
+                  const lineMatch = normalizeLine(geoLine) === normalizeLine(targetLine);
                   
                   if (lineMatch && !isNaN(geoTr) && geoTr >= Math.min(trAwal, trAkhir) && geoTr <= Math.max(trAwal, trAkhir)) {
                     p.Tanggal = tgl; 
@@ -1454,7 +1455,7 @@
                       line: String(geoLine), 
                       tr: geoTr, 
                       tanggal: tgl, 
-                      kru, 
+                      kru: kru, 
                       topo: flags.topo, 
                       rintis: flags.rintis, 
                       bridging: flags.bridging, 
@@ -1475,10 +1476,13 @@
           }
 
           let success = true;
+          // Kirim per kelompok 500 data ke Supabase
           for (let i = 0; i < cloudBatch.length; i += 500) {
             const chunk = cloudBatch.slice(i, i + 500);
-            const resOk = await saveProgressToCloud(chunk);
-            if (!resOk) {
+            const { error } = await supabaseClient.from("progress_seismik").upsert(chunk, { onConflict: 'block,line,tr,tanggal' });
+            if (error) {
+              console.error("Supabase Error:", error);
+              alert("⚠️ Gagal simpan ke Supabase: " + error.message);
               success = false;
               break;
             }
@@ -1486,15 +1490,15 @@
 
           if (success) {
             alert(`✅ Berhasil sync ${cloudBatch.length} titik ke Supabase!`);
-            uploadPage.style.display = "none";
+            document.getElementById("upload-page").style.display = "none";
             fileInput.value = "";
             await fetchCloudProgress();
             applyCloudDataToGeoJSON();
             renderBlockOnMap(document.getElementById("mainSelectBlock").value);
           }
         } catch (err) {
-          console.error("Error parsing file:", err);
-          alert("Terjadi kesalahan saat membaca file.");
+          console.error("Detail Error Upload CSV:", err);
+          alert("⚠️ Terjadi kesalahan pembacaan CSV: " + err.message);
         } finally {
           btn.innerText = originalText;
           btn.disabled = false;
