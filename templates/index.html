@@ -88,10 +88,14 @@
 
   <!-- PANEL MENU NAVIGASI -->
   <div id="navMenuPanel" class="nav-menu-panel" style="display: none;">
+    
+    <!-- 1. HEADER (Judul + Tombol Close di Pojok Kanan Atas) -->
     <div class="nav-panel-header">
       <span>🧭 Menu Navigasi & Ukur Jarak</span>
       <button id="btn-close-nav-panel" class="btn-panel-close">✕</button>
     </div>
+
+    <!-- 2. BODY (Semua Isian di Bawah Judul) -->
     <div class="nav-panel-body">
       <label class="nav-label">Pilih Mode Navigasi:</label>
       <select id="navModeSelect" class="nav-select">
@@ -109,6 +113,7 @@
         <span id="navResultText">Jarak: -</span>
       </div>
     </div>
+
   </div>
 
   <!-- Popup Export -->
@@ -629,13 +634,18 @@
     const groupReceiver = L.layerGroup().addTo(map);
     const groupPointLabels = L.layerGroup().addTo(map);
     
-    const groupJalan = L.layerGroup().addTo(map);
+    const groupJalan = L.layerGroup()//.addTo(map);
     const groupBM = L.layerGroup().addTo(map);
     const groupLintasan = L.layerGroup().addTo(map);
     const groupKeterangan = L.layerGroup().addTo(map);
     const groupCamp = L.layerGroup().addTo(map);
-    const groupHazard = L.layerGroup().addTo(map);
+    const groupHazard = L.layerGroup()//.addTo(map);
     const groupPartes = L.layerGroup().addTo(map); // LAYER BARU PARTES
+    const groupRepeater = L.layerGroup().addTo(map);
+    const groupLaboPartes = L.layerGroup().addTo(map);
+    const groupVibro = L.layerGroup().addTo(map);
+    const groupSpPartes = L.layerGroup().addTo(map);
+
 
     let userMarker = null;
     document.getElementById("btn-current").onclick = () => {
@@ -872,7 +882,7 @@
               return L.marker(latlng, {
                 icon: L.divIcon({
                   className: 'point-name-label',
-                  html: `<span style="font-size: 16px; font-weight: bold; color: #e67e22; text-shadow: 1px 1px 2px #000;">${teks}</span>`,
+                  html: `<span style="font-size: 16px; font-weight: bold; color: #ffffff; text-shadow: 1px 1px 2px #000;">${teks}</span>`,
                   iconSize: null
                 })
               });
@@ -914,17 +924,131 @@
         if (hazardData) {
           L.geoJSON(hazardData, {
             style: { color: '#dc3545', weight: 2, fillColor: '#dc3545', fillOpacity: 0.45, dashArray: '5, 5' },
-            pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 7, fillColor: '#dc3545', color: '#ffffff', weight: 2, fillOpacity: 0.9 }),
+            pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 0.5, fillColor: '#dc3545', color: '#ffffff', weight: 0.5, fillOpacity: 0.1 }),
             onEachFeature: (f, l) => {
               const p = f.properties || {};
               const infoHazard = p.KETERANGAN || p.Nama || p.Keterangan || p.Desc_ || "Area Potensi Bahaya / Hazard";
               l.bindPopup(`<b style="color:#dc3545;">⚠️ Hazard Map:</b> ${infoHazard}`);
             }
-          }).addTo(groupHazard);
+          })//.addTo(groupHazard);
         }
       });
-    }
+    
+      // 1. Load Posisi Repeater
+      loadGeoJsonFile("Posisi_Repeater_leaflet.geojson").then(data => {
+        if (data) {
+          L.geoJSON(data, {
+            pointToLayer: (f, latlng) => {
+              const p = f.properties || {};
+              const labelName = p.NAME || p.Nama || p.ID || 'Repeater';
 
+              const customIcon = L.divIcon({
+                className: 'custom-repeater-icon',
+                html: `<div style="display: flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.8); padding: 4px 8px; border: 2px solid #ffcc00; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.4);">
+                         <span style="font-size: 20px;">📡</span>
+                         <span style="font-size: 13px; font-weight: bold; color: #ffffff; white-space: nowrap;">${labelName}</span>
+                       </div>`,
+                iconSize: [130, 30],
+                iconAnchor: [10, 15]
+              });
+
+              return L.marker(latlng, { icon: customIcon });
+            },
+            onEachFeature: (f, l) => {
+              const p = f.properties || {};
+              l.bindPopup(`<b>📡 Posisi Repeater:</b> ${p.NAME || p.Nama || p.ID || 'Repeater'}`);
+            }
+          }).addTo(groupRepeater);
+        }
+      });
+
+      // 2. Load Posisi Vibro
+      loadGeoJsonFile("Posisi_VIBRO__leaflet.geojson").then(data => {
+        if (data) {
+          L.geoJSON(data, {
+            pointToLayer: (f, latlng) => {
+              const p = f.properties || {};
+              const labelName = p.Block || p.Nama || p.ID || 'Vibro';
+
+              const customIcon = L.divIcon({
+                className: 'custom-vibro-icon',
+                html: `<div style="display: flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.8); padding: 4px 8px; border: 2px solid #ff9900; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.4);">
+                         <span style="font-size: 20px;">🚐</span>
+                         <span style="font-size: 13px; font-weight: bold; color: #ffffff; white-space: nowrap;">${labelName}</span>
+                       </div>`,
+                iconSize: [130, 30],
+                iconAnchor: [10, 15]
+              });
+
+              return L.marker(latlng, { icon: customIcon });
+            },
+            onEachFeature: (f, l) => {
+              const p = f.properties || {};
+              l.bindPopup(`<b>🚐 Posisi Vibro:</b> ${p.NAME || p.Nama || p.ID || 'Vibro'}`);
+            }
+          }).addTo(groupVibro);
+        }
+      });
+
+      // 3. Load Posisi Labo Partes
+      loadGeoJsonFile("Labo_leaflet.geojson").then(data => {
+        if (data) {
+          L.geoJSON(data, {
+            pointToLayer: (f, latlng) => {
+              const p = f.properties || {};
+              // Ambil nama dari kolom yang sesuai di file geojson-nya (misal p.NAME atau p.Nama)
+              const labelName = p.Name || p.Elevasi || 'Labo Partes';
+
+              const customIcon = L.divIcon({
+                className: 'custom-labo-icon',
+                html: `<div style="display: flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.8); padding: 4px 8px; border: 2px solid #00ffff; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.4);">
+                         <span style="font-size: 20px;">⛺</span>
+                         <span style="font-size: 13px; font-weight: bold; color: #ffffff; white-space: nowrap;">${labelName}</span>
+                       </div>`,
+                iconSize: [140, 30],
+                iconAnchor: [10, 15]
+              });
+
+              return L.marker(latlng, { icon: customIcon });
+            },
+            onEachFeature: (f, l) => {
+              const p = f.properties || {};
+              l.bindPopup(`<b>⛺ Labo Partes:</b> ${p.NAME || p.Nama || 'Labo Partes'}`);
+            }
+          }).addTo(groupLaboPartes);
+        }
+      });
+
+      // Load SP Partes dengan Ukuran Lebih Besar & Jelas
+      loadGeoJsonFile("SP_Partes_leaflet.geojson").then(data => {
+        if (data) {
+          L.geoJSON(data, {
+            pointToLayer: (f, latlng) => {
+              const p = f.properties || {};
+              const labelName = p.NAME || p.ATTR_1 || 'SP Partes';
+
+              // Menggunakan gabungan CircleMarker (titik utama) + DivIcon (teks label)
+              // Atau membuat marker dengan divIcon yang berukuran lebih besar
+              const customIcon = L.divIcon({
+                className: 'custom-sp-label-large',
+                html: `<div style="display: flex; align-items: center; gap: 4px;">
+                         <div style="width: 12px; height: 12px; background: #00ffcc; border: 2px solid #ffffff; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>
+                         <div style="background: rgba(0, 0, 0, 0.75); padding: 3px 7px; border: 1px solid #00ffcc; border-radius: 4px; font-size: 12px; font-weight: bold; color: #ffffff; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">📍 ${labelName}</div>
+                       </div>`,
+                iconSize: [120, 24],
+                iconAnchor: [6, 12] // Posisi titik pas di tengah lingkaran
+              });
+
+              return L.marker(latlng, { icon: customIcon });
+            },
+            onEachFeature: (f, l) => {
+              const p = f.properties || {};
+              l.bindPopup(`<b>📍 SP Partes:</b> ${p.Nama || p.ID || p.Line || 'SP Partes'}`);
+            }
+          }).addTo(groupSpPartes);
+        }
+      });
+    }   
     async function initAppData() {
       await fetchCloudProgress();
 
@@ -1239,7 +1363,12 @@
         "Partes Area 🟣": groupPartes,
         "Keterangan": groupKeterangan,
         "Camp Seismik": groupCamp,
-        "Hazard Area ⚠️": groupHazard
+        "Hazard Area ⚠️": groupHazard,
+        "📡 Repeater": groupRepeater,       // <-- BARU
+        "🚜 Posisi Vibro": groupVibro,      // <-- BARU
+        "⛺ Labo Partes": groupLaboPartes,   // <-- BARU
+        "📍 SP Partes": groupSpPartes     //
+      
       },
       { position: "topright" }
     ).addTo(map);
@@ -1577,59 +1706,67 @@
       }
     });
 
-    // FITUR PENCARIAN & NAVIGASI OTOMATIS DILENGKAPI TOMBOL CLOSE NAVIGASI
+    // FITUR PENCARIAN GLOBAL (Letakkan ini di dalam blok DOMContentLoaded, misalnya di bawah inisialisasi layer)
     const searchInput = document.getElementById("searchBox");
-    searchInput.addEventListener("keypress", function(e) {
-      if (e.key === "Enter") {
-        const query = searchInput.value.trim().toLowerCase();
-        if (!query) return;
+    if (searchInput) {
+      searchInput.addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+          const query = searchInput.value.trim().toLowerCase();
+          if (!query) return;
 
-        const processTargetFound = (targetLat, targetLng, pointName, layerObj) => {
-          map.setView([targetLat, targetLng], 18);
-          if (layerObj && layerObj.openPopup) layerObj.openPopup();
+          let foundLayer = null;
+          let foundLatLng = null;
+          let foundName = "";
 
-          // LANGSUNG MEMBUAT GARIS NAVIGASI DARI POSISI SAYA KE STASIUN TARGET
-          window.navigateToTarget(targetLat, targetLng, pointName);
-        };
-        
-        let foundLayer = null;
-        loadedLayers.forEach(gl => {
-          gl.eachLayer(layer => {
-            const p = layer.feature.properties || {};
-            if (String(p.ID || "").trim().toLowerCase() === query || String(p.NEWID || "").trim().toLowerCase() === query) {
-              foundLayer = layer;
+          const searchInGroup = (layerGroup) => {
+            if (foundLatLng) return;
+            layerGroup.eachLayer(layer => {
+              const p = layer.feature?.properties || layer.options || {};
+              
+              const identifier = String(
+                p.kode || p.Name || p.NAME || p.Block || p.ID || p.id || p.NEWID || p.nama || p.KODEE || p.KODE || p.Desc_ || p.code || p.Keterangan || p.Line || p.ATTR_1 || ""
+              ).trim().toLowerCase();
+
+              if (identifier.includes(query)) {
+                foundLayer = layer;
+                if (layer.getLatLng) {
+                  foundLatLng = layer.getLatLng();
+                } else if (layer.getBounds) {
+                  foundLatLng = layer.getBounds().getCenter();
+                }
+                foundName = p.kode || p.Name || p.NAME || p.Block || p.ID || "Objek Ditemukan";
+              }
+            });
+          };
+
+          // Memindai seluruh layer group yang terdaftar di sistem Bapak
+          searchInGroup(groupSource);
+          searchInGroup(groupReceiver);
+          searchInGroup(groupBM);
+          searchInGroup(groupCamp);
+          searchInGroup(groupHazard);
+          searchInGroup(groupRepeater);
+          searchInGroup(groupVibro);
+          searchInGroup(groupLaboPartes);
+          searchInGroup(groupSpPartes);
+          searchInGroup(groupJalan);
+          searchInGroup(groupPartes);
+
+          if (foundLatLng) {
+            map.setView(foundLatLng, 18);
+            if (foundLayer && foundLayer.openPopup) {
+              foundLayer.openPopup();
             }
-          });
-        });
-
-        if (foundLayer && foundLayer.getLatLng) {
-          const latlng = foundLayer.getLatLng();
-          const pName = getPointName(foundLayer.feature.properties);
-          processTargetFound(latlng.lat, latlng.lng, pName, foundLayer);
-        } else {
-          let globalMatch = allFeatures.find(f => {
-            const p = f.properties || {};
-            return String(p.ID || "").trim().toLowerCase() === query || String(p.NEWID || "").trim().toLowerCase() === query;
-          });
-
-          if (globalMatch && globalMatch.geometry && globalMatch.geometry.coordinates) {
-            const targetLng = globalMatch.geometry.coordinates[0];
-            const targetLat = globalMatch.geometry.coordinates[1];
-            const pName = getPointName(globalMatch.properties);
-
-            document.getElementById("mainSelectBlock").value = "ALL";
-            renderBlockOnMap("ALL");
-            
-            setTimeout(() => {
-              processTargetFound(targetLat, targetLng, pName, null);
-            }, 300);
+            if (typeof window.navigateToTarget === 'function') {
+              window.navigateToTarget(foundLatLng.lat, foundLatLng.lng, foundName);
+            }
           } else {
-            alert("ID Stasiun tidak ditemukan!");
+            alert("⚠️ Nama, kode, atau ID objek tersebut tidak ditemukan di seluruh layer peta!");
           }
+          searchInput.blur();
         }
-        searchInput.blur();
-      }
-    });
+      });
+    }
 
     map.on("mousemove", e => {
       document.getElementById("coord-info").innerHTML = 'Lat: ' + e.latlng.lat.toFixed(5) + ' | Lng: ' + e.latlng.lng.toFixed(5);
