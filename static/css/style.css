@@ -198,7 +198,7 @@
      4. MAP LABELS & CUSTOM ICONS
      ========================================== */
   .point-name-label { 
-    font-size: 14px; 
+    font-size: 16px; 
     font-weight: bold; 
     white-space: nowrap; 
     pointer-events: none; 
@@ -582,6 +582,8 @@
 /* Panel Navigasi */
 .nav-menu-panel, 
 #navMenuPanel {
+  display: flex;
+  flex-direction: column;
   position: absolute;
   top: 70px;
   right: 20px;
@@ -595,7 +597,49 @@
   font-family: Arial, sans-serif;
   display: none; /* Default tersembunyi */
 }
+/* Tambahan Pengaturan Header & Ukuran Teks Navigasi */
+.nav-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  font-size: 13px;      /* Ukuran tinggi/besar teks judul */
+  line-height: 1.4;     /* Tinggi spasi baris teks */
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+/* =========================================================
+   CSS PANEL MENU NAVIGASI & UKUR JARAK (LENGKAP)
+   ========================================================= */
 
+/* Body & Kontainer Isi Panel Navigasi */
+.nav-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* Label Teks Pilihan Navigasi */
+.nav-label {
+  font-size: 11px;
+  font-weight: bold;
+  color: #555555;
+  margin-bottom: 2px;
+}
+
+.btn-panel-close {
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
 /* Modal / Panel HSE Board */
 #hseBoardModal, 
 .hse-board-panel, 
@@ -619,4 +663,88 @@
 .leaflet-top, 
 .leaflet-bottom {
   z-index: 1000 !important;
+}
+
+/* Dropdown Select Mode Navigasi */
+.nav-select {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #212529;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.nav-select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
+}
+
+/* Layout Tumpukan Tombol Navigasi */
+.nav-btn-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+/* Style Dasar Tombol Aksi Navigasi */
+.btn-nav-action {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.btn-nav-action:active {
+  transform: scale(0.98);
+}
+
+/* Varian Warna Tombol Navigasi */
+.btn-primary-nav {
+  background-color: #007bff;
+  color: #ffffff;
+}
+.btn-primary-nav:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary-nav {
+  background-color: #17a2b8;
+  color: #ffffff;
+}
+.btn-secondary-nav:hover {
+  background-color: #117a8b;
+}
+
+.btn-danger-nav {
+  background-color: #dc3545;
+  color: #ffffff;
+}
+.btn-danger-nav:hover {
+  background-color: #bd2130;
+}
+
+/* Kotak Hasil Perhitungan Jarak */
+.nav-result-box {
+  margin-top: 6px;
+  padding: 8px 10px;
+  background-color: #1e1e1e;
+  border: 1px solid #38ef7d;
+  border-radius: 5px;
+  color: #ffffff;
+  font-size: 11px;
+  line-height: 1.4;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
