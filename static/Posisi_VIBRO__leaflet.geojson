@@ -1,0 +1,11 @@
+{
+"type": "FeatureCollection",
+"name": "Posisi_VIBRO_leaflet",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "FID": 0, "Block": "East Vibro Kombinasi Besar Kecil", "X": 634300.7, "Y": 9214774.0 }, "geometry": { "type": "Point", "coordinates": [ 112.216107317255904, -7.102227259364411 ] } },
+{ "type": "Feature", "properties": { "FID": 1, "Block": "East Vibto Kecil", "X": 634246.78, "Y": 9216573.82 }, "geometry": { "type": "Point", "coordinates": [ 112.215576438927812, -7.085951184788624 ] } },
+{ "type": "Feature", "properties": { "FID": 2, "Block": "Central", "X": 602345.1, "Y": 9193443.6 }, "geometry": { "type": "Point", "coordinates": [ 111.927167440906302, -7.295822571703611 ] } },
+{ "type": "Feature", "properties": { "FID": 3, "Block": "West", "X": 584262.3, "Y": 9192319.0 }, "geometry": { "type": "Point", "coordinates": [ 111.763379486929452, -7.30630106949237 ] } }
+]
+}
