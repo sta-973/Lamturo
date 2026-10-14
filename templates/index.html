@@ -611,13 +611,13 @@
   };
 
   document.addEventListener("DOMContentLoaded", function() {
+    
     const map = L.map("map", { 
       preferCanvas: true, zoomControl: false, tap: true, touchZoom: true 
     }).setView([-7.1, 112.2], 13);
     
     window.currentMap = map;
     L.control.zoom({ position: "topleft" }).addTo(map);
-  
     // BASEMAPS
     const baseOSM = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 });
     const baseEsriSat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 });
@@ -1708,18 +1708,28 @@
         blockData.features.forEach(f => {
           const p = f.properties || {};
           const geoLine = getFeatureLine(p);
-          if (geoLine === normalizeLine(targetLine) && String(p.ID || "").trim() === targetId) targetFeature = f;
+          
+          // Dibuat fleksibel agar mendeteksi berbagai variasi nama properti ID/Kode stasiun
+          const currentId = String(p.ID || p.id || p.kode || p.KODE || p.Name || p.NAME || "").trim();
+          
+          if (geoLine === normalizeLine(targetLine) && currentId === targetId) {
+            targetFeature = f;
+          }
         });
       }
 
       if (targetFeature) {
         const p = targetFeature.properties;
-        p.Tanggal = tgl; p.Kru = kru;
+        p.Tanggal = tgl; 
+        p.Kru = kru;
         Object.assign(p, flags);
 
         let rowData = { block: targetBlock, line: String(getFeatureLine(p)), tr: getFeatureTr(p), tanggal: tgl, kru, ...flags };
         if (parts.length >= 9) {
-          p.NewX = parseFloat(parts[5]); p.NewY = parseFloat(parts[6]); p.NewZ = parseFloat(parts[7]); p.NEWID = parts[8].trim();
+          p.NewX = parseFloat(parts[5]); 
+          p.NewY = parseFloat(parts[6]); 
+          p.NewZ = parseFloat(parts[7]); 
+          p.NEWID = parts[8].trim();
           Object.assign(rowData, { new_x: p.NewX, new_y: p.NewY, new_z: p.NewZ, new_id: p.NEWID });
         }
 
@@ -1732,11 +1742,12 @@
           renderBlockOnMap(document.getElementById("mainSelectBlock").value);
         }
       } else {
-        alert("ID Stasiun tidak ditemukan.");
+        alert("⚠️ ID atau Kode Stasiun tidak ditemukan pada Line tersebut.");
       }
     });
 
-    // FITUR PENCARIAN GLOBAL (Letakkan ini di dalam blok DOMContentLoaded, misalnya di bawah inisialisasi layer)
+    // FITUR PENCARIAN GLOBAL MENCAKUP SELURUH LAYER & TITIK PETA
+    // FITUR PENCARIAN GLOBAL UNIVERSAL (STASIUN ID + SCAN SEMUA MARKER DI PETA)
     const searchInput = document.getElementById("searchBox");
     if (searchInput) {
       searchInput.addEventListener("keypress", function(e) {
@@ -1744,46 +1755,51 @@
           const query = searchInput.value.trim().toLowerCase();
           if (!query) return;
 
-          let foundLayer = null;
           let foundLatLng = null;
+          let foundLayer = null;
           let foundName = "";
 
-          const searchInGroup = (layerGroup) => {
-            if (foundLatLng) return;
-            layerGroup.eachLayer(layer => {
-              const p = layer.feature?.properties || layer.options || {};
-              
-              const identifier = String(
-                p.kode || p.Name || p.NAME || p.Block || p.ID || p.id || p.NEWID || p.nama || p.KODEE || p.KODE || p.Desc_ || p.code || p.Keterangan || p.Line || p.ATTR_1 || ""
-              ).trim().toLowerCase();
-
-              if (identifier.includes(query)) {
-                foundLayer = layer;
-                if (layer.getLatLng) {
-                  foundLatLng = layer.getLatLng();
-                } else if (layer.getBounds) {
-                  foundLatLng = layer.getBounds().getCenter();
-                }
-                foundName = p.kode || p.Name || p.NAME || p.Block || p.ID || "Objek Ditemukan";
+          // 1. PRIORITAS UTAMA: Cari di data mentah stasiun lintasan (Source & Receiver)
+          const currentBlock = document.getElementById("mainSelectBlock")?.value;
+          if (currentBlock && rawData[currentBlock] && Array.isArray(rawData[currentBlock].features)) {
+            rawData[currentBlock].features.forEach(f => {
+              if (foundLatLng) return;
+              const p = f.properties || {};
+              const idText = String(p.ID || p.id || p.NAME || p.Name || "").trim().toLowerCase();
+              if (idText.includes(query) && f.geometry && f.geometry.coordinates) {
+                const coords = f.geometry.coordinates;
+                foundLatLng = L.latLng(coords[1], coords[0]);
+                foundName = p.ID || p.NAME || p.Name || "Titik Sismik";
               }
             });
-          };
+          }
 
-          // Memindai seluruh layer group yang terdaftar di sistem Bapak
-          searchInGroup(groupSource);
-          searchInGroup(groupReceiver);
-          searchInGroup(groupBM);
-          searchInGroup(groupCamp);
-          searchInGroup(groupHazard);
-          searchInGroup(groupRepeater);
-          searchInGroup(groupVibro);
-          searchInGroup(groupLaboPartes);
-          searchInGroup(groupSpPartes);
-          searchInGroup(groupJalan);
-          searchInGroup(groupPartes);
-          searchInGroup(groupPPVEast);
+          // 2. JIKA TIDAK KETEMU, PINDAI SEMUA MARKER/LAYER YANG TAMPIL DI PETA
+          if (!foundLatLng) {
+            map.eachLayer(layer => {
+              if (foundLatLng) return;
+              
+              // Cek jika layer tersebut adalah Marker atau CircleMarker yang punya properties
+              if (layer.feature && layer.feature.properties) {
+                const p = layer.feature.properties;
+                const identifier = String(
+                  p.kode || p.KODE || p.Name || p.NAME || p.Block || p.ID || p.id || p.nama || p.KODEE || p.Line || p.ATTR_1 || p.FID || ""
+                ).trim().toLowerCase();
 
+                if (identifier.includes(query)) {
+                  foundLayer = layer;
+                  if (layer.getLatLng) {
+                    foundLatLng = layer.getLatLng();
+                  } else if (layer.getBounds) {
+                    foundLatLng = layer.getBounds().getCenter();
+                  }
+                  foundName = p.kode || p.Name || p.NAME || p.ID || "Objek Ditemukan";
+                }
+              }
+            });
+          }
 
+          // 3. Eksekusi Hasil Pencarian
           if (foundLatLng) {
             map.setView(foundLatLng, 18);
             if (foundLayer && foundLayer.openPopup) {
@@ -1793,7 +1809,7 @@
               window.navigateToTarget(foundLatLng.lat, foundLatLng.lng, foundName);
             }
           } else {
-            alert("⚠️ Nama, kode, atau ID objek tersebut tidak ditemukan di seluruh layer peta!");
+            alert("⚠️ Objek atau Kode \"" + query + "\" tidak ditemukan di stasiun ID maupun di seluruh layer peta!");
           }
           searchInput.blur();
         }
@@ -1805,6 +1821,176 @@
     });
 
   });
+  // ==========================================
+    // KONTROL PANEL MENU NAVIGASI & PENGUKURAN
+    // ==========================================
+    const navMenuPanel = document.getElementById("navMenuPanel");
+    const btnCloseNav = document.getElementById("btn-close-nav-panel");
+    const navResultBox = document.getElementById("navResultBox");
+    const navResultText = document.getElementById("navResultText");
+    const navModeSelect = document.getElementById("navModeSelect");
+
+    // 1. Tombol Tutup Panel (X)
+    if (btnCloseNav && navMenuPanel) {
+      btnCloseNav.addEventListener("click", () => {
+        navMenuPanel.style.display = "none";
+      });
+    }
+
+   // 2. Tombol: Mulai dari Lokasi Saya ke Stasiun / Objek (Menggunakan Master Gabung Data)
+   const btnStartNav = document.getElementById("btn-start-nav");
+    if (btnStartNav) {
+      btnStartNav.addEventListener("click", () => {
+        const targetQuery = prompt("Masukkan Kode Tujuan Navigasi (Contoh: FieldCamp TUB, 1101860vib):");
+        if (!targetQuery) return;
+
+        const queryLower = targetQuery.toLowerCase().trim();
+
+        // Pastikan data master gabungan sudah siap di memori global
+        const geojson = window._masterGabungData;
+        if (!geojson || !geojson.features) {
+          alert("⚠️ Data peta master sedang dimuat, mohon tunggu sebentar lalu coba lagi.");
+          return;
+        }
+
+        let destLatLng = null;
+        let destName = targetQuery;
+
+        // Cari langsung di data master gabung_leaflet.geojson
+        for (let f of geojson.features) {
+          const p = f.properties || {};
+          const kodeVal = String(p.kode || p.KODE || p.Kode || "").toLowerCase().trim();
+          const ketVal  = String(p.Keterangan || p.KETERANGAN || p.Name || "").toLowerCase().trim();
+
+          if (kodeVal === queryLower || kodeVal.includes(queryLower) || ketVal.includes(queryLower)) {
+            if (f.geometry && f.geometry.coordinates) {
+              const coords = f.geometry.coordinates;
+              // Format GeoJSON standar: [longitude, latitude]
+              destLatLng = L.latLng(coords[1], coords[0]);
+              destName = p.kode || p.Keterangan || p.Name || targetQuery;
+              break;
+            }
+          }
+        }
+
+        if (!destLatLng) {
+          alert(`⚠️ Kode atau objek "${targetQuery}" tidak ditemukan di master file!`);
+          return;
+        }
+
+        // Ambil posisi GPS pengguna saat ini
+        if (!navigator.geolocation) {
+          alert("❌ Geolocation tidak didukung oleh browser Anda.");
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(position => {
+          const userLat = position.coords.latitude;
+          const userLng = position.coords.longitude;
+          const userLatLng = L.latLng(userLat, userLng);
+
+          const navResultBox = document.getElementById("navResultBox");
+          const navResultText = document.getElementById("navResultText");
+          const navModeSelect = document.getElementById("navModeSelect");
+          const navMenuPanel = document.getElementById("navMenuPanel");
+          const mode = navModeSelect ? navModeSelect.value : "straight";
+
+          if (navResultBox) navResultBox.style.display = "block";
+
+          if (mode === "straight") {
+            const distanceMeters = userLatLng.distanceTo(destLatLng);
+            const distanceKm = (distanceMeters / 1000).toFixed(2);
+            
+            if (navResultText) {
+              navResultText.innerHTML = `<b>📐 Jarak Lurus ke ${destName}:</b> ${distanceKm} km (${distanceMeters.toFixed(0)} meter)`;
+            }
+
+            if (window.activeNavLine) map.removeLayer(window.activeNavLine);
+            window.activeNavLine = L.polyline([userLatLng, destLatLng], { color: '#ff00ff', weight: 4, dashArray: '5, 10' }).addTo(map);
+            map.fitBounds(window.activeNavLine.getBounds(), { padding: [50, 50] });
+
+          } else {
+            if (typeof L.Routing !== 'undefined') {
+              if (window.activeRoutingControl) map.removeControl(window.activeRoutingControl);
+              window.activeRoutingControl = L.Routing.control({
+                waypoints: [userLatLng, destLatLng],
+                routeWhileDragging: false,
+                language: 'id'
+              }).addTo(map);
+              if (navResultText) navResultText.innerHTML = `<b>🚗 Routing Jalan ke ${destName}</b> diaktifkan.`;
+            } else {
+              alert("⚠️ Modul Routing Jalan belum dimuat. Menggunakan garis lurus sebagai alternatif.");
+            }
+          }
+
+          if (navMenuPanel) navMenuPanel.style.display = "none";
+        }, error => {
+          alert("⚠️ Gagal mendeteksi lokasi GPS Anda. Pastikan izin lokasi aktif.");
+        });
+      });
+    }
+
+    // 3. Tombol: Klik 2 Titik Manual di Peta untuk Ukur Jarak
+    const btnPickMapNav = document.getElementById("btn-pick-map-nav");
+    if (btnPickMapNav) {
+      btnPickMapNav.addEventListener("click", () => {
+        alert("👆 Silakan klik Titik PERTAMA di atas peta.");
+        if (navMenuPanel) navMenuPanel.style.display = "none";
+        
+        window.tempClickPoints = [];
+        
+        // Buat event klik sementara pada peta
+        map.once("click", e => {
+          window.tempClickPoints.push(e.latlng);
+          L.circleMarker(e.latlng, { radius: 6, color: '#00ffcc', fillOpacity: 1 }).addTo(map);
+          
+          alert("👆 Titik pertama terpilih! Sekarang klik Titik KEDUA di peta.");
+          
+          map.once("click", e2 => {
+            window.tempClickPoints.push(e2.latlng);
+            L.circleMarker(e2.latlng, { radius: 6, color: '#800080', fillOpacity: 1 }).addTo(map);
+
+            const pt1 = window.tempClickPoints[0];
+            const pt2 = window.tempClickPoints[1];
+            const distMeters = pt1.distanceTo(pt2);
+            const distKm = (distMeters / 1000).toFixed(2);
+
+            // Tampilkan hasil jarak manual
+            if (navResultBox) navResultBox.style.display = "block";
+            if (navResultText) {
+              navResultText.innerHTML = `<b>📏 Jarak Manual 2 Titik:</b> ${distKm} km (${distMeters.toFixed(0)} meter)`;
+            }
+
+            // Gambar garis penghubung
+            if (window.activeNavLine) map.removeLayer(window.activeNavLine);
+            window.activeNavLine = L.polyline([pt1, pt2], { color: '#00ffcc', weight: 4 }).addTo(map);
+            map.fitBounds(window.activeNavLine.getBounds(), { padding: [50, 50] });
+          });
+        });
+      });
+    }
+
+    // 4. Tombol: Hapus Garis Navigasi / Pengukuran
+    const btnClearNav = document.getElementById("btn-clear-nav");
+    if (btnClearNav) {
+      btnClearNav.addEventListener("click", () => {
+        // Hapus garis peta
+        if (window.activeNavLine) {
+          map.removeLayer(window.activeNavLine);
+          window.activeNavLine = null;
+        }
+        // Hapus routing jika ada
+        if (typeof window.activeRoutingControl !== 'undefined' && window.activeRoutingControl) {
+          map.removeControl(window.activeRoutingControl);
+          window.activeRoutingControl = null;
+        }
+        // Sembunyikan kotak hasil
+        if (navResultBox) navResultBox.style.display = "none";
+        if (navResultText) navResultText.innerHTML = "Jarak: -";
+
+        alert("🗑️ Garis navigasi & pengukuran berhasil dibersihkan.");
+      });
+    }
 </script>
 
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
