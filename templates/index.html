@@ -1063,8 +1063,12 @@
 
               return L.marker(latlng, {
                 icon: L.divIcon({
-                  className: 'point-name-label text-white',
-                  html: `<span style="display: inline-block; color: #ffffff; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 12px; white-space: nowrap;">${labelText}</span>`,
+                  className: 'custom-emoji-label',
+                  // Tambahkan emoji di sini agar tampil berdampingan seperti Labo
+                  html: `<div style="display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+                          <span style="font-size: 14px; text-shadow: 1px 1px 2px black;">🚒</span>
+                          <span style="color: #ffffff; background: rgba(0,0,0,0.8); padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 12px; border: 1px solid rgba(255,255,255,0.3);">${labelText}</span>
+                        </div>`,
                   iconSize: [0, 0],
                   iconAnchor: [0, 0]
                 })
@@ -1072,17 +1076,17 @@
             },
             onEachFeature: (f, layer) => {
               const p = f.properties || {};
-            // Membuat popup informasi ketika titik diklik
               let popupContent = "<b>PPV East Info</b><br>";
               for (let key in p) {
-              popupContent += `<b>${key}:</b> ${p[key]}<br>`;
+                popupContent += `<b>${key}:</b> ${p[key]}<br>`;
+              }
+              layer.bindPopup(popupContent);
             }
-            layer.bindPopup(popupContent);
-          }
-        }).addTo(groupPPVEast);
-      }
-    });
-  }
+          }).addTo(groupPPVEast);
+        }
+      });
+    }
+            
     async function initAppData() {
       await fetchCloudProgress();
 
@@ -1402,7 +1406,7 @@
         "🚜 Posisi Vibro": groupVibro,      // <-- BARU
         "⛺ Labo Partes": groupLaboPartes,   // <-- BARU
         "📍 SP Partes": groupSpPartes,     //
-        "📍 PPV East": groupPPVEast     //
+        "🚒 PPV East": groupPPVEast,     //
         
       },
       { position: "topright" }
