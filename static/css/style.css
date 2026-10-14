@@ -213,6 +213,32 @@
     text-shadow: 1px 1px 2px #ffffff, -1px -1px 2px #ffffff, 1px -1px 2px #ffffff, -1px 1px 2px #ffffff;
   }
   
+  /* KELAS UTAMA: Label Fleksibel Seragam untuk Semua Titik (Repeater, Vibro, Labo, SP, PPV) */
+  .unified-map-label {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    gap: 4px;
+    background: rgba(30, 30, 35, 0.85);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1.5px solid #ffa500; /* Warna border bisa ditimpa inline style */
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  
+  .unified-map-label .emoji-icon {
+    font-size: 12px;
+    line-height: 1;
+  }
+  
+  .unified-map-label .label-text {
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 11px;
+    line-height: 1;
+  }
+  
   .camp-icon-container {
     display: flex;
     align-items: center;
@@ -491,10 +517,10 @@
   }
   
   /* ==========================================
-     7. HSE BOARD MODAL & COMPONENTS
+     7. HSE BOARD & NAV PANEL FIX (STABLE OVERLAY)
      ========================================== */
   .btn-action.btn-hse {
-    background-color: #003366; /* Biru Navy HSE */
+    background-color: #003366;
     color: #ffffff;
     margin-top: 5px;
     display: flex;
@@ -509,7 +535,7 @@
   .hse-board-modal {
     position: absolute;
     top: 70px;
-    right: 170px; /* Di sebelah kiri tombol navigasi */
+    right: 170px;
     z-index: 2000;
     background: #ffffff;
     border: 2px solid #003366;
@@ -575,176 +601,162 @@
     font-weight: bold;
     color: #000000;
   }
- /* ==========================================
-   7. HSE BOARD & NAV PANEL FIX (STABLE OVERLAY)
-   ========================================== */
-
-/* Panel Navigasi */
-.nav-menu-panel, 
-#navMenuPanel {
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  top: 70px;
-  right: 20px;
-  left: auto;
-  z-index: 3000 !important;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  width: 320px;
-  padding: 15px;
-  font-family: Arial, sans-serif;
-  display: none; /* Default tersembunyi */
-}
-/* Tambahan Pengaturan Header & Ukuran Teks Navigasi */
-.nav-panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  font-size: 13px;      /* Ukuran tinggi/besar teks judul */
-  line-height: 1.4;     /* Tinggi spasi baris teks */
-  font-weight: bold;
-  color: #2c3e50;
-  margin-bottom: 10px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 8px;
-}
-/* =========================================================
-   CSS PANEL MENU NAVIGASI & UKUR JARAK (LENGKAP)
-   ========================================================= */
-
-/* Body & Kontainer Isi Panel Navigasi */
-.nav-panel-body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-/* Label Teks Pilihan Navigasi */
-.nav-label {
-  font-size: 11px;
-  font-weight: bold;
-  color: #555555;
-  margin-bottom: 2px;
-}
-
-.btn-panel-close {
-  background: #dc3545;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 3px 8px;
-  font-size: 12px;
-  cursor: pointer;
-}
-/* Modal / Panel HSE Board */
-#hseBoardModal, 
-.hse-board-panel, 
-.hse-board-modal {
-  position: absolute;
-  top: 70px;
-  left: 60px;
-  right: auto;
-  z-index: 3000 !important; /* Di atas Leaflet Control */
-  background: #1e293b;
-  color: #ffffff;
-  padding: 15px;
-  border-radius: 10px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
-  width: 320px;
-  max-width: 90vw;
-  display: none; /* Default tersembunyi */
-}
-
-/* Pastikan Leaflet Controls tidak menutupi Pop-up Modal */
-.leaflet-top, 
-.leaflet-bottom {
-  z-index: 1000 !important;
-}
-
-/* Dropdown Select Mode Navigasi */
-.nav-select {
-  width: 100%;
-  padding: 6px 8px;
-  font-size: 11px;
-  font-weight: bold;
-  color: #212529;
-  background-color: #ffffff;
-  border: 1px solid #cccccc;
-  border-radius: 4px;
-  outline: none;
-  cursor: pointer;
-  box-sizing: border-box;
-}
-
-.nav-select:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
-}
-
-/* Layout Tumpukan Tombol Navigasi */
-.nav-btn-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-/* Style Dasar Tombol Aksi Navigasi */
-.btn-nav-action {
-  width: 100%;
-  padding: 7px 10px;
-  font-size: 11px;
-  font-weight: bold;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
-  text-align: left;
-  box-sizing: border-box;
-}
-
-.btn-nav-action:active {
-  transform: scale(0.98);
-}
-
-/* Varian Warna Tombol Navigasi */
-.btn-primary-nav {
-  background-color: #007bff;
-  color: #ffffff;
-}
-.btn-primary-nav:hover {
-  background-color: #0056b3;
-}
-
-.btn-secondary-nav {
-  background-color: #17a2b8;
-  color: #ffffff;
-}
-.btn-secondary-nav:hover {
-  background-color: #117a8b;
-}
-
-.btn-danger-nav {
-  background-color: #dc3545;
-  color: #ffffff;
-}
-.btn-danger-nav:hover {
-  background-color: #bd2130;
-}
-
-/* Kotak Hasil Perhitungan Jarak */
-.nav-result-box {
-  margin-top: 6px;
-  padding: 8px 10px;
-  background-color: #1e1e1e;
-  border: 1px solid #38ef7d;
-  border-radius: 5px;
-  color: #ffffff;
-  font-size: 11px;
-  line-height: 1.4;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
+  
+  /* Panel Navigasi */
+  .nav-menu-panel, 
+  #navMenuPanel {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 70px;
+    right: 20px;
+    left: auto;
+    z-index: 3000 !important;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    width: 320px;
+    padding: 15px;
+    font-family: Arial, sans-serif;
+    display: none;
+  }
+  
+  .nav-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    font-size: 13px;
+    line-height: 1.4;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+  }
+  
+  .nav-panel-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  
+  .nav-label {
+    font-size: 11px;
+    font-weight: bold;
+    color: #555555;
+    margin-bottom: 2px;
+  }
+  
+  .btn-panel-close {
+    background: #dc3545;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  
+  #hseBoardModal, 
+  .hse-board-panel, 
+  .hse-board-modal {
+    position: absolute;
+    top: 70px;
+    left: 60px;
+    right: auto;
+    z-index: 3000 !important;
+    background: #1e293b;
+    color: #ffffff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+    width: 320px;
+    max-width: 90vw;
+    display: none;
+  }
+  
+  .leaflet-top, 
+  .leaflet-bottom {
+    z-index: 1000 !important;
+  }
+  
+  .nav-select {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #212529;
+    background-color: #ffffff;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  
+  .nav-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
+  }
+  
+  .nav-btn-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  
+  .btn-nav-action {
+    width: 100%;
+    padding: 7px 10px;
+    font-size: 11px;
+    font-weight: bold;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    text-align: left;
+    box-sizing: border-box;
+  }
+  
+  .btn-nav-action:active {
+    transform: scale(0.98);
+  }
+  
+  .btn-primary-nav {
+    background-color: #007bff;
+    color: #ffffff;
+  }
+  .btn-primary-nav:hover {
+    background-color: #0056b3;
+  }
+  
+  .btn-secondary-nav {
+    background-color: #17a2b8;
+    color: #ffffff;
+  }
+  .btn-secondary-nav:hover {
+    background-color: #117a8b;
+  }
+  
+  .btn-danger-nav {
+    background-color: #dc3545;
+    color: #ffffff;
+  }
+  .btn-danger-nav:hover {
+    background-color: #bd2130;
+  }
+  
+  .nav-result-box {
+    margin-top: 6px;
+    padding: 8px 10px;
+    background-color: #1e1e1e;
+    border: 1px solid #38ef7d;
+    border-radius: 5px;
+    color: #ffffff;
+    font-size: 11px;
+    line-height: 1.4;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
