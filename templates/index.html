@@ -645,6 +645,7 @@
     const groupLaboPartes = L.layerGroup().addTo(map);
     const groupVibro = L.layerGroup().addTo(map);
     const groupSpPartes = L.layerGroup().addTo(map);
+    const groupPPVEast = L.layerGroup().addTo(map);
 
 
     let userMarker = null;
@@ -1024,7 +1025,6 @@
               const p = f.properties || {};
               const labelName = p.NAME || p.ATTR_1 || 'SP Partes';
 
-              // Menggunakan gabungan CircleMarker (titik utama) + DivIcon (teks label)
               // Atau membuat marker dengan divIcon yang berukuran lebih besar
               const customIcon = L.divIcon({
                 className: 'custom-sp-label-large',
@@ -1045,7 +1045,44 @@
           }).addTo(groupSpPartes);
         }
       });
-    }   
+           
+      // 1. Inisialisasi Layer Group Baru untuk PPV East
+      // ---------------------------------------------------------
+      // (Letakkan baris ini bersama inisialisasi group layer lainnya di bagian atas, misal di bawah groupSpPartes)
+      const groupPPVEast = L.layerGroup().addTo(map);
+
+      // ---------------------------------------------------------
+      // 2. Skrip Pemuatan GeoJSON untuk PPV East (Di bawah SP Partes)
+      // ---------------------------------------------------------
+      loadGeoJsonFile("PPV_east__leaflet.geojson").then(ppvEastData => {
+        if (ppvEastData) {
+          L.geoJSON(ppvEastData, {
+            pointToLayer: (f, latlng) => {
+              const p = f.properties || {};
+              const labelText = p.kode || p.KODE || p.Name || p.NAME || '';
+
+              return L.marker(latlng, {
+                icon: L.divIcon({
+                  className: 'point-name-label text-white',
+                  html: `<span style="display: inline-block; color: #ffffff; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 12px; white-space: nowrap;">${labelText}</span>`,
+                  iconSize: [0, 0],
+                  iconAnchor: [0, 0]
+                })
+              });
+            },
+            onEachFeature: (f, layer) => {
+              const p = f.properties || {};
+            // Membuat popup informasi ketika titik diklik
+              let popupContent = "<b>PPV East Info</b><br>";
+              for (let key in p) {
+              popupContent += `<b>${key}:</b> ${p[key]}<br>`;
+            }
+            layer.bindPopup(popupContent);
+          }
+        }).addTo(groupPPVEast);
+      }
+    });
+  }
     async function initAppData() {
       await fetchCloudProgress();
 
@@ -1364,8 +1401,9 @@
         "📡 Repeater": groupRepeater,       // <-- BARU
         "🚜 Posisi Vibro": groupVibro,      // <-- BARU
         "⛺ Labo Partes": groupLaboPartes,   // <-- BARU
-        "📍 SP Partes": groupSpPartes     //
-      
+        "📍 SP Partes": groupSpPartes,     //
+        "📍 PPV East": groupPPVEast     //
+        
       },
       { position: "topright" }
     ).addTo(map);
@@ -1748,6 +1786,8 @@
           searchInGroup(groupSpPartes);
           searchInGroup(groupJalan);
           searchInGroup(groupPartes);
+          searchInGroup(groupPPVEast);
+
 
           if (foundLatLng) {
             map.setView(foundLatLng, 18);
