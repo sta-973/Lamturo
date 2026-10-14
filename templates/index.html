@@ -940,17 +940,17 @@
               const p = f.properties || {};
               const labelName = p.NAME || p.Nama || p.ID || 'Repeater';
 
-              const customIcon = L.divIcon({
-                className: 'custom-repeater-icon',
-                html: `<div style="display: flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.8); padding: 4px 8px; border: 2px solid #ffcc00; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.4);">
-                         <span style="font-size: 20px;">📡</span>
-                         <span style="font-size: 13px; font-weight: bold; color: #ffffff; white-space: nowrap;">${labelName}</span>
-                       </div>`,
-                iconSize: [130, 30],
-                iconAnchor: [10, 15]
+              return L.marker(latlng, {
+                icon: L.divIcon({
+                  className: '',
+                  html: `<div class="unified-map-label" style="border-color: #ffcc00;">
+                           <span class="emoji-icon">📡</span>
+                           <span class="label-text">${labelName}</span>
+                         </div>`,
+                  iconSize: [0, 0],
+                  iconAnchor: [0, 0]
+                })
               });
-
-              return L.marker(latlng, { icon: customIcon });
             },
             onEachFeature: (f, l) => {
               const p = f.properties || {};
@@ -968,21 +968,21 @@
               const p = f.properties || {};
               const labelName = p.Block || p.Nama || p.ID || 'Vibro';
 
-              const customIcon = L.divIcon({
-                className: 'custom-vibro-icon',
-                html: `<div style="display: flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.8); padding: 4px 8px; border: 2px solid #ff9900; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.4);">
-                         <span style="font-size: 20px;">🚐</span>
-                         <span style="font-size: 13px; font-weight: bold; color: #ffffff; white-space: nowrap;">${labelName}</span>
-                       </div>`,
-                iconSize: [130, 30],
-                iconAnchor: [10, 15]
+              return L.marker(latlng, {
+                icon: L.divIcon({
+                  className: '',
+                  html: `<div class="unified-map-label" style="border-color: #ff9900;">
+                           <span class="emoji-icon">🚜</span>
+                           <span class="label-text">${labelName}</span>
+                         </div>`,
+                  iconSize: [0, 0],
+                  iconAnchor: [0, 0]
+                })
               });
-
-              return L.marker(latlng, { icon: customIcon });
             },
             onEachFeature: (f, l) => {
               const p = f.properties || {};
-              l.bindPopup(`<b>🚐 Posisi Vibro:</b> ${p.NAME || p.Nama || p.ID || 'Vibro'}`);
+              l.bindPopup(`<b>🚜 Posisi Vibro:</b> ${p.NAME || p.Nama || p.ID || 'Vibro'}`);
             }
           }).addTo(groupVibro);
         }
@@ -994,20 +994,19 @@
           L.geoJSON(data, {
             pointToLayer: (f, latlng) => {
               const p = f.properties || {};
-              // Ambil nama dari kolom yang sesuai di file geojson-nya (misal p.NAME atau p.Nama)
               const labelName = p.Name || p.Elevasi || 'Labo Partes';
 
-              const customIcon = L.divIcon({
-                className: 'custom-labo-icon',
-                html: `<div style="display: flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.8); padding: 4px 8px; border: 2px solid #00ffff; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.4);">
-                         <span style="font-size: 20px;">⛺</span>
-                         <span style="font-size: 13px; font-weight: bold; color: #ffffff; white-space: nowrap;">${labelName}</span>
-                       </div>`,
-                iconSize: [140, 30],
-                iconAnchor: [10, 15]
+              return L.marker(latlng, {
+                icon: L.divIcon({
+                  className: '',
+                  html: `<div class="unified-map-label" style="border-color: #00ffff;">
+                           <span class="emoji-icon">⛺</span>
+                           <span class="label-text">${labelName}</span>
+                         </div>`,
+                  iconSize: [0, 0],
+                  iconAnchor: [0, 0]
+                })
               });
-
-              return L.marker(latlng, { icon: customIcon });
             },
             onEachFeature: (f, l) => {
               const p = f.properties || {};
@@ -1017,7 +1016,7 @@
         }
       });
 
-      // Load SP Partes dengan Ukuran Lebih Besar & Jelas
+      // 4. Load SP Partes
       loadGeoJsonFile("SP_Partes_leaflet.geojson").then(data => {
         if (data) {
           L.geoJSON(data, {
@@ -1025,18 +1024,17 @@
               const p = f.properties || {};
               const labelName = p.NAME || p.ATTR_1 || 'SP Partes';
 
-              // Atau membuat marker dengan divIcon yang berukuran lebih besar
-              const customIcon = L.divIcon({
-                className: 'custom-sp-label-large',
-                html: `<div style="display: flex; align-items: center; gap: 4px;">
-                         <div style="width: 12px; height: 12px; background: #00ffcc; border: 2px solid #ffffff; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>
-                         <div style="background: rgba(0, 0, 0, 0.75); padding: 3px 7px; border: 1px solid #00ffcc; border-radius: 4px; font-size: 12px; font-weight: bold; color: #ffffff; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">📍 ${labelName}</div>
-                       </div>`,
-                iconSize: [120, 24],
-                iconAnchor: [6, 12] // Posisi titik pas di tengah lingkaran
+              return L.marker(latlng, {
+                icon: L.divIcon({
+                  className: '',
+                  html: `<div class="unified-map-label" style="border-color: #00ffcc;">
+                           <span class="emoji-icon">📍</span>
+                           <span class="label-text">${labelName}</span>
+                         </div>`,
+                  iconSize: [0, 0],
+                  iconAnchor: [0, 0]
+                })
               });
-
-              return L.marker(latlng, { icon: customIcon });
             },
             onEachFeature: (f, l) => {
               const p = f.properties || {};
@@ -1046,14 +1044,9 @@
         }
       });
            
-      // 1. Inisialisasi Layer Group Baru untuk PPV East
-      // ---------------------------------------------------------
-      // (Letakkan baris ini bersama inisialisasi group layer lainnya di bagian atas, misal di bawah groupSpPartes)
+      // 5. Load PPV East
       const groupPPVEast = L.layerGroup().addTo(map);
 
-      // ---------------------------------------------------------
-      // 2. Skrip Pemuatan GeoJSON untuk PPV East (Di bawah SP Partes)
-      // ---------------------------------------------------------
       loadGeoJsonFile("PPV_east__leaflet.geojson").then(ppvEastData => {
         if (ppvEastData) {
           L.geoJSON(ppvEastData, {
@@ -1063,12 +1056,11 @@
 
               return L.marker(latlng, {
                 icon: L.divIcon({
-                  className: 'custom-emoji-label',
-                  // Tambahkan emoji di sini agar tampil berdampingan seperti Labo
-                  html: `<div style="display: flex; align-items: center; gap: 4px; white-space: nowrap;">
-                          <span style="font-size: 14px; text-shadow: 1px 1px 2px black;">🚒</span>
-                          <span style="color: #ffffff; background: rgba(0,0,0,0.8); padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 12px; border: 1px solid rgba(255,255,255,0.3);">${labelText}</span>
-                        </div>`,
+                  className: '',
+                  html: `<div class="unified-map-label" style="border-color: #ffa500;">
+                           <span class="emoji-icon">🚒</span>
+                           <span class="label-text">${labelText}</span>
+                         </div>`,
                   iconSize: [0, 0],
                   iconAnchor: [0, 0]
                 })
@@ -1085,8 +1077,7 @@
           }).addTo(groupPPVEast);
         }
       });
-    }
-            
+    }   
     async function initAppData() {
       await fetchCloudProgress();
 
