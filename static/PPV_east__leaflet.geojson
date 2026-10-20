@@ -12,6 +12,9 @@
 { "type": "Feature", "properties": { "FID": 6, "kode": "Exp3", "Easting": 634609.881, "Northing": 9216575.24, "Elevation": 4.932 }, "geometry": { "type": "Point", "coordinates": [ 112.218863702522299, -7.085929735273964 ] } },
 { "type": "Feature", "properties": { "FID": 7, "kode": "PPV_VIB4", "Easting": 634300.209, "Northing": 9214798.981000001, "Elevation": 6.482 }, "geometry": { "type": "Point", "coordinates": [ 112.216102278267627, -7.102001345999475 ] } },
 { "type": "Feature", "properties": { "FID": 8, "kode": "PPV_VIB5", "Easting": 634300.776, "Northing": 9214770.277000001, "Elevation": 6.297 }, "geometry": { "type": "Point", "coordinates": [ 112.216108093808543, -7.10226092790354 ] } },
-{ "type": "Feature", "properties": { "FID": 9, "kode": "PPV_VIB6", "Easting": 634303.833, "Northing": 9214723.097, "Elevation": 5.634 }, "geometry": { "type": "Point", "coordinates": [ 112.216136892233578, -7.102687545307642 ] } }
+{ "type": "Feature", "properties": { "FID": 9, "kode": "PPV_VIB6", "Easting": 634303.833, "Northing": 9214723.097, "Elevation": 5.634 }, "geometry": { "type": "Point", "coordinates": [ 112.216136892233578, -7.102687545307642 ] } },
+{ "type": "Feature", "properties": { "FID": 10, "kode": "PPV3", "Easting": 602299.912, "Northing": 9193725.943, "Elevation": 50.613, "keterangan": "Partes_2" }, "geometry": { "type": "Point", "coordinates": [ 111.92675285605219, -7.293269715593395, 50.613 ] } },
+{ "type": "Feature", "properties": { "FID": 11, "kode": "PPV2", "Easting": 602400.724, "Northing": 9193725.458000001, "Elevation": 50.077, "keterangan": "Partes_2" }, "geometry": { "type": "Point", "coordinates": [ 111.927666057113711, -7.293272228878224, 50.077 ] } },
+{ "type": "Feature", "properties": { "FID": 12, "kode": "PPV1", "Easting": 602450.652, "Northing": 9193725.092, "Elevation": 49.16, "keterangan": "Partes_2" }, "geometry": { "type": "Point", "coordinates": [ 111.928118329963425, -7.293274610734374, 49.16 ] } }
 ]
 }
