@@ -698,7 +698,7 @@
   .hse-board-panel {
     position: absolute;
     top: 70px;
-    left: auto;
+    left: 10pk;
     right: 0px;
     z-index: 3000 !important;
     background: #003366;
