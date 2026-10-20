@@ -699,7 +699,7 @@
     position: absolute;
     top: 70px;
     left: auto;
-    right: 10px;
+    right: 0px;
     z-index: 3000 !important;
     background: #003366;
     color: #003366;
