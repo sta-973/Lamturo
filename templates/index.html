@@ -118,7 +118,7 @@
 
   <!-- Popup Export -->
   <div id="exportMenuPopup" class="export-menu-popup" style="display: none;">
-    <button id="btn-export-excel">📊 Export Excel (.csv)</button>
+    <button id="btn-export-excel" onclick="exportExcelData()">📊 Export Excel (.csv)</button>
     <button id="btn-export-geojson">🗺️ Export GeoJSON</button>
   </div>
 
@@ -568,7 +568,13 @@
       routingControl = L.Routing.control({
         waypoints: [L.latLng(lat1, lng1), L.latLng(lat2, lng2)],
         routeWhileDragging: false,
-        lineOptions: { styles: [{ color: '#ff007f', opacity: 0.9, weight: 6 }] },
+        lineOptions: { 
+            styles: [
+              { color: '#000000', opacity: 0.4, weight: 8 },
+              { color: '#000000', opacity: 1.0, weight: 5 },
+          ]
+      },
+
         show: true,
         addWaypoints: false,
         collapsible: true
@@ -611,7 +617,7 @@
   };
 
   document.addEventListener("DOMContentLoaded", function() {
-    
+   
     const map = L.map("map", { 
       preferCanvas: true, zoomControl: false, tap: true, touchZoom: true 
     }).setView([-7.1, 112.2], 13);
@@ -645,7 +651,7 @@
     const groupLaboPartes = L.layerGroup().addTo(map);
     const groupVibro = L.layerGroup().addTo(map);
     const groupSpPartes = L.layerGroup().addTo(map);
-    const groupPPVEast = L.layerGroup().addTo(map);
+    const groupPPVEast = L.layerGroup();//.addTo(map);
 
 
     let userMarker = null;
@@ -696,7 +702,7 @@
 
       let foundFeature = allFeatures.find(f => {
         const p = f.properties || {};
-        return String(p.ID || "").trim().toLowerCase() === searchBoxVal || String(p.NEWID || "").trim().toLowerCase() === searchBoxVal;
+        return String(p.ID || "").trim().toLowerCase() === searchBoxVal || String(p.kode || "").trim().toLowerCase() === searchBoxVal;
       });
 
       if (foundFeature && foundFeature.geometry && foundFeature.geometry.coordinates) {
@@ -731,8 +737,7 @@
 
     const dashboardPage = document.getElementById("dashboard-page");
     const uploadPage = document.getElementById("upload-page");
-    const exportMenuPopup = document.getElementById("exportMenuPopup");
-
+   
     document.getElementById("btn-open-dashboard").addEventListener("click", () => {
       dashboardPage.style.display = "flex";
       const currentBlock = document.getElementById("dashboardSelectBlock").value;
@@ -1045,7 +1050,6 @@
       });
            
       // 5. Load PPV East
-      const groupPPVEast = L.layerGroup().addTo(map);
 
       loadGeoJsonFile("PPV_east__leaflet.geojson").then(ppvEastData => {
         if (ppvEastData) {
@@ -1296,85 +1300,7 @@
       tbody.innerHTML = rowsHtml;
     }
 
-    // EXPORT TO EXCEL CSV (SUDAH DIPERBAIKI)
-    document.getElementById("btn-export-excel").addEventListener("click", async () => {
-      const btnExport = document.getElementById("btn-export-excel");
-      btnExport.innerText = "⏳ Mengunduh Data...";
-
-      await fetchCloudProgress();
-      const dbData = window.cachedProgressData || [];
-
-      if (dbData.length === 0) {
-        alert("Belum ada data progress harian yang tercatat di database!");
-        btnExport.innerText = "📊 Export Excel (.csv)";
-        return;
-      }
-
-      let grouped = {};
-      dbData.forEach(row => {
-        let tgl = row.tanggal ? String(row.tanggal).trim() : "-";
-        let kru = row.kru ? String(row.kru).trim() : "-";
-        let line = row.line ? String(row.line).trim() : "-";
-        let block = row.block ? String(row.block).trim() : "-";
-
-        let key = `${tgl}_${kru}_${line}_${block}`;
-
-        if (!grouped[key]) {
-          grouped[key] = { tanggal: tgl, kru: kru, line: line, block: block, trs: [] };
-        }
-        if (row.tr !== undefined && row.tr !== null) {
-          grouped[key].trs.push(parseFloat(row.tr));
-        }
-      });
-
-      let csvContent = "No,Tanggal,Kru,Blok,Line,Dari_Stasiun,Sampai_Stasiun,Total_Point,Panjang_KM\n";
-      const stationIntervalKm = 0.0125;
-      let no = 1;
-
-      const sortedKeys = Object.keys(grouped).sort((a, b) => grouped[a].tanggal.localeCompare(grouped[b].tanggal));
-
-      sortedKeys.forEach(k => {
-        let item = grouped[k];
-        item.trs.sort((a, b) => a - b);
-
-        let minTr = item.trs.length > 0 ? item.trs[0] : "-";
-        let maxTr = item.trs.length > 0 ? item.trs[item.trs.length - 1] : "-";
-        let totalPoint = item.trs.length;
-        let panjangKm = (totalPoint * stationIntervalKm).toFixed(3);
-
-        csvContent += `${no},"${item.tanggal}","${item.kru}","${item.block}","${item.line}","STP ${minTr}","STP ${maxTr}",${totalPoint},${panjangKm}\n`;
-        no++;
-      });
-
-      const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", `Laporan_Produksi_Seismik_${new Date().toISOString().slice(0,10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      btnExport.innerText = "📊 Export Excel (.csv)";
-      exportMenuPopup.style.display = "none";
-    });
-
-    // EXPORT GEOJSON (SUDAH DIPERBAIKI)
-    document.getElementById("btn-export-geojson").addEventListener("click", () => {
-      if (!allFeatures || allFeatures.length === 0) {
-        alert("Peta belum memiliki fitur GeoJSON untuk di-export!");
-        return;
-      }
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ type: "FeatureCollection", features: allFeatures }, null, 2));
-      const a = document.createElement('a');
-      a.setAttribute("href", dataStr);
-      a.setAttribute("download", `Progress_Seismik_${new Date().toISOString().slice(0,10)}.geojson`);
-      document.body.appendChild(a); 
-      a.click(); 
-      a.remove();
-      exportMenuPopup.style.display = "none";
-    });
-
+   
     L.control.layers(
       { 
         "Google Satellite + Label": baseGoogleHybrid, 
@@ -1991,6 +1917,82 @@
         alert("🗑️ Garis navigasi & pengukuran berhasil dibersihkan.");
       });
     }
+    window.exportExcelData = async function() {
+    // 1. Proteksi Password
+    const password = prompt("🔒 Masukkan Password Keamanan untuk Export Laporan Produksi:");
+    if (password === null) return; // Jika dibatalkan
+    
+    const PASSWORD_RAHASIA = "lamturo9721"; // Sesuaikan password jika ingin diganti
+    if (password !== PASSWORD_RAHASIA) {
+        alert("❌ Password salah! Akses export ditolak.");
+        return;
+    }
+
+    alert("⏳ Mengunduh Data Rekapitulasi...");
+
+    try {
+        const dbData = window.cachedProgressData || [];
+
+        if (dbData.length === 0) {
+            alert("⚠️ Belum ada data progress harian yang tercatat di database!");
+            return;
+        }
+
+        let grouped = {};
+        dbData.forEach(row => {
+            let tgl = row.tanggal ? String(row.tanggal).trim() : "-";
+            let kru = row.kru ? String(row.kru).trim() : "-";
+            let line = row.line ? String(row.line).trim() : "-";
+            let block = row.block ? String(row.block).trim() : "-";
+
+            let key = `${tgl}_${kru}_${line}_${block}`;
+
+            if (!grouped[key]) {
+                grouped[key] = { tanggal: tgl, kru: kru, line: line, block: block, trs: [] };
+            }
+            if (row.tr !== undefined && row.tr !== null) {
+                grouped[key].trs.push(parseFloat(row.tr));
+            }
+        });
+
+        let csvContent = "No,Tanggal,Kru,Blok,Line,Dari_Stasiun,Sampai_Stasiun,Total_Point,Panjang_KM\n";
+        const stationIntervalKm = 0.0125;
+        let no = 1;
+
+        const sortedKeys = Object.keys(grouped).sort((a, b) => grouped[a].tanggal.localeCompare(grouped[b].tanggal));
+
+        sortedKeys.forEach(k => {
+            let item = grouped[k];
+            item.trs.sort((a, b) => a - b);
+
+            let minTr = item.trs.length > 0 ? item.trs[0] : "-";
+            let maxTr = item.trs.length > 0 ? item.trs[item.trs.length - 1] : "-";
+            let totalPoint = item.trs.length;
+            let panjangKm = (totalPoint * stationIntervalKm).toFixed(3);
+
+            csvContent += `${no},"${item.tanggal}","${item.kru}","${item.block}","${item.line}","STP ${minTr}","STP ${maxTr}",${totalPoint},${panjangKm}\n`;
+            no++;
+        });
+
+        const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Laporan_Produksi_Seismik_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        alert("✅ Laporan produksi berhasil di-export!");
+
+        const exportMenuPopup = document.getElementById("exportMenuPopup");
+        if (exportMenuPopup) exportMenuPopup.style.display = "none";
+
+    } catch (err) {
+        console.error("Gagal export excel:", err);
+        alert("⚠️ Terjadi kesalahan saat memproses data export.");
+    }
+};
 </script>
 
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
