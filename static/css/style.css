@@ -213,7 +213,6 @@
     text-shadow: 1px 1px 2px #ffffff, -1px -1px 2px #ffffff, 1px -1px 2px #ffffff, -1px 1px 2px #ffffff;
   }
   
-  /* KELAS UTAMA: Label Fleksibel Seragam untuk Semua Titik (Repeater, Vibro, Labo, SP, PPV) */
   .unified-map-label {
     display: inline-flex;
     align-items: center;
@@ -222,7 +221,7 @@
     background: rgba(30, 30, 35, 0.85);
     padding: 2px 6px;
     border-radius: 4px;
-    border: 1.5px solid #ffa500; /* Warna border bisa ditimpa inline style */
+    border: 1.5px solid #ffa500;
     white-space: nowrap;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   }
@@ -257,7 +256,6 @@
     height: 14px;
   }
   
-  /* Sembunyikan kontrol zoom bawaan Leaflet di kanan bawah */
   .leaflet-bottom.leaflet-right .leaflet-control-zoom {
     display: none !important;
   }
@@ -317,7 +315,6 @@
     width: 100%; 
   }
   
-  /* Card Structures */
   .stat-card, 
   .chart-box, 
   .form-card, 
@@ -335,7 +332,6 @@
     color: #ffffff !important; 
   }
   
-  /* Grid Layouts */
   .stats-summary-grid { 
     display: grid; 
     grid-template-columns: repeat(1, 1fr); 
@@ -402,7 +398,6 @@
     border-radius: 8px; 
   }
   
-  /* Tables */
   .crew-table-container { 
     background-color: #1e1e1e !important; 
   }
@@ -438,7 +433,6 @@
     background-color: #252525 !important; 
   }
   
-  /* Form Controls */
   .filter-select, 
   .form-control,
   input[type="text"], 
@@ -455,7 +449,6 @@
     outline: none !important;
   }
   
-  /* Scrollbar Dark Theme */
   .modal-page::-webkit-scrollbar,
   .crew-table-container::-webkit-scrollbar { 
     width: 8px; 
@@ -478,7 +471,7 @@
   }
   
   /* ==========================================
-     6. HAZARD MAP & ROUTING STYLES
+     6.ROUTING STYLES (DIPERBESAR & PINDAH KE KIRI UNTUK HP)
      ========================================== */
   .leaflet-routing-container {
     background-color: rgba(30, 30, 30, 0.95) !important;
@@ -489,6 +482,41 @@
     max-width: 280px !important;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.5) !important;
     border: 1px solid #444444 !important;
+    position: relative !important;
+  }
+  
+  /* Tombol Close / Silang Routing dipindah ke Kiri & Diperbesar agar mudah ditekan jempol di HP */
+  .leaflet-routing-container .leaflet-routing-close-button {
+    position: absolute !important;
+    left: 8px !important;
+    top: 8px !important;
+    right: auto !important;
+    width: 28px !important;
+    height: 28px !important;
+    background-color: #dc3545 !important;
+    color: #ffffff !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4) !important;
+    z-index: 1000 !important;
+  }
+  .leaflet-routing-collapse-btn{
+    right: auto !important;
+    left: 6px !important;
+  }
+  
+  .leaflet-routing-container h2 {
+    padding-left: 32px !important;
+    margin-top: 4px !important;
+  }
+  .leaflet-routing-close-button::after,
+  span.leaflet-routing-close-button {
+    right: auto !important;
+    left: 8px !important;
   }
   
   .leaflet-routing-alt tr:hover {
@@ -517,7 +545,7 @@
   }
   
   /* ==========================================
-     7. HSE BOARD & NAV PANEL FIX (STABLE OVERLAY)
+     7. HSE BOARD & NAV PANEL (STABLE OVERLAY)
      ========================================== */
   .btn-action.btn-hse {
     background-color: #003366;
@@ -537,7 +565,7 @@
     top: 70px;
     right: 170px;
     z-index: 2000;
-    background: #ffffff;
+    background: #003366;
     border: 2px solid #003366;
     border-radius: 12px;
     padding: 12px;
@@ -627,13 +655,14 @@
     align-items: center;
     width: 100%;
     font-size: 13px;
-    line-height: 1.4;
     font-weight: bold;
     color: #2c3e50;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #eee;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #eee;
     padding-bottom: 8px;
+    flex-direction: row-reverse; /* Membalik posisi: tombol close pindah ke KIRI, teks judul di kanan */
   }
+  
   
   .nav-panel-body {
     display: flex;
@@ -653,22 +682,27 @@
     background: #dc3545;
     color: #fff;
     border: none;
-    border-radius: 4px;
-    padding: 3px 8px;
-    font-size: 12px;
+    border-radius: 50% !important; /* Membuat tombolnya jadi bulat atau kotak besar */
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 16px !important;
+    font-weight: bold;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
   }
   
   #hseBoardModal, 
-  .hse-board-panel, 
-  .hse-board-modal {
+  .hse-board-panel {
     position: absolute;
     top: 70px;
     left: 60px;
     right: auto;
     z-index: 3000 !important;
-    background: #1e293b;
-    color: #ffffff;
+    background: #003366;
+    color: #003366;
     padding: 15px;
     border-radius: 10px;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
@@ -760,3 +794,4 @@
     line-height: 1.4;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   }
+ 
