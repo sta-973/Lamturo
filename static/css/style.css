@@ -563,7 +563,7 @@
   .hse-board-modal {
     position: absolute;
     top: 70px;
-    right: 170px;
+    right: 10px;
     z-index: 2000;
     background: #003366;
     border: 2px solid #003366;
@@ -698,8 +698,8 @@
   .hse-board-panel {
     position: absolute;
     top: 70px;
-    left: 10pk;
-    right: 0px;
+    left: auto;
+    right: 10px;
     z-index: 3000 !important;
     background: #003366;
     color: #003366;
