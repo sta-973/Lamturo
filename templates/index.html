@@ -507,6 +507,62 @@
     return (totalMeter / 1000).toFixed(3);
   }
 
+  // ==========================================
+  // FUNGSI WARNA & POPUP KOORDINAT X, Y, Z
+  // ==========================================
+
+  function createSeismicGeoJsonLayer(geoJsonData) {
+    return L.geoJSON(geoJsonData, {
+      // 1. ATUR WARNA & UKURAN MARKER (Merah SP besar, Hijau polos, Biru)
+      pointToLayer: function (feature, latlng) {
+        const p = feature.properties || {};
+        const geoTr = getFeatureTr(p);
+        
+        const isSpPoint = (!isNaN(geoTr) && (geoTr % 1 !== 0)); 
+        const hasProgress = (p.Tanggal || (p.status_code && p.status_code > 0));
+        const st = parseInt(p.status_code || 0, 10);
+
+        let markerColor = "#888888"; 
+        let markerRadius = 3.5;
+
+        if (!hasProgress) {
+          markerColor = "#888888"; 
+          markerRadius = 3.5;
+        } else if (st === 5) {
+          markerColor = "#007bff"; // Biru (Recording)
+          markerRadius = 4;
+        } else if (st === 4) {
+          if (isSpPoint) {
+            markerColor = "#ff0000"; // Merah SP Drilling (Lebih besar & mencolok)
+            markerRadius = 6.5;      
+          } else {
+            markerColor = "#00ff00"; // Hijau untuk non-SP (.0)
+            markerRadius = 3.5;
+          }
+        } else if (st >= 1 && st <= 3) {
+          markerColor = "#00ff00"; // Hijau untuk Topo / Rintis / Bridging
+          markerRadius = 3.5;
+        }
+
+        return L.circleMarker(latlng, {
+          radius: markerRadius, 
+          fillColor: markerColor,
+          color: markerColor, // Polos tanpa border hitam
+          weight: 0,          
+          opacity: 1,
+          fillOpacity: 1
+        });
+      },
+
+      // 2. MENGHUBUNGKAN KE FUNGSI BINDPOPUP ASLI BAPAK
+      onEachFeature: function (feature, layer) {
+        if (typeof bindPopup === 'function') {
+          bindPopup(feature, layer);
+        }
+      }
+    });
+  }
+
   // FUNGSIONALITAS NAVIGASI & HAPUS GARIS
   window.toggleNavMenu = function() {
     const navMenuPanel = document.getElementById("navMenuPanel");
@@ -1271,7 +1327,7 @@
         if (item.trSet.size > 0) {
           let trArray = Array.from(item.trSet).sort((a, b) => a - b);
           minTr = trArray[0];
-          maxTr = trArray[trArray.length - 1];
+          maxTr = trArray[trArray.length - 1];7
           
           let deltaTr = maxTr - minTr;
           dailyMeter = deltaTr * trIntervalMeter;
@@ -1392,19 +1448,15 @@
       };
 
       if (featuresS.length > 0) {
-        const layerS = L.geoJSON({ type: "FeatureCollection", features: featuresS }, {
-          pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 3, fillColor: getPointColor(f.properties || {}, "S"), stroke: false, fillOpacity: 0.85 }),
-          onEachFeature: (f, l) => { bindPopup(f, l); groupSource.addLayer(l); }
-        });
+        const layerS = createSeismicGeoJsonLayer({ type: "FeatureCollection", features: featuresS });
+        layerS.eachLayer(l => groupSource.addLayer(l));
         loadedLayers.push(layerS);
         addValidLatLngsToBounds(layerS);
       }
   
       if (featuresR.length > 0) {
-        const layerR = L.geoJSON({ type: "FeatureCollection", features: featuresR }, {
-          pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 3, fillColor: getPointColor(f.properties || {}, "R"), stroke: false, fillOpacity: 0.85 }),
-          onEachFeature: (f, l) => { bindPopup(f, l); groupReceiver.addLayer(l); }
-        });
+        const layerR = createSeismicGeoJsonLayer({ type: "FeatureCollection", features: featuresR });
+        layerR.eachLayer(l => groupReceiver.addLayer(l));
         loadedLayers.push(layerR);
         addValidLatLngsToBounds(layerR);
       }
