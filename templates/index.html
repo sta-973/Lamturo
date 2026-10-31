@@ -62,7 +62,7 @@
   <div id="hse-board" class="hse-board-modal" style="display: none;">
     <div class="hse-header">
       <span class="hse-title-text">HSE PERFORMANCE BOARD</span>
-      <button class="hse-close-btn" onclick="toggleHseBoard()">&times;</button>
+      <button class="hse-close-btn" onclick="toggleHseBoard()">×</button>
     </div>
     
     <table class="hse-table">
@@ -88,14 +88,10 @@
 
   <!-- PANEL MENU NAVIGASI -->
   <div id="navMenuPanel" class="nav-menu-panel" style="display: none;">
-    
-    <!-- 1. HEADER (Judul + Tombol Close di Pojok Kanan Atas) -->
     <div class="nav-panel-header">
       <span>🧭 Menu Navigasi & Ukur Jarak</span>
       <button id="btn-close-nav-panel" class="btn-panel-close">✕</button>
     </div>
-
-    <!-- 2. BODY (Semua Isian di Bawah Judul) -->
     <div class="nav-panel-body">
       <label class="nav-label">Pilih Mode Navigasi:</label>
       <select id="navModeSelect" class="nav-select">
@@ -113,7 +109,6 @@
         <span id="navResultText">Jarak: -</span>
       </div>
     </div>
-
   </div>
 
   <!-- Popup Export -->
@@ -132,6 +127,20 @@
   </div>
   <div class="modal-body">
     <div style="display: flex; flex-direction: column; gap: 12px;">
+      
+      <!-- TAB PEMISAH HALAMAN (TOPO, DRILLING, RECORDING) -->
+      <div style="display: flex; gap: 8px; border-bottom: 2px solid #333; padding-bottom: 8px;">
+        <button class="btn-dash-tab" onclick="switchDashboardTab('topo')" id="tab-btn-topo" style="background: #007bff; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px;">
+          🗺️ Topografi
+        </button>
+        <button class="btn-dash-tab" onclick="switchDashboardTab('drilling')" id="tab-btn-drilling" style="background: #333; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px;">
+          🚜 Drilling (Pemboran)
+        </button>
+        <button class="btn-dash-tab" onclick="switchDashboardTab('recording')" id="tab-btn-recording" style="background: #333; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px;">
+          🎧 Recording
+        </button>
+      </div>
+
       <div style="background:#1e1e1e; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; font-size: 12px; border: 1px solid #333;">
         <b>Blok Ditinjau:</b>
         <select id="dashboardSelectBlock" style="padding:5px; font-weight:bold; border-radius:4px; border:1px solid #007bff; color:#007bff; font-size: 12px;">
@@ -162,7 +171,12 @@
 
       <!-- REKAP PRODUKSI KRU -->
       <div class="crew-summary-card">
-        <h3 style="margin: 0 0 5px 0; font-size: 13px;">📋 Rekap Produksi Harian Kru & Jarak Kumulatif Keseluruhan</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+          <h3 style="margin: 0; font-size: 13px;">📋 Rekap Produksi Harian Kru & Jarak Kumulatif Keseluruhan</h3>
+          <div id="rowCounterBadge" style="font-size: 11px; background: #222; padding: 3px 8px; border-radius: 4px; border: 1px solid #444; color: #38ef7d; font-weight: bold;">
+            Total Baris: 0 / 1805
+          </div>
+        </div>
         <p style="margin: 0 0 10px 0; font-size: 10px; color: #aaa;">Interval TR: 12.5m | Interval SP: 50m (4 TR = 1 SP)</p>
         <div style="overflow-x: auto;" class="crew-table-container">
           <table class="crew-table">
@@ -184,7 +198,6 @@
           </table>
         </div>
       </div>
-
     </div>
   </div>
 </div>
@@ -214,7 +227,22 @@
         <button id="btnExecuteUploadFile" style="background: #00ff00; color: #212529; border: none; padding: 9px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Proses & Sync Supabase</button>
       </div>
     </div>
-
+    <!-- 4. UPLOAD KHUSUS OFFSET & COMPEN -->
+    <div class="form-card" style="border-left: 6px solid #9c27b0 !important; margin-top: 15px; padding: 12px; background: #222; border-radius: 4px;">
+      <h3 style="margin-top: 0; font-size: 13px; color: #ff9800;">🔒 4. Upload Khusus Offset & Compen (.csv)</h3>
+      <p style="font-size: 10px; color: #aaa; line-height: 1.4; margin-bottom: 8px;">
+        Urutan Kolom CSV: <code style="background: #333; color: #00ff00; padding: 2px 4px;">id_teoritik, newx, newy, newz, newid</code>
+      </p>
+      <!--<div style="margin-bottom: 8px;">
+        <input type="password" id="offsetPassword" placeholder="Masukkan Password Admin" style="width: 100%; padding: 6px; font-size: 11px; background: #111; color: #fff; border: 1px solid #444; border-radius: 4px;">
+      </div> -->
+      <div style="margin-bottom: 8px;">
+        <input type="file" id="offsetCsvFile" accept=".csv" style="font-size: 11px; color: #fff;">
+      </div>
+      <button onclick="processOffsetUpload()" style="width: 100%; background: #9c27b0; color: #ffffff; border: none; padding: 8px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">
+        🚀 Proses & Update Data Offset ke Supabase
+      </button>
+    </div>
     <!-- 2. INPUT MASSAL RANGE TR -->
     <div class="form-card" style="border-left: 6px solid #007bff !important;">
       <h3 style="margin-top: 0; font-size: 13px;">📦 2. Input Massal (Range TR)</h3>
@@ -229,7 +257,6 @@
         <button id="btnExecuteRangeInput" style="background: #007bff; color: white; border: none; padding: 8px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">🚀 Update Massal Harian</button>
       </div>
     </div>
-
     <!-- 3. INPUT SATUAN TITIK -->
     <div class="form-card" style="border-left: 6px solid #28a745 !important;">
       <h3 style="margin-top: 0; font-size: 13px;">📍 3. Input Satuan Titik</h3>
@@ -247,10 +274,304 @@
   </div>
 </div>
 
+<!-- ========================================== -->
+<!-- JAVASCRIPT UTAMA (TUNGGAL) -->
+<!-- ========================================== -->
 <script>
+  // ==========================================
+  // 1. INISIALISASI SUPABASE & VARIABEL GLOBAL
+  // ==========================================
+  const SUPABASE_URL = "https://kimzyjcuqbyxmcixojke.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbXp5amN1cWJ5eG1jaXhvamtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjg5NzcsImV4cCI6MjEwMzg0NDk3N30.dpyM0bPeUExLWR9d0CsIRU7C5B1ZD4EN1VY4eNd_KYc";
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // State Global
+  let rawData = { East_Block: null, Central_Block: null, West_Block: null };
+  let cloudProgressMap = {};
+  let loadedLayers = [];
+  let allFeatures = [];
+  let currentMapTheme = "dark";
+  let chartSourceInstance = null;
+  let chartReceiverInstance = null;
+  let currentDashboardTab = 'topo'; // Default tab dashboard
+
+  // Variabel Peta & Layer
+  let map, baseGoogleHybrid, baseGoogleSat, baseEsriSat, baseOSM;
+  let groupSource, groupReceiver, groupPointLabels;
+  let groupJalan, groupBM, groupLintasan, groupKeterangan, groupCamp, groupHazard;
+  let groupPartes, groupRepeater, groupLaboPartes, groupVibro, groupSpPartes, groupPPVEast;
+  let offsetLayerGroup;
+
+  // Navigasi
+  let routingControl = null;
+  let customNavPolyline = null;
+  let customNavMarkers = [];
+  let isPickingPointsOnMap = false;
+  let pickedPoints = [];
+
+  // Variabel Label
+  const MIN_ZOOM_FOR_LABELS = 16;
+
+  // Fungsi Tab Dashboard
+  function switchDashboardTab(tabName) {
+    currentDashboardTab = tabName;
+    document.getElementById('tab-btn-topo').style.background = (tabName === 'topo') ? '#007bff' : '#333';
+    document.getElementById('tab-btn-drilling').style.background = (tabName === 'drilling') ? '#007bff' : '#333';
+    document.getElementById('tab-btn-recording').style.background = (tabName === 'recording') ? '#007bff' : '#333';
+
+    const selectedBlock = document.getElementById("dashboardSelectBlock").value;
+    renderCrewSummaryTable(selectedBlock, tabName);
+  }
+
+  // ==========================================
+  // 2. FUNGSI UTILITAS & NORMALISASI
+  // ==========================================
+  function normalizeBlockName(name) {
+    if (!name) return "";
+    let clean = String(name).trim().toLowerCase();
+    if (clean.includes("east")) return "east";
+    if (clean.includes("central") || clean.includes("tengah")) return "central";
+    if (clean.includes("west") || clean.includes("barat")) return "west";
+    return clean;
+  }
+
+  function normalizeLine(line) {
+    if (line === undefined || line === null) return "";
+    return String(line).trim().replace(/^0+/, "") || "0";
+  }
+
+  function getFeatureLine(properties) {
+    if (!properties) return "";
+    const p = properties;
+    const val = p.Line ?? p.line ?? p.LINE ?? p.Line_Name ?? p.LINE_NAME ?? "";
+    return normalizeLine(val);
+  }
+
+  function getFeatureTr(properties) {
+    if (!properties) return NaN;
+    const p = properties;
+    const val = p.Tr ?? p.tr ?? p.TR ?? p.STATION ?? p.Station ?? p.Point ?? p.TR_ ?? NaN;
+    return parseFloat(val);
+  }
+
+  function getPointName(p) {
+    if (!p) return "";
+    return p.NEWID && String(p.NEWID).trim() !== "" ? p.NEWID : (p.ID || p.id || p.Point_Name || p.Point || p.NAME || p.Name || "");
+  }
+
+  // ==========================================
+  // 3. FUNGSI POPUP & LAYER SEISMIK
+  // ==========================================
+  function bindPopup(feature, layer) {
+    const p = feature.properties || {};
+    const pointName = getPointName(p) || "Poin";
+    const infoKru = p.Kru && String(p.Kru).trim() !== "" ? `${p.Kru} (${p.Tanggal})` : '- Belum ada data -';
+    const geoLine = getFeatureLine(p);
+    const geoTr = getFeatureTr(p);
+    
+    const lat = feature.geometry && feature.geometry.coordinates ? feature.geometry.coordinates[1] : 0;
+    const lng = feature.geometry && feature.geometry.coordinates ? feature.geometry.coordinates[0] : 0;
+
+    layer.bindPopup(`
+      <div style="font-size:11px; font-family:sans-serif;">
+        <b style="color:#007bff; font-size:12px;">ID: ${pointName}</b> (${p.Desc_ || 'R'})<br>
+        <b>Line:</b> ${geoLine || '-'} | <b>Tr:</b> ${isNaN(geoTr) ? '-' : geoTr}<br>
+        <b>Pelaksana:</b> <span style="color: #28a745; font-weight: bold;">${infoKru}</span><br>
+        <hr style="margin:3px 0">
+        <b>Status:</b> Topo(${p.topo||0}) | Rintis(${p.rintis||0}) | Bridge(${p.bridging||0}) | Drill(${p.drilling||0}) | Rec(${p.recording||0})<br>
+        <button class="btn-route-action" onclick="window.navigateToTarget(${lat}, ${lng}, '${pointName}')" style="margin-top:5px; width:100%; padding:4px; background:#007bff; color:#fff; border:none; border-radius:3px; cursor:pointer;">
+          🧭 Rute Ke Sini
+        </button>
+      </div>
+    `);
+  }
+
+  function createSeismicGeoJsonLayer(geoJsonData) {
+    return L.geoJSON(geoJsonData, {
+      pointToLayer: function (feature, latlng) {
+        const p = feature.properties || {};
+        const geoTr = getFeatureTr(p);
+        
+        const isSpPoint = (!isNaN(geoTr) && (geoTr % 1 !== 0)); 
+        const hasProgress = (p.Tanggal || (p.status_code && p.status_code > 0));
+        const st = parseInt(p.status_code || 0, 10);
+
+        let markerColor = "#888888"; 
+        let markerRadius = 3.5;
+
+        if (!hasProgress) {
+          markerColor = "#888888"; markerRadius = 3.5;
+        } else if (st === 5) {
+          markerColor = "#007bff"; markerRadius = 4;
+        } else if (st === 4) {
+          if (isSpPoint) {
+            markerColor = "#ff0000"; markerRadius = 6.5;      
+          } else {
+            markerColor = "#00ff00"; markerRadius = 3.5;
+          }
+        } else if (st >= 1 && st <= 3) {
+          markerColor = "#00ff00"; markerRadius = 3.5;
+        }
+
+        return L.circleMarker(latlng, {
+          radius: markerRadius, fillColor: markerColor, color: markerColor, weight: 0, opacity: 1, fillOpacity: 1
+        });
+      },
+      onEachFeature: function (feature, layer) {
+        bindPopup(feature, layer);
+      }
+    });
+  }
+
+  // ==========================================
+  // 4. FUNGSI RENDER PETA & DASHBOARD
+  // ==========================================
+  function renderBlockOnMap(selectedBlock) {
+    if (!groupSource || !groupReceiver) return;
+    groupSource.clearLayers();
+    groupReceiver.clearLayers();
+    loadedLayers = [];
+    allFeatures = [];
+
+    let featuresS = [], featuresR = [];
+    const blocks = selectedBlock === "ALL" ? ["East_Block", "Central_Block", "West_Block"] : [selectedBlock];
+    
+    blocks.forEach(b => {
+      if (rawData[b] && Array.isArray(rawData[b].features)) {
+        rawData[b].features.forEach(f => {
+          const desc = String(f.properties?.Desc_ || f.properties?.Type || f.properties?.Point_Type || "R").trim().toUpperCase();
+          if (desc === "S") featuresS.push(f);
+          else featuresR.push(f);
+          allFeatures.push(f);
+        });
+      }
+    });
+
+    let bounds = L.latLngBounds([]);
+    const addValidLatLngsToBounds = (layerGroup) => {
+      layerGroup.eachLayer(layer => {
+        if (layer.getLatLng) {
+          const latlng = layer.getLatLng();
+          if (latlng && !isNaN(latlng.lat) && !isNaN(latlng.lng) && latlng.lat !== 0 && latlng.lng !== 0) {
+            bounds.extend(latlng);
+          }
+        }
+      });
+    };
+
+    if (featuresS.length > 0) {
+      const layerS = createSeismicGeoJsonLayer({ type: "FeatureCollection", features: featuresS });
+      layerS.eachLayer(l => groupSource.addLayer(l));
+      loadedLayers.push(layerS);
+      addValidLatLngsToBounds(layerS);
+    }
+
+    if (featuresR.length > 0) {
+      const layerR = createSeismicGeoJsonLayer({ type: "FeatureCollection", features: featuresR });
+      layerR.eachLayer(l => groupReceiver.addLayer(l));
+      loadedLayers.push(layerR);
+      addValidLatLngsToBounds(layerR);
+    }
+
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+    } else {
+      map.setView([-7.1, 112.2], 13);
+    }
+
+    setTimeout(() => { map.invalidateSize(); }, 300);
+    
+    if (typeof updatePointLabels === 'function') {
+      updatePointLabels();
+    }
+  }
+
+  // ==========================================
+  // 5. SUPABASE CLOUD, OFFSET, & PLUGIN CHART
+  // ==========================================
+  async function loadOffsetAndCompenLayer() {
+  if (!offsetLayerGroup) {
+    offsetLayerGroup = L.layerGroup().addTo(map);
+  }
+  try {
+    // Ambil data dari tabel progress_seismik
+    const { data: rows, error } = await supabaseClient.from('progress_seismik').select('*');
+    if (error) { console.warn("Gagal mengambil data offset:", error.message); return; }
+
+    offsetLayerGroup.clearLayers();
+    let countDisplayed = 0;
+
+    if (rows && rows.length > 0) {
+      rows.forEach(row => {
+        // Cek apakah baris ini memiliki koordinat new_x dan new_y yang valid
+        const xNew = row.new_x;
+        const yNew = row.new_y;
+
+        if (xNew !== null && xNew !== undefined && yNew !== null && yNew !== undefined && !isNaN(xNew) && !isNaN(yNew)) {
+          const finalLat = parseFloat(yNew);
+          const finalLng = parseFloat(xNew);
+          const displayId = row.new_id || row.tr || "Offset";
+
+          // Cari koordinat asli dari peta berdasarkan block, line, dan tr jika ada
+          let theoLat = finalLat;
+          let theoLng = finalLng;
+
+          const blockKey = row.block;
+          if (blockKey && rawData[blockKey] && Array.isArray(rawData[blockKey].features)) {
+            const matched = rawData[blockKey].features.find(f => {
+              const p = f.properties || {};
+              return String(getFeatureLine(p)) === String(row.line) && Number(getFeatureTr(p)) === Number(row.tr);
+            });
+            if (matched && matched.geometry && matched.geometry.coordinates) {
+              theoLng = matched.geometry.coordinates[0];
+              theoLat = matched.geometry.coordinates[1];
+            }
+          }
+
+          // Buat garis putus-putus penghubung (tie line) jika posisi bergeser
+          if (theoLat !== finalLat || theoLng !== finalLng) {
+            const tieLine = L.polyline([[theoLat, theoLng], [finalLat, finalLng]], {
+              color: '#ff9800', weight: 1.2, dashArray: '4, 4', opacity: 0.8
+            });
+            offsetLayerGroup.addLayer(tieLine);
+          }
+
+          const customHtml = `
+            <div style="display: flex; align-items: center; pointer-events: none;">
+              <div style="width: 10px; height: 10px; background-color: #9c27b0; border-radius: 50%; border: 1px solid #fff;"></div>
+              <span style="white-space: nowrap; font-size: 9px; font-weight: bold; color: #ffffff; text-shadow: 1px 1px 2px #000000; margin-left: 4px;">
+                ${displayId}
+              </span>
+            </div>
+          `;
+
+          const finalMarker = L.marker([finalLat, finalLng], {
+            icon: L.divIcon({ className: 'offset-point-icon', html: customHtml, iconSize: [60, 20], iconAnchor: [5, 5] })
+          });
+
+          finalMarker.bindPopup(`
+            <div style="font-size:11px; font-family:sans-serif;">
+              <b style="color:#ff9800;">Line:</b> ${row.line || '-'} | <b style="color:#ff9800;">TR:</b> ${row.tr || '-'}<br>
+              <b style="color:#9c27b0;">ID Lapangan (NewID):</b> ${displayId}<br>
+              <b>Status:</b> Offset / Compen Berhasil<br>
+              <hr style="margin:3px 0;">
+              <b>New X:</b> ${xNew}<br>
+              <b>New Y:</b> ${yNew}
+            </div>
+          `);
+          offsetLayerGroup.addLayer(finalMarker);
+          countDisplayed++;
+        }
+      });
+    }
+    console.log(`🗺️ Berhasil menampilkan ${countDisplayed} titik offset & compen di peta.`);
+  } catch (err) {
+    console.error("Gagal memuat data offset:", err.message);
+  }
+}
+
   Chart.register(ChartDataLabels);
 
-  // Plugin Chart: Menampilkan Total Poin & Kumulatif KM di Tengah Donut Chart
   const centerTextPlugin = {
     id: 'centerText',
     beforeDraw(chart) {
@@ -289,54 +610,6 @@
     }
   };
 
-  const SUPABASE_URL = "https://kimzyjcuqbyxmcixojke.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbXp5amN1cWJ5eG1jaXhvamtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjg5NzcsImV4cCI6MjEwMzg0NDk3N30.dpyM0bPeUExLWR9d0CsIRU7C5B1ZD4EN1VY4eNd_KYc";
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  let rawData = { East_Block: null, Central_Block: null, West_Block: null };
-  let cloudProgressMap = {};
-  let loadedLayers = [];
-  let allFeatures = [];
-  let currentMapTheme = "dark";
-  
-  let chartSourceInstance = null;
-  let chartReceiverInstance = null;
-
-  // VARIABEL GLOBAL NAVIGASI & GARIS
-  let routingControl = null;
-  let customNavPolyline = null;
-  let customNavMarkers = [];
-  let isPickingPointsOnMap = false;
-  let pickedPoints = [];
-
-  function normalizeBlockName(name) {
-    if (!name) return "";
-    let clean = String(name).trim().toLowerCase();
-    if (clean.includes("east")) return "east";
-    if (clean.includes("central") || clean.includes("tengah")) return "central";
-    if (clean.includes("west") || clean.includes("barat")) return "west";
-    return clean;
-  }
-
-  function normalizeLine(line) {
-    if (line === undefined || line === null) return "";
-    return String(line).trim().replace(/^0+/, "") || "0";
-  }
-
-  function getFeatureLine(properties) {
-    if (!properties) return "";
-    const p = properties;
-    const val = p.Line ?? p.line ?? p.LINE ?? p.Line_Name ?? p.LINE_NAME ?? "";
-    return normalizeLine(val);
-  }
-
-  function getFeatureTr(properties) {
-    if (!properties) return NaN;
-    const p = properties;
-    const val = p.Tr ?? p.tr ?? p.TR ?? p.STATION ?? p.Station ?? p.Point ?? p.TR_ ?? NaN;
-    return parseFloat(val);
-  }
-
   async function fetchCloudProgress() {
     try {
       let allData = [];
@@ -350,10 +623,7 @@
           .select("tanggal, kru, block, line, tr, topo, rintis, bridging, drilling, recording, new_x, new_y, new_z, new_id")
           .range(from, from + step - 1);
 
-        if (error) { 
-          console.error("Gagal ambil cloud:", error); 
-          break; 
-        }
+        if (error) { console.error("Gagal ambil cloud:", error); break; }
 
         if (data && data.length > 0) {
           allData = allData.concat(data);
@@ -369,9 +639,7 @@
         const normBlock = normalizeBlockName(row.block);
         const normLine = normalizeLine(row.line);
         const normTr = parseFloat(row.tr);
-        
-        const key = `${normBlock}_${normLine}_${normTr}`;
-        cloudProgressMap[key] = row;
+        cloudProgressMap[`${normBlock}_${normLine}_${normTr}`] = row;
       });
 
       window.cachedProgressData = allData;
@@ -381,6 +649,9 @@
     }
   }
 
+  // --------------------------------------------------------------------------
+  // 1. FUNGSI MENCOCOKKAN DATA CLOUD KE PETA (GEOJSON)
+  // --------------------------------------------------------------------------
   function applyCloudDataToGeoJSON() {
     if (!cloudProgressMap || Object.keys(cloudProgressMap).length === 0) return;
 
@@ -397,8 +668,12 @@
           const geoTr = getFeatureTr(p);
 
           const normB1 = normalizeBlockName(blockKey);
-          const cp = cloudProgressMap[`${normB1}_${geoLine}_${geoTr}`] ||
-                     cloudProgressMap[`${blockKey}_${geoLine}_${geoTr}`];
+          let cp = cloudProgressMap[`${normB1}_${geoLine}_${geoTr}`] || 
+                   cloudProgressMap[`${blockKey}_${geoLine}_${geoTr}`] ||
+                   cloudProgressMap[`easta_block_leaflet_${geoLine}_${geoTr}`] ||
+                   cloudProgressMap[`eastb_block_leaflet_${geoLine}_${geoTr}`] ||
+                   cloudProgressMap[`EastA_Block_leaflet_${geoLine}_${geoTr}`] ||
+                   cloudProgressMap[`EastB_Block_leaflet_${geoLine}_${geoTr}`];
 
           if (cp) {
             matchCount++;
@@ -426,12 +701,188 @@
     console.log(`🎯 Berhasil mencocokkan ${matchCount} titik ke peta GeoJSON.`);
   }
 
+  // --------------------------------------------------------------------------
+  // 2. FUNGSI UPLOAD FILE PROGRESS (MENDUKUNG RANGE DARI_SP s.d SAMPAI_SP)
+  // --------------------------------------------------------------------------
+  document.getElementById('btnExecuteUploadFile')?.addEventListener('click', async function() {
+    const fileInput = document.getElementById('fileReportInput');
+    const targetBlock = document.getElementById('uploadTargetBlock').value;
+
+    if (!fileInput || !fileInput.files[0]) {
+      alert("⚠️ Silakan pilih file CSV atau TXT terlebih dahulu!");
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    alert("⏳ Sedang memproses dan menjabarkan rentang data progress harian...");
+
+    reader.onload = async function(e) {
+      try {
+        const text = e.target.result;
+        const lines = text.split(/\r\n|\n/);
+        let recordsToUpsert = [];
+
+        for (let i = 0; i < lines.length; i++) {
+          const cleanLine = lines[i].trim();
+          if (!cleanLine || cleanLine.startsWith("#") || cleanLine.toLowerCase().includes("tanggal")) continue;
+
+          const parts = cleanLine.split(/,|\t|;/).map(item => item.replace(/^"|"$/g, '').trim());
+          if (parts.length < 6) continue;
+
+          const tanggal = parts[0];
+          const kru = parts[1];
+          const line = parts[2];
+          const dariSp = parseFloat(parts[3]);
+          const sampaiSp = parseFloat(parts[4]);
+          const kodeStatus = parseInt(parts[5], 10);
+
+          if (isNaN(dariSp) || isNaN(sampaiSp)) continue;
+
+          const startTr = Math.min(dariSp, sampaiSp);
+          const endTr = Math.max(dariSp, sampaiSp);
+
+          let currentTr = startTr;
+          if (kodeStatus === 4 && currentTr % 1 === 0) {
+            currentTr += 0.5; 
+          }
+
+          for (let tr = startTr; tr <= endTr; ) {
+            let isValid = false;
+            const isDecimal = (tr % 1 !== 0); // Mengecek apakah ada pecahan (.5)
+
+            if (kodeStatus === 4) {
+              // ATURAN KETAT DRILLING: Wajib desimal (.5) dan interval lompat 4 TR (50m)
+              if (isDecimal) {
+                isValid = true;
+              }
+            } else if (kodeStatus === 5) {
+              // Recording khusus angka bulat (.0)
+              if (!isDecimal) {
+                isValid = true;
+              }
+            } else {
+              // Topo, Rintis, Bridging boleh semua (.0 dan .5)
+              isValid = true;
+            }
+
+            if (isValid) {
+              recordsToUpsert.push({
+                block: targetBlock,
+                line: String(line),
+                tr: tr,
+                tanggal: tanggal,
+                kru: kru,
+                drilling: kodeStatus === 4 ? "4" : undefined,
+                recording: kodeStatus === 5 ? "5" : undefined,
+                topo: kodeStatus === 1 ? "1" : undefined,
+                rintis: kodeStatus === 2 ? "2" : undefined,
+                bridging: kodeStatus === 3 ? "3" : undefined
+              });
+            }
+
+            // Aturan step perulangan
+            if (kodeStatus === 4) {
+              tr += 4; // Drilling melompat 4 TR (50 meter antar SP .5)
+            } else {
+              tr += 0.5; // Status lain bergerak tiap 0.5
+            }
+          }
+        }
+
+        if (recordsToUpsert.length === 0) {
+          alert("⚠️ Tidak ada data valid yang dapat diproses dari file.");
+          return;
+        }
+
+        const batchSize = 500;
+        let successCount = 0;
+        // Menyaring duplikat dalam 1 file sebelum dikirim
+        const uniqueRecords = Array.from(
+          new Map(recordsToUpsert.map(item => [`${item.line}_${item.tr}`, item])).values()
+        );
+        for (let j = 0; j < uniqueRecords.length; j += batchSize) {
+          const batch = uniqueRecords.slice(j, j + batchSize);
+          const { error } = await supabaseClient
+            .from("progress_seismik")
+            .upsert(batch, { onConflict: ['line', 'tr'] });
+
+          if (error) {
+            console.error("Error batch sync:", error.message);
+          } else {
+            successCount += batch.length;
+          }
+        }
+
+        alert(`✅ Berhasil menyinkronkan ${successCount} titik progress ke Supabase!`);
+        fileInput.value = "";
+
+        if (typeof fetchCloudProgress === 'function') await fetchCloudProgress();
+        if (typeof muatDataPeta === 'function') muatDataPeta();
+
+      } catch (err) {
+        console.error("Gagal membaca file:", err);
+        alert("⚠️ Terjadi kesalahan saat memproses file laporan.");
+      }
+    };
+
+    reader.readAsText(file);
+  });
+
+  // --------------------------------------------------------------------------
+  // 3. FUNGSI SIMPAN POIN SATUAN (AMAN ANTAR KOLOM)
+  // --------------------------------------------------------------------------
+  window.simpanPoinData = async function() {
+    const tanggal = document.getElementById('input-tanggal')?.value;
+    const line = document.getElementById('input-line')?.value;
+    const tr = document.getElementById('input-tr')?.value;
+    const drilling = document.getElementById('input-status')?.value;
+
+    if (!tanggal || !line || !tr) {
+        alert('⚠️ Mohon lengkapi Tanggal, Line, dan Nomor TR!');
+        return;
+    }
+
+    const { data: existingData, error: fetchError } = await supabaseClient
+        .from('progress_seismik')
+        .select('*')
+        .eq('line', String(line))
+        .eq('tr', tr)
+        .maybeSingle();
+
+    const payload = {
+        line: String(line),
+        tr: Number(tr),
+        tanggal: tanggal || (existingData ? existingData.tanggal : null),
+        drilling: (drilling !== undefined && drilling !== "") ? drilling : (existingData ? existingData.drilling : null),
+        topo: existingData ? existingData.topo : null,
+        rintis: existingData ? existingData.rintis : null,
+        bridging: existingData ? existingData.bridging : null,
+        recording: existingData ? existingData.recording : null,
+        new_x: existingData ? existingData.new_x : null,
+        new_y: existingData ? existingData.new_y : null,
+        new_z: existingData ? existingData.new_z : null,
+        new_id: existingData ? existingData.new_id : null,
+        block: existingData ? existingData.block : null
+    };
+
+    const { data, error } = await supabaseClient
+        .from('progress_seismik')
+        .upsert([payload], { onConflict: ['line', 'tr'] });
+
+    if (error) {
+        alert('❌ Gagal menyimpan: ' + error.message);
+    } else {
+        alert('✅ Poin berhasil diperbarui tanpa mengganggu kolom lainnya!');
+        if (typeof muatDataPeta === 'function') muatDataPeta();
+        if (typeof fetchCloudProgress === 'function') await fetchCloudProgress();
+    }
+  };
+
   async function saveProgressToCloud(recordsArray) {
     const { error } = await supabaseClient.from("progress_seismik").upsert(recordsArray, { onConflict: 'block,line,tr,tanggal' });
-    if (error) {
-      alert("⚠️ Gagal sync ke Cloud: " + error.message);
-      return false;
-    }
+    if (error) { alert("⚠️ Gagal sync ke Cloud: " + error.message); return false; }
     return true;
   }
 
@@ -456,12 +907,10 @@
       if (String(p.topo) === "1") { s.topo++; hasAnyProgress = true; }
       if (String(p.rintis) === "2" || String(p.rintis) === "1") { s.rintis++; hasAnyProgress = true; }
       if (String(p.bridging) === "3" || String(p.bridging) === "1") { s.bridging++; hasAnyProgress = true; }
-      if (String(p.drilling) === "4" || String(p.drilling) === "1") { s.drilling++; hasAnyProgress = true; }
+      if (String(p.drilling) === "4" || String(p.drilling) === "1" || String(p.status_code) === "4") { s.drilling++; hasAnyProgress = true; }
       if (String(p.recording) === "5" || String(p.recording) === "1") { s.recording++; hasAnyProgress = true; }
 
-      if (!hasAnyProgress) {
-        s.uncompleted++;
-      }
+      if (!hasAnyProgress) { s.uncompleted++; }
     });
 
     return s;
@@ -484,11 +933,7 @@
       let trVal = parseFloat(row.tr);
 
       let groupKey = `${tgl}_${kru}_${line}`;
-
-      if (!rawGroupMap[groupKey]) {
-        rawGroupMap[groupKey] = { trSet: new Set() };
-      }
-
+      if (!rawGroupMap[groupKey]) { rawGroupMap[groupKey] = { trSet: new Set() }; }
       if (!isNaN(trVal)) rawGroupMap[groupKey].trSet.add(trVal);
     });
 
@@ -508,62 +953,8 @@
   }
 
   // ==========================================
-  // FUNGSI WARNA & POPUP KOORDINAT X, Y, Z
+  // 6. NAVIGASI & LOAD GEOJSON UTAMA
   // ==========================================
-
-  function createSeismicGeoJsonLayer(geoJsonData) {
-    return L.geoJSON(geoJsonData, {
-      // 1. ATUR WARNA & UKURAN MARKER (Merah SP besar, Hijau polos, Biru)
-      pointToLayer: function (feature, latlng) {
-        const p = feature.properties || {};
-        const geoTr = getFeatureTr(p);
-        
-        const isSpPoint = (!isNaN(geoTr) && (geoTr % 1 !== 0)); 
-        const hasProgress = (p.Tanggal || (p.status_code && p.status_code > 0));
-        const st = parseInt(p.status_code || 0, 10);
-
-        let markerColor = "#888888"; 
-        let markerRadius = 3.5;
-
-        if (!hasProgress) {
-          markerColor = "#888888"; 
-          markerRadius = 3.5;
-        } else if (st === 5) {
-          markerColor = "#007bff"; // Biru (Recording)
-          markerRadius = 4;
-        } else if (st === 4) {
-          if (isSpPoint) {
-            markerColor = "#ff0000"; // Merah SP Drilling (Lebih besar & mencolok)
-            markerRadius = 6.5;      
-          } else {
-            markerColor = "#00ff00"; // Hijau untuk non-SP (.0)
-            markerRadius = 3.5;
-          }
-        } else if (st >= 1 && st <= 3) {
-          markerColor = "#00ff00"; // Hijau untuk Topo / Rintis / Bridging
-          markerRadius = 3.5;
-        }
-
-        return L.circleMarker(latlng, {
-          radius: markerRadius, 
-          fillColor: markerColor,
-          color: markerColor, // Polos tanpa border hitam
-          weight: 0,          
-          opacity: 1,
-          fillOpacity: 1
-        });
-      },
-
-      // 2. MENGHUBUNGKAN KE FUNGSI BINDPOPUP ASLI BAPAK
-      onEachFeature: function (feature, layer) {
-        if (typeof bindPopup === 'function') {
-          bindPopup(feature, layer);
-        }
-      }
-    });
-  }
-
-  // FUNGSIONALITAS NAVIGASI & HAPUS GARIS
   window.toggleNavMenu = function() {
     const navMenuPanel = document.getElementById("navMenuPanel");
     if (navMenuPanel) {
@@ -572,28 +963,20 @@
   };
 
   window.clearAllNavigation = function() {
-    if (routingControl) {
-      window.currentMap.removeControl(routingControl);
-      routingControl = null;
-    }
-    if (customNavPolyline) {
-      window.currentMap.removeLayer(customNavPolyline);
-      customNavPolyline = null;
-    }
-    if (customNavMarkers.length > 0) {
-      customNavMarkers.forEach(m => window.currentMap.removeLayer(m));
+    if (routingControl && map) { map.removeControl(routingControl); routingControl = null; }
+    if (customNavPolyline && map) { map.removeLayer(customNavPolyline); customNavPolyline = null; }
+    if (customNavMarkers.length > 0 && map) {
+      customNavMarkers.forEach(m => map.removeLayer(m));
       customNavMarkers = [];
     }
     pickedPoints = [];
     isPickingPointsOnMap = false;
-
     const navBox = document.getElementById("navResultBox");
     if (navBox) navBox.style.display = "none";
   };
 
   window.drawNavigationRoute = function(lat1, lng1, lat2, lng2, mode, titleLabel) {
     window.clearAllNavigation();
-
     const resultBox = document.getElementById("navResultBox");
     const resultText = document.getElementById("navResultText");
 
@@ -601,49 +984,37 @@
       const p1 = L.latLng(lat1, lng1);
       const p2 = L.latLng(lat2, lng2);
       const meters = p1.distanceTo(p2);
-
       let distFormatted = meters >= 1000 ? (meters / 1000).toFixed(3) + " km" : meters.toFixed(1) + " meter";
 
-      customNavPolyline = L.polyline([p1, p2], { color: '#00e5ff', weight: 5, dashArray: '8, 8' }).addTo(window.currentMap);
-
+      customNavPolyline = L.polyline([p1, p2], { color: '#00e5ff', weight: 5, dashArray: '8, 8' }).addTo(map);
       const closeBtnHtml = `<br><button onclick="window.clearAllNavigation()" style="margin-top:6px; background:#dc3545; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; cursor:pointer;">✕ Hapus Garis Navigasi</button>`;
 
-      const m1 = L.marker(p1).addTo(window.currentMap).bindPopup(`📍 Titik Awal ${closeBtnHtml}`).openPopup();
-      const m2 = L.marker(p2).addTo(window.currentMap).bindPopup(`🎯 Titik Tujuan: ${titleLabel || ''}<br><b>Jarak: ${distFormatted}</b> ${closeBtnHtml}`);
-      
+      const m1 = L.marker(p1).addTo(map).bindPopup(`📍 Titik Awal ${closeBtnHtml}`).openPopup();
+      const m2 = L.marker(p2).addTo(map).bindPopup(`🎯 Titik Tujuan: ${titleLabel || ''}<br><b>Jarak: ${distFormatted}</b> ${closeBtnHtml}`);
       customNavMarkers.push(m1, m2);
 
       const bounds = L.latLngBounds([p1, p2]);
-      window.currentMap.fitBounds(bounds, { padding: [50, 50] });
+      map.fitBounds(bounds, { padding: [50, 50] });
 
       if (resultBox && resultText) {
-        resultText.innerHTML = `📐 <b>Jarak Lurus Direct:</b> <span style="color:#38ef7d; font-size:14px;">${distFormatted}</span> <button onclick="window.clearAllNavigation()" style="margin-left:8px; background:#dc3545; color:#fff; border:none; padding:2px 6px; border-radius:3px; cursor:pointer;">✕ Close</button>`;
+        resultText.innerHTML = `📐 <b>Jarak Lurus Direct:</b> <span style="color:#38ef7d; font-size:14px;">${distFormatted}</span>`;
         resultBox.style.display = "block";
       }
     } else {
       routingControl = L.Routing.control({
         waypoints: [L.latLng(lat1, lng1), L.latLng(lat2, lng2)],
         routeWhileDragging: false,
-        lineOptions: { 
-            styles: [
-              { color: '#000000', opacity: 0.4, weight: 8 },
-              { color: '#000000', opacity: 1.0, weight: 5 },
-          ]
-      },
-
-        show: true,
-        addWaypoints: false,
-        collapsible: true
-      }).addTo(window.currentMap);
+        lineOptions: { styles: [{ color: '#000000', opacity: 0.4, weight: 8 }, { color: '#000000', opacity: 1.0, weight: 5 }] },
+        show: true, addWaypoints: false, collapsible: true
+      }).addTo(map);
 
       routingControl.on('routesfound', function(e) {
         const routes = e.routes;
         if (routes && routes.length > 0) {
           const totalDistanceMeters = routes[0].summary.totalDistance;
           let distFormatted = totalDistanceMeters >= 1000 ? (totalDistanceMeters / 1000).toFixed(3) + " km" : totalDistanceMeters.toFixed(1) + " meter";
-
           if (resultBox && resultText) {
-            resultText.innerHTML = `🚗 <b>Jarak Rute Jalan (Google Map):</b> <span style="color:#38ef7d; font-size:14px;">${distFormatted}</span> <button onclick="window.clearAllNavigation()" style="margin-left:8px; background:#dc3545; color:#fff; border:none; padding:2px 6px; border-radius:3px; cursor:pointer;">✕ Close</button>`;
+            resultText.innerHTML = `🚗 <b>Jarak Rute Jalan:</b> <span style="color:#38ef7d; font-size:14px;">${distFormatted}</span>`;
             resultBox.style.display = "block";
           }
         }
@@ -652,711 +1023,379 @@
   };
 
   window.navigateToTarget = function(destLat, destLng, destName) {
-    if (!navigator.geolocation) {
-      alert("⚠️ Akses Geolocation tidak didukung di perangkat ini.");
-      return;
-    }
-
+    if (!navigator.geolocation) { alert("⚠️ Geolocation tidak didukung."); return; }
     const selectedMode = document.getElementById("navModeSelect") ? document.getElementById("navModeSelect").value : "straight";
-
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const userLat = pos.coords.latitude;
-        const userLng = pos.coords.longitude;
-        window.drawNavigationRoute(userLat, userLng, destLat, destLng, selectedMode, destName);
-      },
-      (err) => {
-        alert("⚠ Gagal mengambil posisi presisi Anda. Pastikan Izin GPS/Lokasi Aktif!");
-      },
+      (pos) => { window.drawNavigationRoute(pos.coords.latitude, pos.coords.longitude, destLat, destLng, selectedMode, destName); },
+      (err) => { alert("⚠ Gagal mengambil posisi GPS."); },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };
 
+  async function loadGeoJsonFile(filename) {
+    const localUrl = `/static/${filename}`;
+    const supabaseUrl = `https://kimzyjcuqbyxmcixojke.supabase.co/storage/v1/object/public/peta_seismic/${filename}`;
+
+    try {
+      let res = await fetch(localUrl);
+      if (!res.ok) { res = await fetch(supabaseUrl); }
+      if (res.ok) {
+        const text = await res.text();
+        if (text.trim().startsWith("{") || text.trim().startsWith("[")) {
+          return JSON.parse(text);
+        }
+      }
+      return null;
+    } catch (err) {
+      console.error(`Error loading ${filename}:`, err);
+      return null;
+    }
+  }
+
+  // ==========================================
+  // 7. FUNGSI LABEL & PETA UTAMA
+  // ==========================================
+  function updatePointLabels() {
+    if (!groupPointLabels) return;
+    groupPointLabels.clearLayers();
+    if (map.getZoom() >= MIN_ZOOM_FOR_LABELS) {
+      const bounds = map.getBounds();
+      const textClass = (currentMapTheme === "dark") ? "text-white" : "text-black";
+
+      allFeatures.forEach(f => {
+        if (f.geometry && f.geometry.coordinates) {
+          const latlng = L.latLng(f.geometry.coordinates[1], f.geometry.coordinates[0]);
+          if (bounds.contains(latlng)) {
+            const labelText = getPointName(f.properties);
+            if (labelText) {
+              L.marker(latlng, { 
+                icon: L.divIcon({ 
+                  className: `point-name-label ${textClass}`, 
+                  html: labelText, 
+                  iconSize: null 
+                }) 
+              }).addTo(groupPointLabels);
+            }
+          }
+        }
+      });
+    }
+  }
+
+  async function initAppData() {
+    await fetchCloudProgress(); 
+
+    try {
+      const [eastAData, eastBData, centData, westData] = await Promise.all([
+        loadGeoJsonFile("EastA_Block_leaflet.geojson"),
+        loadGeoJsonFile("EastB_Block_leaflet.geojson"),
+        loadGeoJsonFile("Central_Block.geojson"),
+        loadGeoJsonFile("West_Block.geojson")
+      ]);
+
+      let combinedEastFeatures = [];
+      if (eastAData && Array.isArray(eastAData.features)) combinedEastFeatures = combinedEastFeatures.concat(eastAData.features);
+      if (eastBData && Array.isArray(eastBData.features)) combinedEastFeatures = combinedEastFeatures.concat(eastBData.features);
+
+      rawData.East_Block = { type: "FeatureCollection", features: combinedEastFeatures };
+      rawData.Central_Block = centData;
+      rawData.West_Block = westData;
+
+      applyCloudDataToGeoJSON();
+      
+      const mainSelectVal = document.getElementById("mainSelectBlock") ? document.getElementById("mainSelectBlock").value : "ALL";
+      renderBlockOnMap(mainSelectVal);
+      
+      loadExtraGeoJsonFiles();
+      await loadOffsetAndCompenLayer(); 
+
+    } catch (err) {
+      console.error("Detail Error GeoJSON Utama:", err);
+    }
+  }
+
+  // ==========================================
+  // 8. FUNGSI LOAD LAYER TAMBAHAN
+  // ==========================================
+  async function loadExtraGeoJsonFiles() {
+    Promise.all([
+      loadGeoJsonFile("east_partes_leaflet.geojson"),
+      loadGeoJsonFile("central_partes_leaflet.geojson"),
+      loadGeoJsonFile("west_partes_leaflet.geojson")
+    ]).then(([eastPartes, centPartes, westPartes]) => {
+      const renderPartes = (data, labelPrefix) => {
+        if (!data) return;
+        L.geoJSON(data, {
+          style: { color: '#e040fb', weight: 2, opacity: 0.8 },
+          pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 3, fillColor: '#e040fb', stroke: false, fillOpacity: 0.8 }),
+          onEachFeature: (f, l) => {
+            const p = f.properties || {};
+            l.bindPopup(`<b>Partes ${labelPrefix}:</b> ${p.ID || p.Line || 'Titik Partes'}`);
+          }
+        }).addTo(groupPartes);
+      };
+      renderPartes(eastPartes, "East");
+      renderPartes(centPartes, "Central");
+      renderPartes(westPartes, "West");
+    });
+
+    // loadGeoJsonFile("jalan.geojson").then(jalanData => {
+      /*if (jalanData) {
+        L.geoJSON(jalanData, { style: { color: '#ff7800', weight: 3, opacity: 0.7 } })
+         .bindPopup("<b>Jalan Akses</b>").addTo(groupJalan);
+      }
+    });*/
+
+    loadGeoJsonFile("East_GPS.geojson").then(bmData => {
+      if (bmData) {
+        L.geoJSON(bmData, {
+          pointToLayer: (f, latlng) => {
+              const squareIcon = L.divIcon({
+                  className: 'custom-square-marker',
+                  html: `<div style="width: 12px; height: 12px; background-color: #0000FF; border: 2px solid #0000ff; box-shadow: 0 0 3px rgba(0,0,0,0.5);"></div>`,
+                  iconSize: [12, 12],
+                  iconAnchor: [6, 6]
+              });
+              return L.marker(latlng, { icon: squareIcon });
+          },
+          onEachFeature: (f, l) => {
+            const p = f.properties || {};
+            l.bindPopup(`<b>BM GPS:</b> ${p.kode || 'Benchmark Point'}`);
+          }
+        }).addTo(groupBM);
+      }
+    });
+
+    loadGeoJsonFile("Text_Lintasan_leaflet.geojson").then(textLintasanData => {
+      if (textLintasanData) {
+        L.geoJSON(textLintasanData, {
+          style: { color: '#00ffff', weight: 3, opacity: 0.9 },
+          pointToLayer: (f, latlng) => {
+            const p = f.properties || {};
+            const labelText = p.TEXTSTRING || p.Text || p.Line || p.Name || '';
+            const angle = p.TEXT_ANGLE || p.Angle || p.angle || 0;
+            return L.marker(latlng, {
+              icon: L.divIcon({
+                className: 'point-name-label text-white',
+                html: `<span style="display: inline-block; color: #ffffff; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 12px; white-space: nowrap; transform: rotate(${-angle}deg); transform-origin: left center;">${labelText}</span>`,
+                iconSize: [0, 0],
+                iconAnchor: [0, 0]
+              })
+            });
+          }
+        }).addTo(groupLintasan);
+      }
+    });
+
+    loadGeoJsonFile("keterangan1_leaflet.geojson").then(keteranganData => {
+      if (keteranganData) {
+        L.geoJSON(keteranganData, {
+          style: { color: '#e67e22', weight: 2, dashArray: '4, 4', fillOpacity: 0.3 },
+          pointToLayer: (f, latlng) => {
+            const p = f.properties || {};
+            const teks = p.Keterangan || p.Kode || p.ID || "";
+            return L.marker(latlng, {
+              icon: L.divIcon({
+                className: 'point-name-label',
+                html: `<span style="font-size: 16px; font-weight: bold; color: #ffffff; text-shadow: 1px 1px 2px #000;">${teks}</span>`,
+                iconSize: null
+              })
+            });
+          },
+          onEachFeature: (f, l) => {
+            const p = f.properties || {};
+            const kode = p.Kode !== undefined ? `Keterangan Kode ${p.ID}` : (p.Keterangan || "Keterangan Area");
+            l.bindPopup(`<b>Keterangan:</b> ${kode}`);
+          }
+        }).addTo(groupKeterangan);
+      }
+    });
+
+    const houseIcon = L.divIcon({
+      className: '',
+      html: `<div class="camp-icon-container"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></div>`,
+      iconSize: [26, 26],
+      iconAnchor: [13, 13]
+    });
+
+    loadGeoJsonFile("Camp_leaflet.geojson").then(campData => {
+      if (campData) {
+        L.geoJSON(campData, {
+          pointToLayer: (f, latlng) => L.marker(latlng, { icon: houseIcon }),
+          onEachFeature: (f, l) => {
+            const p = f.properties || {};
+            const desc = p.Desc_ || (p.code !== undefined ? `Camp ${p.code}` : "Camp Seismik");
+            l.bindPopup(`<b>⛺ Lokasi Camp:</b> ${desc}`);
+          }
+        }).addTo(groupCamp);
+      }
+    });
+
+    loadGeoJsonFile("HazardMap_leaflet.geojson").then(hazardData => {
+      if (hazardData) {
+        L.geoJSON(hazardData, {
+          style: { color: '#dc3545', weight: 2, fillColor: '#dc3545', fillOpacity: 0.45, dashArray: '5, 5' },
+          pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 0.5, fillColor: '#dc3545', color: '#ffffff', weight: 0.5, fillOpacity: 0.1 }),
+          onEachFeature: (f, l) => {
+            const p = f.properties || {};
+            const infoHazard = p.KETERANGAN || p.Nama || p.Keterangan || p.Desc_ || "Area Potensi Bahaya / Hazard";
+            l.bindPopup(`<b style="color:#dc3545;">⚠️ Hazard Map:</b> ${infoHazard}`);
+          }
+        });
+      }
+    });
+  
+    loadGeoJsonFile("Posisi_Repeater_leaflet.geojson").then(data => {
+      if (data) {
+        L.geoJSON(data, {
+          pointToLayer: (f, latlng) => {
+            const p = f.properties || {};
+            const labelName = p.NAME || p.Nama || p.ID || 'Repeater';
+            return L.marker(latlng, {
+              icon: L.divIcon({
+                className: '',
+                html: `<div class="unified-map-label" style="border-color: #ffcc00;"><span class="emoji-icon">📡</span><span class="label-text">${labelName}</span></div>`,
+                iconSize: [0, 0],
+                iconAnchor: [0, 0]
+              })
+            });
+          },
+          onEachFeature: (f, l) => {
+            const p = f.properties || {};
+            l.bindPopup(`<b>📡 Posisi Repeater:</b> ${p.NAME || p.Nama || p.ID || 'Repeater'}`);
+          }
+        }).addTo(groupRepeater);
+      }
+    });
+
+    loadGeoJsonFile("Posisi_VIBRO__leaflet.geojson").then(data => {
+      if (data) {
+        L.geoJSON(data, {
+          pointToLayer: (f, latlng) => {
+            const p = f.properties || {};
+            const labelName = p.Block || p.Nama || p.ID || 'Vibro';
+            return L.marker(latlng, {
+              icon: L.divIcon({
+                className: '',
+                html: `<div class="unified-map-label" style="border-color: #ff9900;"><span class="emoji-icon">🚜</span><span class="label-text">${labelName}</span></div>`,
+                iconSize: [0, 0],
+                iconAnchor: [0, 0]
+              })
+            });
+          },
+          onEachFeature: (f, l) => {
+            const p = f.properties || {};
+            l.bindPopup(`<b>🚜 Posisi Vibro:</b> ${p.NAME || p.Nama || p.ID || 'Vibro'}`);
+          }
+        }).addTo(groupVibro);
+      }
+    });
+
+    loadGeoJsonFile("Labo_leaflet.geojson").then(data => {
+      if (data) {
+        L.geoJSON(data, {
+          pointToLayer: (f, latlng) => {
+            const p = f.properties || {};
+            const labelName = p.Name || p.Elevasi || 'Labo Partes';
+            return L.marker(latlng, {
+              icon: L.divIcon({
+                className: '',
+                html: `<div class="unified-map-label" style="border-color: #00ffff;"><span class="emoji-icon">⛺</span><span class="label-text">${labelName}</span></div>`,
+                iconSize: [0, 0],
+                iconAnchor: [0, 0]
+              })
+            });
+          },
+          onEachFeature: (f, l) => {
+            const p = f.properties || {};
+            l.bindPopup(`<b>⛺ Labo Partes:</b> ${p.NAME || p.Nama || 'Labo Partes'}`);
+          }
+        }).addTo(groupLaboPartes);
+      }
+    });
+
+    loadGeoJsonFile("SP_Partes_leaflet.geojson").then(data => {
+      if (data) {
+        L.geoJSON(data, {
+          pointToLayer: (f, latlng) => {
+            const p = f.properties || {};
+            const labelName = p.NAME || p.ATTR_1 || 'SP Partes';
+            return L.marker(latlng, {
+              icon: L.divIcon({
+                className: '',
+                html: `<div class="unified-map-label" style="border-color: #00ffcc;"><span class="emoji-icon">📍</span><span class="label-text">${labelName}</span></div>`,
+                iconSize: [0, 0],
+                iconAnchor: [0, 0]
+              })
+            });
+          },
+          onEachFeature: (f, l) => {
+            const p = f.properties || {};
+            l.bindPopup(`<b>📍 SP Partes:</b> ${p.Nama || p.ID || p.Line || 'SP Partes'}`);
+          }
+        }).addTo(groupSpPartes);
+      }
+    });
+         
+    loadGeoJsonFile("PPV_east__leaflet.geojson").then(ppvEastData => {
+      if (ppvEastData) {
+        L.geoJSON(ppvEastData, {
+          pointToLayer: (f, latlng) => {
+            const p = f.properties || {};
+            const labelText = p.kode || p.KODE || p.Name || p.NAME || '';
+            return L.marker(latlng, {
+              icon: L.divIcon({
+                className: '',
+                html: `<div class="unified-map-label" style="border-color: #ffa500;"><span class="emoji-icon">🚒</span><span class="label-text">${labelText}</span></div>`,
+                iconSize: [0, 0],
+                iconAnchor: [0, 0]
+              })
+            });
+          },
+          onEachFeature: (f, layer) => {
+            const p = f.properties || {};
+            let popupContent = "<b>PPV East Info</b><br>";
+            for (let key in p) {
+              popupContent += `<b>${key}:</b> ${p[key]}<br>`;
+            }
+            layer.bindPopup(popupContent);
+          }
+        }).addTo(groupPPVEast);
+      }
+    });
+  }
+
+  // ==========================================
+  // 9. EVENT DOMContentLoaded UTAMA
+  // ==========================================
   document.addEventListener("DOMContentLoaded", function() {
-   
-    const map = L.map("map", { 
-      preferCanvas: true, zoomControl: false, tap: true, touchZoom: true 
-    }).setView([-7.1, 112.2], 13);
-    
+    map = L.map("map", { preferCanvas: true, zoomControl: false, tap: true, touchZoom: true }).setView([-7.1, 112.2], 13);
     window.currentMap = map;
     L.control.zoom({ position: "topleft" }).addTo(map);
-    // BASEMAPS
-    const baseOSM = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 });
-    const baseEsriSat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 });
-    const baseGoogleSat = L.tileLayer("http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {
-      maxZoom: 20,
-      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-    });
-    const baseGoogleHybrid = L.tileLayer("http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}", {
-      maxZoom: 20,
-      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-    }).addTo(map);
+
+    baseOSM = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 });
+    baseEsriSat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 });
+    baseGoogleSat = L.tileLayer("http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] });
+    baseGoogleHybrid = L.tileLayer("http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}", { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }).addTo(map);
   
-    const groupSource = L.layerGroup().addTo(map);
-    const groupReceiver = L.layerGroup().addTo(map);
-    const groupPointLabels = L.layerGroup().addTo(map);
+    groupSource = L.layerGroup().addTo(map);
+    groupReceiver = L.layerGroup().addTo(map);
+    groupPointLabels = L.layerGroup().addTo(map);
     
-    const groupJalan = L.layerGroup()//.addTo(map);
-    const groupBM = L.layerGroup().addTo(map);
-    const groupLintasan = L.layerGroup().addTo(map);
-    const groupKeterangan = L.layerGroup().addTo(map);
-    const groupCamp = L.layerGroup().addTo(map);
-    const groupHazard = L.layerGroup()//.addTo(map);
-    const groupPartes = L.layerGroup().addTo(map); // LAYER BARU PARTES
-    const groupRepeater = L.layerGroup().addTo(map);
-    const groupLaboPartes = L.layerGroup().addTo(map);
-    const groupVibro = L.layerGroup().addTo(map);
-    const groupSpPartes = L.layerGroup().addTo(map);
-    const groupPPVEast = L.layerGroup();//.addTo(map);
+    groupJalan = L.layerGroup();
+    groupBM = L.layerGroup().addTo(map);
+    groupLintasan = L.layerGroup().addTo(map);
+    groupKeterangan = L.layerGroup().addTo(map);
+    groupCamp = L.layerGroup().addTo(map);
+    groupHazard = L.layerGroup();
+    groupPartes = L.layerGroup().addTo(map);
+    groupRepeater = L.layerGroup().addTo(map);
+    groupLaboPartes = L.layerGroup().addTo(map);
+    groupVibro = L.layerGroup().addTo(map);
+    groupSpPartes = L.layerGroup().addTo(map);
+    groupPPVEast = L.layerGroup();
+    offsetLayerGroup = L.layerGroup().addTo(map);
 
-
-    let userMarker = null;
-    document.getElementById("btn-current").onclick = () => {
-      if (!navigator.geolocation) return alert("Geolocation tidak tersedia");
-      navigator.geolocation.getCurrentPosition(pos => {
-        const { latitude, longitude } = pos.coords;
-        if (!userMarker) {
-          userMarker = L.marker([latitude, longitude], {
-            icon: L.icon({
-              iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-              iconSize: [32, 32]
-            })
-          }).addTo(map).bindPopup("📍 Posisi Saat Ini").openPopup();
-        } else {
-          userMarker.setLatLng([latitude, longitude]);
-        }
-        map.panTo([latitude, longitude]);
-      });
-    };
-
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(pos => {
-        if (userMarker) {
-          userMarker.setLatLng([pos.coords.latitude, pos.coords.longitude]);
-        }
-      });
-    }
-
-    const btnCloseNav = document.getElementById("btn-close-nav-panel");
-    if (btnCloseNav) {
-      btnCloseNav.addEventListener("click", () => {
-        document.getElementById("navMenuPanel").style.display = "none";
-      });
-    }
-
-    document.getElementById("btn-clear-nav").addEventListener("click", () => {
-      window.clearAllNavigation();
-      alert("🧹 Garis navigasi telah dibersihkan.");
-    });
-
-    document.getElementById("btn-start-nav").addEventListener("click", () => {
-      const searchBoxVal = document.getElementById("searchBox").value.trim().toLowerCase();
-      if (!searchBoxVal) {
-        alert("⚠️ Ketikkan dulu ID Stasiun di kolom pencarian atas (misal: ID Stasiun/TR), atau klik tombol 'Rute Ke Sini' pada titik popup peta!");
-        return;
-      }
-
-      let foundFeature = allFeatures.find(f => {
-        const p = f.properties || {};
-        return String(p.ID || "").trim().toLowerCase() === searchBoxVal || String(p.kode || "").trim().toLowerCase() === searchBoxVal;
-      });
-
-      if (foundFeature && foundFeature.geometry && foundFeature.geometry.coordinates) {
-        const targetLng = foundFeature.geometry.coordinates[0];
-        const targetLat = foundFeature.geometry.coordinates[1];
-        const pointName = getPointName(foundFeature.properties);
-        window.navigateToTarget(targetLat, targetLng, pointName);
-      } else {
-        alert("⚠️ ID Stasiun dari kolom pencarian tidak ditemukan pada peta!");
-      }
-    });
-
-    document.getElementById("btn-pick-map-nav").addEventListener("click", () => {
-      window.clearAllNavigation();
-      isPickingPointsOnMap = true;
-      alert("👇 Silakan KLIK DUA TITIK secara berurutan di Peta untuk mengukur jarak.");
-    });
-
-    map.on("click", function(e) {
-      if (!isPickingPointsOnMap) return;
-
-      pickedPoints.push(e.latlng);
-      const marker = L.marker(e.latlng).addTo(map).bindPopup(`Titik ${pickedPoints.length}`).openPopup();
-      customNavMarkers.push(marker);
-
-      if (pickedPoints.length === 2) {
-        isPickingPointsOnMap = false;
-        const selectedMode = document.getElementById("navModeSelect").value;
-        window.drawNavigationRoute(pickedPoints[0].lat, pickedPoints[0].lng, pickedPoints[1].lat, pickedPoints[1].lng, selectedMode, "Titik Pilihan Manual");
-      }
-    });
-
-    const dashboardPage = document.getElementById("dashboard-page");
-    const uploadPage = document.getElementById("upload-page");
-   
-    document.getElementById("btn-open-dashboard").addEventListener("click", () => {
-      dashboardPage.style.display = "flex";
-      const currentBlock = document.getElementById("dashboardSelectBlock").value;
-      renderChartsAndStats(currentBlock);
-      renderCrewSummaryTable(currentBlock);
-    });
-    document.getElementById("btn-close-dashboard").addEventListener("click", () => {
-      dashboardPage.style.display = "none";
-    });
-
-    document.getElementById("btn-open-upload").addEventListener("click", () => {
-      const pwd = prompt("🔒 Masukkan Password Administrator untuk Update Peta:");
-      if (pwd === "admin123") {
-        uploadPage.style.display = "flex";
-      } else if (pwd !== null) {
-        alert("Akses Ditolak: Password salah!");
-      }
-    });
-    document.getElementById("btn-close-upload").addEventListener("click", () => {
-      uploadPage.style.display = "none";
-    });
-
-    document.getElementById("mainSelectBlock").addEventListener("change", (e) => renderBlockOnMap(e.target.value));
-    document.getElementById("dashboardSelectBlock").addEventListener("change", (e) => {
-      renderChartsAndStats(e.target.value);
-      renderCrewSummaryTable(e.target.value);
-    });
-
-    // MEMPERBAIKI HANDLER EVENT EXPORT POPUP
-    const btnToggleExport = document.getElementById("btn-toggle-export");
-    btnToggleExport.addEventListener("click", (e) => {
-      e.stopPropagation();
-      exportMenuPopup.style.display = (exportMenuPopup.style.display === "flex") ? "none" : "flex";
-    });
-
-    document.addEventListener("click", (e) => {
-      if (!exportMenuPopup.contains(e.target) && e.target !== btnToggleExport) {
-        exportMenuPopup.style.display = "none";
-      }
-    });
-
-    async function loadGeoJsonFile(filename) {
-      const localUrl = `/static/${filename}`;
-      const supabaseUrl = `https://kimzyjcuqbyxmcixojke.supabase.co/storage/v1/object/public/peta_seismic/${filename}`;
-
-      try {
-        let res = await fetch(localUrl);
-        if (!res.ok) {
-          res = await fetch(supabaseUrl);
-        }
-        
-        if (res.ok) {
-          const text = await res.text();
-          if (text.trim().startsWith("{") || text.trim().startsWith("[")) {
-            return JSON.parse(text);
-          }
-        }
-        return null;
-      } catch (err) {
-        console.error(`Error loading ${filename}:`, err);
-        return null;
-      }
-    }
-
-    async function loadExtraGeoJsonFiles() {
-      // PROSES LOAD FILE GEOJSON PARTES (EAST, CENTRAL, WEST)
-      Promise.all([
-        loadGeoJsonFile("east_partes_leaflet.geojson"),
-        loadGeoJsonFile("central_partes_leaflet.geojson"),
-        loadGeoJsonFile("west_partes_leaflet.geojson")
-      ]).then(([eastPartes, centPartes, westPartes]) => {
-        const renderPartes = (data, labelPrefix) => {
-          if (!data) return;
-          L.geoJSON(data, {
-            style: { color: '#e040fb', weight: 2, opacity: 0.8 },
-            pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 3, fillColor: '#e040fb', stroke: false, fillOpacity: 0.8 }),
-            onEachFeature: (f, l) => {
-              const p = f.properties || {};
-              l.bindPopup(`<b>Partes ${labelPrefix}:</b> ${p.ID || p.Line || 'Titik Partes'}`);
-            }
-          }).addTo(groupPartes);
-        };
-
-        renderPartes(eastPartes, "East");
-        renderPartes(centPartes, "Central");
-        renderPartes(westPartes, "West");
-      });
-
-      loadGeoJsonFile("jalan.geojson").then(jalanData => {
-        if (jalanData) {
-          L.geoJSON(jalanData, { style: { color: '#ff7800', weight: 3, opacity: 0.7 } })
-           .bindPopup("<b>Jalan Akses</b>").addTo(groupJalan);
-        }
-      });
-
-      loadGeoJsonFile("East_GPS.geojson").then(bmData => {
-        if (bmData) {
-          L.geoJSON(bmData, {
-            pointToLayer: (f, latlng) => {
-                const squareIcon = L.divIcon({
-                    className: 'custom-square-marker',
-                    html: `<div style="width: 12px; height: 12px; background-color: #0000FF; border: 2px solid #0000ff; box-shadow: 0 0 3px rgba(0,0,0,0.5);"></div>`,
-                    iconSize: [12, 12],
-                    iconAnchor: [6, 6]
-                });
-                return L.marker(latlng, { icon: squareIcon });
-            },
-            onEachFeature: (f, l) => {
-              const p = f.properties || {};
-              l.bindPopup(`<b>BM GPS:</b> ${p.kode || 'Benchmark Point'}`);
-            }
-          }).addTo(groupBM);
-        }
-      });
-
-      loadGeoJsonFile("Text_Lintasan_leaflet.geojson").then(textLintasanData => {
-        if (textLintasanData) {
-          L.geoJSON(textLintasanData, {
-            style: { color: '#00ffff', weight: 3, opacity: 0.9 },
-            pointToLayer: (f, latlng) => {
-              const p = f.properties || {};
-              const labelText = p.TEXTSTRING || p.Text || p.Line || p.Name || '';
-              const angle = p.TEXT_ANGLE || p.Angle || p.angle || 0;
-              
-              return L.marker(latlng, {
-                icon: L.divIcon({
-                  className: 'point-name-label text-white',
-                  html: `<span style="display: inline-block; color: #ffffff; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 12px; white-space: nowrap; transform: rotate(${-angle}deg); transform-origin: left center;">${labelText}</span>`,
-                  iconSize: [0, 0],
-                  iconAnchor: [0, 0]
-                })
-              });
-            }
-          }).addTo(groupLintasan);
-        }
-      });
-         
-      loadGeoJsonFile("keterangan1_leaflet.geojson").then(keteranganData => {
-        if (keteranganData) {
-          L.geoJSON(keteranganData, {
-            style: { color: '#e67e22', weight: 2, dashArray: '4, 4', fillOpacity: 0.3 },
-            pointToLayer: (f, latlng) => {
-              const p = f.properties || {};
-              const teks = p.Keterangan || p.Kode || p.ID || "";
-              return L.marker(latlng, {
-                icon: L.divIcon({
-                  className: 'point-name-label',
-                  html: `<span style="font-size: 16px; font-weight: bold; color: #ffffff; text-shadow: 1px 1px 2px #000;">${teks}</span>`,
-                  iconSize: null
-                })
-              });
-            },
-            onEachFeature: (f, l) => {
-              const p = f.properties || {};
-              const kode = p.Kode !== undefined ? `Keterangan Kode ${p.ID}` : (p.Keterangan || "Keterangan Area");
-              l.bindPopup(`<b>Keterangan:</b> ${kode}`);
-            }
-          }).addTo(groupKeterangan);
-        }
-      });
-
-      const houseIcon = L.divIcon({
-        className: '',
-        html: `<div class="camp-icon-container">
-                 <svg viewBox="0 0 24 24">
-                   <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-                 </svg>
-               </div>`,
-        iconSize: [26, 26],
-        iconAnchor: [13, 13]
-      });
-
-      loadGeoJsonFile("Camp_leaflet.geojson").then(campData => {
-        if (campData) {
-          L.geoJSON(campData, {
-            pointToLayer: (f, latlng) => L.marker(latlng, { icon: houseIcon }),
-            onEachFeature: (f, l) => {
-              const p = f.properties || {};
-              const desc = p.Desc_ || (p.code !== undefined ? `Camp ${p.code}` : "Camp Seismik");
-              l.bindPopup(`<b>⛺ Lokasi Camp:</b> ${desc}`);
-            }
-          }).addTo(groupCamp);
-        }
-      });
-
-      loadGeoJsonFile("HazardMap_leaflet.geojson").then(hazardData => {
-        if (hazardData) {
-          L.geoJSON(hazardData, {
-            style: { color: '#dc3545', weight: 2, fillColor: '#dc3545', fillOpacity: 0.45, dashArray: '5, 5' },
-            pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 0.5, fillColor: '#dc3545', color: '#ffffff', weight: 0.5, fillOpacity: 0.1 }),
-            onEachFeature: (f, l) => {
-              const p = f.properties || {};
-              const infoHazard = p.KETERANGAN || p.Nama || p.Keterangan || p.Desc_ || "Area Potensi Bahaya / Hazard";
-              l.bindPopup(`<b style="color:#dc3545;">⚠️ Hazard Map:</b> ${infoHazard}`);
-            }
-          })//.addTo(groupHazard);
-        }
-      });
-    
-      // 1. Load Posisi Repeater
-      loadGeoJsonFile("Posisi_Repeater_leaflet.geojson").then(data => {
-        if (data) {
-          L.geoJSON(data, {
-            pointToLayer: (f, latlng) => {
-              const p = f.properties || {};
-              const labelName = p.NAME || p.Nama || p.ID || 'Repeater';
-
-              return L.marker(latlng, {
-                icon: L.divIcon({
-                  className: '',
-                  html: `<div class="unified-map-label" style="border-color: #ffcc00;">
-                           <span class="emoji-icon">📡</span>
-                           <span class="label-text">${labelName}</span>
-                         </div>`,
-                  iconSize: [0, 0],
-                  iconAnchor: [0, 0]
-                })
-              });
-            },
-            onEachFeature: (f, l) => {
-              const p = f.properties || {};
-              l.bindPopup(`<b>📡 Posisi Repeater:</b> ${p.NAME || p.Nama || p.ID || 'Repeater'}`);
-            }
-          }).addTo(groupRepeater);
-        }
-      });
-
-      // 2. Load Posisi Vibro
-      loadGeoJsonFile("Posisi_VIBRO__leaflet.geojson").then(data => {
-        if (data) {
-          L.geoJSON(data, {
-            pointToLayer: (f, latlng) => {
-              const p = f.properties || {};
-              const labelName = p.Block || p.Nama || p.ID || 'Vibro';
-
-              return L.marker(latlng, {
-                icon: L.divIcon({
-                  className: '',
-                  html: `<div class="unified-map-label" style="border-color: #ff9900;">
-                           <span class="emoji-icon">🚜</span>
-                           <span class="label-text">${labelName}</span>
-                         </div>`,
-                  iconSize: [0, 0],
-                  iconAnchor: [0, 0]
-                })
-              });
-            },
-            onEachFeature: (f, l) => {
-              const p = f.properties || {};
-              l.bindPopup(`<b>🚜 Posisi Vibro:</b> ${p.NAME || p.Nama || p.ID || 'Vibro'}`);
-            }
-          }).addTo(groupVibro);
-        }
-      });
-
-      // 3. Load Posisi Labo Partes
-      loadGeoJsonFile("Labo_leaflet.geojson").then(data => {
-        if (data) {
-          L.geoJSON(data, {
-            pointToLayer: (f, latlng) => {
-              const p = f.properties || {};
-              const labelName = p.Name || p.Elevasi || 'Labo Partes';
-
-              return L.marker(latlng, {
-                icon: L.divIcon({
-                  className: '',
-                  html: `<div class="unified-map-label" style="border-color: #00ffff;">
-                           <span class="emoji-icon">⛺</span>
-                           <span class="label-text">${labelName}</span>
-                         </div>`,
-                  iconSize: [0, 0],
-                  iconAnchor: [0, 0]
-                })
-              });
-            },
-            onEachFeature: (f, l) => {
-              const p = f.properties || {};
-              l.bindPopup(`<b>⛺ Labo Partes:</b> ${p.NAME || p.Nama || 'Labo Partes'}`);
-            }
-          }).addTo(groupLaboPartes);
-        }
-      });
-
-      // 4. Load SP Partes
-      loadGeoJsonFile("SP_Partes_leaflet.geojson").then(data => {
-        if (data) {
-          L.geoJSON(data, {
-            pointToLayer: (f, latlng) => {
-              const p = f.properties || {};
-              const labelName = p.NAME || p.ATTR_1 || 'SP Partes';
-
-              return L.marker(latlng, {
-                icon: L.divIcon({
-                  className: '',
-                  html: `<div class="unified-map-label" style="border-color: #00ffcc;">
-                           <span class="emoji-icon">📍</span>
-                           <span class="label-text">${labelName}</span>
-                         </div>`,
-                  iconSize: [0, 0],
-                  iconAnchor: [0, 0]
-                })
-              });
-            },
-            onEachFeature: (f, l) => {
-              const p = f.properties || {};
-              l.bindPopup(`<b>📍 SP Partes:</b> ${p.Nama || p.ID || p.Line || 'SP Partes'}`);
-            }
-          }).addTo(groupSpPartes);
-        }
-      });
-           
-      // 5. Load PPV East
-
-      loadGeoJsonFile("PPV_east__leaflet.geojson").then(ppvEastData => {
-        if (ppvEastData) {
-          L.geoJSON(ppvEastData, {
-            pointToLayer: (f, latlng) => {
-              const p = f.properties || {};
-              const labelText = p.kode || p.KODE || p.Name || p.NAME || '';
-
-              return L.marker(latlng, {
-                icon: L.divIcon({
-                  className: '',
-                  html: `<div class="unified-map-label" style="border-color: #ffa500;">
-                           <span class="emoji-icon">🚒</span>
-                           <span class="label-text">${labelText}</span>
-                         </div>`,
-                  iconSize: [0, 0],
-                  iconAnchor: [0, 0]
-                })
-              });
-            },
-            onEachFeature: (f, layer) => {
-              const p = f.properties || {};
-              let popupContent = "<b>PPV East Info</b><br>";
-              for (let key in p) {
-                popupContent += `<b>${key}:</b> ${p[key]}<br>`;
-              }
-              layer.bindPopup(popupContent);
-            }
-          }).addTo(groupPPVEast);
-        }
-      });
-    }   
-    async function initAppData() {
-      await fetchCloudProgress();
-
-      try {
-        const [eastAData, eastBData, centData, westData] = await Promise.all([
-          loadGeoJsonFile("EastA_Block_leaflet.geojson"),
-          loadGeoJsonFile("EastB_Block_leaflet.geojson"),
-          loadGeoJsonFile("Central_Block.geojson"),
-          loadGeoJsonFile("West_Block.geojson")
-        ]);
-
-        let combinedEastFeatures = [];
-        if (eastAData && Array.isArray(eastAData.features)) combinedEastFeatures = combinedEastFeatures.concat(eastAData.features);
-        if (eastBData && Array.isArray(eastBData.features)) combinedEastFeatures = combinedEastFeatures.concat(eastBData.features);
-
-        rawData.East_Block = { type: "FeatureCollection", features: combinedEastFeatures };
-        rawData.Central_Block = centData;
-        rawData.West_Block = westData;
-
-        applyCloudDataToGeoJSON();
-        renderBlockOnMap(document.getElementById("mainSelectBlock").value);
-        loadExtraGeoJsonFiles();
-      } catch (err) {
-        console.error("Detail Error GeoJSON:", err);
-        alert("⚠️ Gagal memuat file utama GeoJSON.");
-      }
-    }
-
-    initAppData();
-
-    function renderChartsAndStats(selectedBlock) {
-      let featuresS = [], featuresR = [];
-      const blocks = selectedBlock === "ALL" ? ["East_Block", "Central_Block", "West_Block"] : [selectedBlock];
-      
-      blocks.forEach(b => {
-        if (rawData[b] && Array.isArray(rawData[b].features)) {
-          rawData[b].features.forEach(f => {
-            const desc = String(f.properties?.Desc_ || f.properties?.Type || f.properties?.Point_Type || "").trim().toUpperCase();
-            if (desc === "S") featuresS.push(f);
-            else if (desc === "R") featuresR.push(f);
-          });
-        }
-      });
-
-      let statS = calculateProgress({ features: featuresS });
-      let statR = calculateProgress({ features: featuresR });
-      const totalKmOverall = getOverallCumulativeKm(selectedBlock);
-
-      document.getElementById("modal-stats-summary").innerHTML = `
-        <div class="stat-card" style="border-left-color: #ffffff !important;">
-          <h4>Total Source (S): ${statS.total.toLocaleString('id-ID')} Poin</h4>
-          <div style="font-size:10px; color:#aaa; margin-top:3px;">
-            Topo: ${statS.topo.toLocaleString('id-ID')} | Rintis: ${statS.rintis.toLocaleString('id-ID')} | Bridge: ${statS.bridging.toLocaleString('id-ID')} | <b>Drill: ${statS.drilling.toLocaleString('id-ID')}</b> | Belum: ${statS.uncompleted.toLocaleString('id-ID')}
-          </div>
-        </div>
-        <div class="stat-card" style="border-left-color: #0055ff !important;">
-          <h4>Total Receiver (R): ${statR.total.toLocaleString('id-ID')} Poin</h4>
-          <div style="font-size:10px; color:#aaa; margin-top:3px;">
-            Topo: ${statR.topo.toLocaleString('id-ID')} | Rintis: ${statR.rintis.toLocaleString('id-ID')} | Bridge: ${statR.bridging.toLocaleString('id-ID')} | <b>Rec: ${statR.recording.toLocaleString('id-ID')}</b> | Belum: ${statR.uncompleted.toLocaleString('id-ID')}
-          </div>
-        </div>
-      `;
-
-      const ctxSource = document.getElementById('sourceChart').getContext('2d');
-      if (chartSourceInstance) chartSourceInstance.destroy();
-      
-      chartSourceInstance = new Chart(ctxSource, {
-        type: 'doughnut',
-        data: {
-          labels: ['Topo (1)', 'Rintis (2)', 'Bridge (3)', 'Drilling (4)', 'Belum (0)'],
-          datasets: [{
-            data: [statS.topo, statS.rintis, statS.bridging, statS.drilling, statS.uncompleted],
-            backgroundColor: ['#00ff00', '#28a745', '#343a40', '#8b0000', '#D2B48C']
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          customCumulativeKm: totalKmOverall,
-          plugins: {
-            legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, font: { size: 10 } } },
-            datalabels: {
-              formatter: (value, ctx) => {
-                let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                if (sum === 0 || value === 0) return '';
-                return (value * 100 / sum).toFixed(1) + "%";
-              },
-              color: '#000000',
-              font: { weight: 'bold', size: 14 }
-            }
-          }
-        },
-        plugins: [centerTextPlugin]
-      });
-
-      const ctxReceiver = document.getElementById('receiverChart').getContext('2d');
-      if (chartReceiverInstance) chartReceiverInstance.destroy();
-
-      chartReceiverInstance = new Chart(ctxReceiver, {
-        type: 'doughnut',
-        data: {
-          labels: ['Topo (1)', 'Rintis (2)', 'Bridge (3)', 'Recording (5)', 'Belum (0)'],
-          datasets: [{
-            data: [statR.topo, statR.rintis, statR.bridging, statR.recording, statR.uncompleted],
-            backgroundColor: ['#00ff00', '#28a745', '#343a40', '#00008b', '#A9A9A9']
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          customCumulativeKm: totalKmOverall,
-          plugins: {
-            legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, font: { size: 10 } } },
-            datalabels: {
-              formatter: (value, ctx) => {
-                let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                if (sum === 0 || value === 0) return '';
-                return (value * 100 / sum).toFixed(1) + "%";
-              },
-              color: '#000000',
-              font: { weight: 'bold', size: 14 }
-            }
-          }
-        },
-        plugins: [centerTextPlugin]
-      });
-    }
-
-    function renderCrewSummaryTable(selectedBlock) {
-      const tbody = document.getElementById("crewSummaryTableBody");
-      const dbData = window.cachedProgressData || [];
-
-      if (dbData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#888;">Belum ada data progress tercatat.</td></tr>`;
-        return;
-      }
-
-      let groupedList = [];
-      const normSelectedBlock = normalizeBlockName(selectedBlock);
-      let rawGroupMap = {};
-
-      dbData.forEach(row => {
-        const normRowBlock = normalizeBlockName(row.block);
-        if (selectedBlock !== "ALL" && normRowBlock !== normSelectedBlock) return;
-
-        let kru = row.kru ? String(row.kru).trim() : "Kru Undefined";
-        let line = row.line ? String(row.line).trim() : "-";
-        let tgl = row.tanggal ? String(row.tanggal).trim() : "1970-01-01";
-        let trVal = parseFloat(row.tr);
-
-        let groupKey = `${tgl}_${kru}_${line}`;
-
-        if (!rawGroupMap[groupKey]) {
-          rawGroupMap[groupKey] = { tanggal: tgl, kru: kru, line: line, trSet: new Set() };
-        }
-
-        if (!isNaN(trVal)) rawGroupMap[groupKey].trSet.add(trVal);
-      });
-
-      Object.keys(rawGroupMap).forEach(key => {
-        groupedList.push(rawGroupMap[key]);
-      });
-
-      if (groupedList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#888;">Tidak ada data produksi pada blok ini.</td></tr>`;
-        return;
-      }
-
-      groupedList.sort((a, b) => {
-        if (a.tanggal !== b.tanggal) return a.tanggal.localeCompare(b.tanggal);
-        if (a.kru !== b.kru) return a.kru.localeCompare(b.kru);
-        return a.line.localeCompare(b.line);
-      });
-
-      let rowsHtml = "";
-      const trIntervalMeter = 12.5; 
-      const spIntervalMeter = 50.0; 
-      let totalCumulativeMeter = 0;
-
-      groupedList.forEach(item => {
-        let minTr = "-";
-        let maxTr = "-";
-        let totalSpCount = "0.00";
-        let dailyMeter = 0;
-        let dailyKm = "0.000";
-
-        if (item.trSet.size > 0) {
-          let trArray = Array.from(item.trSet).sort((a, b) => a - b);
-          minTr = trArray[0];
-          maxTr = trArray[trArray.length - 1];7
-          
-          let deltaTr = maxTr - minTr;
-          dailyMeter = deltaTr * trIntervalMeter;
-          
-          dailyKm = (dailyMeter / 1000).toFixed(3);
-          totalSpCount = (dailyMeter / spIntervalMeter).toFixed(2);
-        }
-
-        totalCumulativeMeter += dailyMeter;
-        let cumulativeKm = (totalCumulativeMeter / 1000).toFixed(3);
-
-        rowsHtml += `
-          <tr>
-            <td><span style="background: #2a2a2a; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #38ef7d;">${item.tanggal}</span></td>
-            <td><b>${item.kru}</b></td>
-            <td>Line ${item.line}</td>
-            <td style="text-align: center;">${minTr}</td>
-            <td style="text-align: center;">${maxTr}</td>
-            <td style="text-align: center;"><b>${totalSpCount} SP</b></td>
-            <td style="text-align: right;">${dailyKm} km</td>
-            <td style="text-align: right; font-weight: bold; color: #ffffff; background: #000000;">${cumulativeKm} km</td>
-          </tr>
-        `;
-      });
-
-      tbody.innerHTML = rowsHtml;
-    }
-
-   
     L.control.layers(
       { 
         "Google Satellite + Label": baseGoogleHybrid, 
@@ -1375,16 +1414,19 @@
         "Keterangan": groupKeterangan,
         "Camp Seismik": groupCamp,
         "Hazard Area ⚠️": groupHazard,
-        "📡 Repeater": groupRepeater,       // <-- BARU
-        "🚜 Posisi Vibro": groupVibro,      // <-- BARU
-        "⛺ Labo Partes": groupLaboPartes,   // <-- BARU
-        "📍 SP Partes": groupSpPartes,     //
-        "🚒 PPV East": groupPPVEast,     //
-        
+        "📡 Repeater": groupRepeater,
+        "🚜 Posisi Vibro": groupVibro,
+        "⛺ Labo Partes": groupLaboPartes,
+        "📍 SP Partes": groupSpPartes,
+        "🚒 PPV East": groupPPVEast,
+        "🎆 Offset & Kompen": offsetLayerGroup
       },
       { position: "topright" }
     ).addTo(map);
 
+    map.pm.addControls({ position: 'topleft', drawMarker: true, drawPolyline: true, drawPolygon: true, editMode: true, removalMode: true });
+
+    map.on("zoomend moveend", updatePointLabels);
     map.on("baselayerchange", function(e) {
       if (e.name && (e.name.toLowerCase().includes("satel") || e.name.toLowerCase().includes("satellite"))) {
         currentMapTheme = "dark";
@@ -1393,144 +1435,118 @@
       }
       updatePointLabels();
     });
-  
-    map.pm.addControls({ position: 'topleft', drawMarker: true, drawPolyline: true, drawPolygon: true, editMode: true, removalMode: true });
 
-    function getPointColor(properties, descType) {
-      const code = parseInt(properties.status_code, 10) || 0;
-      
-      if (code === 5) return "#00008b";
-      if (code === 4) return "#8b0000";
-      if (code === 3) return "#000000";
-      if (code === 2) return "#28a745";
-      if (code === 1) return "#00ff00";
-      
-      const isSource = String(descType || properties.Desc_ || properties.Type || properties.Point_Type || "").trim().toUpperCase() === "S";
-      return isSource ? "#D2B48C" : "#A9A9A9";
-    }
+    initAppData();
 
-    function getPointName(p) {
-      if (!p) return "";
-      return p.NEWID && String(p.NEWID).trim() !== "" ? p.NEWID : (p.ID || p.Point_Name || p.Point || "");
-    }
-  
-    function renderBlockOnMap(selectedBlock) {
-      groupSource.clearLayers();
-      groupReceiver.clearLayers();
-      loadedLayers = [];
-      allFeatures = [];
-  
-      let featuresS = [], featuresR = [];
-      const blocks = selectedBlock === "ALL" ? ["East_Block", "Central_Block", "West_Block"] : [selectedBlock];
-      
-      blocks.forEach(b => {
-        if (rawData[b] && Array.isArray(rawData[b].features)) {
-          rawData[b].features.forEach(f => {
-            const desc = String(f.properties?.Desc_ || f.properties?.Type || f.properties?.Point_Type || "R").trim().toUpperCase();
-            if (desc === "S") featuresS.push(f);
-            else featuresR.push(f);
-            allFeatures.push(f);
-          });
-        }
-      });
-  
-      let bounds = L.latLngBounds([]);
-
-      const addValidLatLngsToBounds = (layerGroup) => {
-        layerGroup.eachLayer(layer => {
-          if (layer.getLatLng) {
-            const latlng = layer.getLatLng();
-            if (latlng && !isNaN(latlng.lat) && !isNaN(latlng.lng) && latlng.lat !== 0 && latlng.lng !== 0) {
-              bounds.extend(latlng);
-            }
+    let userMarker = null;
+    const btnCurrent = document.getElementById("btn-current");
+    if (btnCurrent) {
+      btnCurrent.onclick = () => {
+        if (!navigator.geolocation) return alert("Geolocation tidak tersedia");
+        navigator.geolocation.getCurrentPosition(pos => {
+          const { latitude, longitude } = pos.coords;
+          if (!userMarker) {
+            userMarker = L.marker([latitude, longitude], {
+              icon: L.icon({ iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png", iconSize: [32, 32] })
+            }).addTo(map).bindPopup("📍 Posisi Saat Ini").openPopup();
+          } else {
+            userMarker.setLatLng([latitude, longitude]);
           }
+          map.panTo([latitude, longitude]);
         });
       };
+    }
 
-      if (featuresS.length > 0) {
-        const layerS = createSeismicGeoJsonLayer({ type: "FeatureCollection", features: featuresS });
-        layerS.eachLayer(l => groupSource.addLayer(l));
-        loadedLayers.push(layerS);
-        addValidLatLngsToBounds(layerS);
-      }
-  
-      if (featuresR.length > 0) {
-        const layerR = createSeismicGeoJsonLayer({ type: "FeatureCollection", features: featuresR });
-        layerR.eachLayer(l => groupReceiver.addLayer(l));
-        loadedLayers.push(layerR);
-        addValidLatLngsToBounds(layerR);
-      }
-  
-      if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+    document.getElementById("btn-close-nav-panel")?.addEventListener("click", () => {
+      document.getElementById("navMenuPanel").style.display = "none";
+    });
+
+    document.getElementById("btn-clear-nav")?.addEventListener("click", () => {
+      window.clearAllNavigation();
+      alert("🧹 Garis navigasi dibersihkan.");
+    });
+
+    document.getElementById("btn-start-nav")?.addEventListener("click", () => {
+      const searchBoxVal = document.getElementById("searchBox").value.trim().toLowerCase();
+      if (!searchBoxVal) { alert("⚠️ Ketikkan dulu ID Stasiun di pencarian atas!"); return; }
+
+      let foundFeature = allFeatures.find(f => {
+        const p = f.properties || {};
+        return String(p.ID || "").trim().toLowerCase() === searchBoxVal || String(p.kode || "").trim().toLowerCase() === searchBoxVal;
+      });
+
+      if (foundFeature && foundFeature.geometry && foundFeature.geometry.coordinates) {
+        window.navigateToTarget(foundFeature.geometry.coordinates[1], foundFeature.geometry.coordinates[0], getPointName(foundFeature.properties));
       } else {
-        map.setView([-7.1, 112.2], 13);
+        alert("⚠️ ID Stasiun tidak ditemukan!");
       }
+    });
 
-      setTimeout(() => { map.invalidateSize(); }, 300);
-      updatePointLabels();
-    }
-  
-    const MIN_ZOOM_FOR_LABELS = 16;
-    function updatePointLabels() {
-      groupPointLabels.clearLayers();
-      if (map.getZoom() >= MIN_ZOOM_FOR_LABELS) {
-        const bounds = map.getBounds();
-        const textClass = (currentMapTheme === "dark") ? "text-white" : "text-black";
+    document.getElementById("btn-pick-map-nav")?.addEventListener("click", () => {
+      window.clearAllNavigation();
+      isPickingPointsOnMap = true;
+      alert("👇 Silakan KLIK DUA TITIK di Peta.");
+    });
 
-        allFeatures.forEach(f => {
-          if (f.geometry && f.geometry.coordinates) {
-            const latlng = L.latLng(f.geometry.coordinates[1], f.geometry.coordinates[0]);
-            if (bounds.contains(latlng)) {
-              const labelText = getPointName(f.properties);
-              if (labelText) {
-                L.marker(latlng, { 
-                  icon: L.divIcon({ 
-                    className: `point-name-label ${textClass}`, 
-                    html: labelText, 
-                    iconSize: null 
-                  }) 
-                }).addTo(groupPointLabels);
-              }
-            }
-          }
-        });
+    map.on("click", function(e) {
+      if (!isPickingPointsOnMap) return;
+      pickedPoints.push(e.latlng);
+      const marker = L.marker(e.latlng).addTo(map).bindPopup(`Titik ${pickedPoints.length}`).openPopup();
+      customNavMarkers.push(marker);
+
+      if (pickedPoints.length === 2) {
+        isPickingPointsOnMap = false;
+        window.drawNavigationRoute(pickedPoints[0].lat, pickedPoints[0].lng, pickedPoints[1].lat, pickedPoints[1].lng, document.getElementById("navModeSelect").value, "Manual");
       }
-    }
-    map.on("zoomend moveend", updatePointLabels);
-  
-    function bindPopup(feature, layer) {
-      const p = feature.properties || {};
-      const pointName = getPointName(p) || p.ID || "Poin";
-      const infoKru = p.Kru && String(p.Kru).trim() !== "" ? `${p.Kru} (${p.Tanggal})` : '- Belum ada data -';
-      const geoLine = getFeatureLine(p);
-      const geoTr = getFeatureTr(p);
-      
-      const lat = feature.geometry && feature.geometry.coordinates ? feature.geometry.coordinates[1] : 0;
-      const lng = feature.geometry && feature.geometry.coordinates ? feature.geometry.coordinates[0] : 0;
+    });
 
-      layer.bindPopup(`
-        <div style="font-size:11px; font-family:sans-serif;">
-          <b style="color:#007bff; font-size:12px;">ID: ${pointName}</b> (${p.Desc_ || 'R'})<br>
-          <b>Line:</b> ${geoLine || '-'} | <b>Tr:</b> ${isNaN(geoTr) ? '-' : geoTr}<br>
-          <b>Pelaksana:</b> <span style="color: #28a745; font-weight: bold;">${infoKru}</span><br>
-          <hr style="margin:3px 0">
-          <b>Status:</b> Topo(${p.topo||0}) | Rintis(${p.rintis||0}) | Bridge(${p.bridging||0}) | Drill(${p.drilling||0}) | Rec(${p.recording||0})<br>
-          <button class="btn-route-action" onclick="window.navigateToTarget(${lat}, ${lng}, '${pointName}')" style="margin-top:5px; width:100%; padding:4px; background:#007bff; color:#fff; border:none; border-radius:3px; cursor:pointer;">
-            🧭 Rute Ke Sini
-          </button>
-        </div>
-      `);
+    const dashboardPage = document.getElementById("dashboard-page");
+    const uploadPage = document.getElementById("upload-page");
+   
+    document.getElementById("btn-open-dashboard")?.addEventListener("click", () => {
+      dashboardPage.style.display = "flex";
+      renderChartsAndStats(document.getElementById("dashboardSelectBlock").value);
+      renderCrewSummaryTable(document.getElementById("dashboardSelectBlock").value, currentDashboardTab);
+    });
+
+    document.getElementById("btn-close-dashboard")?.addEventListener("click", () => { dashboardPage.style.display = "none"; });
+
+    document.getElementById("btn-open-upload")?.addEventListener("click", () => {
+      if (prompt("🔒 Masukkan Password Administrator:") === "admin123") {
+        uploadPage.style.display = "flex";
+      } else {
+        alert("Akses Ditolak!");
+      }
+    });
+
+    document.getElementById("btn-close-upload")?.addEventListener("click", () => { uploadPage.style.display = "none"; });
+
+    document.getElementById("mainSelectBlock")?.addEventListener("change", (e) => renderBlockOnMap(e.target.value));
+    document.getElementById("dashboardSelectBlock")?.addEventListener("change", (e) => {
+      renderChartsAndStats(e.target.value);
+      renderCrewSummaryTable(e.target.value, currentDashboardTab);
+    });
+
+    const btnToggleExport = document.getElementById("btn-toggle-export");
+    const exportMenuPopup = document.getElementById("exportMenuPopup");
+    if (btnToggleExport && exportMenuPopup) {
+      btnToggleExport.addEventListener("click", (e) => {
+        e.stopPropagation();
+        exportMenuPopup.style.display = (exportMenuPopup.style.display === "flex") ? "none" : "flex";
+      });
+
+      document.addEventListener("click", (e) => {
+        if (exportMenuPopup && !exportMenuPopup.contains(e.target) && e.target !== btnToggleExport) {
+          exportMenuPopup.style.display = "none";
+        }
+      });
     }
 
-    document.getElementById("btnExecuteUploadFile").addEventListener("click", async () => {
+    document.getElementById("btnExecuteUploadFile")?.addEventListener("click", async () => {
       const fileInput = document.getElementById("fileReportInput");
       const targetBlock = document.getElementById("uploadTargetBlock").value;
       
-      if (fileInput.files.length === 0) { 
-        alert("Pilih file terlebih dahulu!"); 
-        return; 
-      }
+      if (fileInput.files.length === 0) { alert("Pilih file terlebih dahulu!"); return; }
 
       const btn = document.getElementById("btnExecuteUploadFile");
       const originalText = btn.innerText;
@@ -1552,10 +1568,7 @@
             const parts = cleanLine.split(/,|\t|;/).map(item => item.replace(/^"|"$/g, '').trim());
             if (parts.length < 6) return;
 
-            const [tgl, kru, targetLine, trAwalStr, trAkhirStr, statusCode] = [
-              parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]
-            ];
-            
+            const [tgl, kru, targetLine, trAwalStr, trAkhirStr, statusCode] = parts;
             const trAwal = parseFloat(trAwalStr);
             const trAkhir = parseFloat(trAkhirStr);
 
@@ -1599,9 +1612,7 @@
 
           if (cloudBatch.length === 0) {
             alert("⚠️ Tidak ada data titik yang cocok antara file CSV dan Line/TR di peta!");
-            btn.innerText = originalText;
-            btn.disabled = false;
-            return;
+            btn.innerText = originalText; btn.disabled = false; return;
           }
 
           let success = true;
@@ -1609,10 +1620,8 @@
             const chunk = cloudBatch.slice(i, i + 500);
             const { error } = await supabaseClient.from("progress_seismik").upsert(chunk, { onConflict: 'block,line,tr,tanggal' });
             if (error) {
-              console.error("Supabase Error:", error);
               alert("⚠️ Gagal simpan ke Supabase: " + error.message);
-              success = false;
-              break;
+              success = false; break;
             }
           }
 
@@ -1628,13 +1637,12 @@
           console.error("Detail Error Upload CSV:", err);
           alert("⚠️ Terjadi kesalahan pembacaan CSV: " + err.message);
         } finally {
-          btn.innerText = originalText;
-          btn.disabled = false;
+          btn.innerText = originalText; btn.disabled = false;
         }
       };
     });
 
-    document.getElementById("btnExecuteRangeInput").addEventListener("click", async () => {
+    document.getElementById("btnExecuteRangeInput")?.addEventListener("click", async () => {
       const targetBlock = document.getElementById("adminRangeTargetBlock").value;
       const rawInput = document.getElementById("adminRangeInputString").value.trim();
       const parts = rawInput.split("-");
@@ -1671,7 +1679,7 @@
       }
     });
 
-    document.getElementById("btnExecuteAdminInput").addEventListener("click", async () => {
+    document.getElementById("btnExecuteAdminInput")?.addEventListener("click", async () => {
       const targetBlock = document.getElementById("adminTargetBlock").value;
       const rawInput = document.getElementById("adminInputString").value.trim();
       const parts = rawInput.split("-");
@@ -1686,10 +1694,7 @@
         blockData.features.forEach(f => {
           const p = f.properties || {};
           const geoLine = getFeatureLine(p);
-          
-          // Dibuat fleksibel agar mendeteksi berbagai variasi nama properti ID/Kode stasiun
           const currentId = String(p.ID || p.id || p.kode || p.KODE || p.Name || p.NAME || "").trim();
-          
           if (geoLine === normalizeLine(targetLine) && currentId === targetId) {
             targetFeature = f;
           }
@@ -1698,16 +1703,12 @@
 
       if (targetFeature) {
         const p = targetFeature.properties;
-        p.Tanggal = tgl; 
-        p.Kru = kru;
+        p.Tanggal = tgl; p.Kru = kru;
         Object.assign(p, flags);
 
         let rowData = { block: targetBlock, line: String(getFeatureLine(p)), tr: getFeatureTr(p), tanggal: tgl, kru, ...flags };
         if (parts.length >= 9) {
-          p.NewX = parseFloat(parts[5]); 
-          p.NewY = parseFloat(parts[6]); 
-          p.NewZ = parseFloat(parts[7]); 
-          p.NEWID = parts[8].trim();
+          p.NewX = parseFloat(parts[5]); p.NewY = parseFloat(parts[6]); p.NewZ = parseFloat(parts[7]); p.NEWID = parts[8].trim();
           Object.assign(rowData, { new_x: p.NewX, new_y: p.NewY, new_z: p.NewZ, new_id: p.NEWID });
         }
 
@@ -1724,8 +1725,6 @@
       }
     });
 
-    // FITUR PENCARIAN GLOBAL MENCAKUP SELURUH LAYER & TITIK PETA
-    // FITUR PENCARIAN GLOBAL UNIVERSAL (STASIUN ID + SCAN SEMUA MARKER DI PETA)
     const searchInput = document.getElementById("searchBox");
     if (searchInput) {
       searchInput.addEventListener("keypress", function(e) {
@@ -1737,7 +1736,6 @@
           let foundLayer = null;
           let foundName = "";
 
-          // 1. PRIORITAS UTAMA: Cari di data mentah stasiun lintasan (Source & Receiver)
           const currentBlock = document.getElementById("mainSelectBlock")?.value;
           if (currentBlock && rawData[currentBlock] && Array.isArray(rawData[currentBlock].features)) {
             rawData[currentBlock].features.forEach(f => {
@@ -1752,12 +1750,9 @@
             });
           }
 
-          // 2. JIKA TIDAK KETEMU, PINDAI SEMUA MARKER/LAYER YANG TAMPIL DI PETA
           if (!foundLatLng) {
             map.eachLayer(layer => {
               if (foundLatLng) return;
-              
-              // Cek jika layer tersebut adalah Marker atau CircleMarker yang punya properties
               if (layer.feature && layer.feature.properties) {
                 const p = layer.feature.properties;
                 const identifier = String(
@@ -1766,28 +1761,22 @@
 
                 if (identifier.includes(query)) {
                   foundLayer = layer;
-                  if (layer.getLatLng) {
-                    foundLatLng = layer.getLatLng();
-                  } else if (layer.getBounds) {
-                    foundLatLng = layer.getBounds().getCenter();
-                  }
+                  if (layer.getLatLng) foundLatLng = layer.getLatLng();
+                  else if (layer.getBounds) foundLatLng = layer.getBounds().getCenter();
                   foundName = p.kode || p.Name || p.NAME || p.ID || "Objek Ditemukan";
                 }
               }
             });
           }
 
-          // 3. Eksekusi Hasil Pencarian
           if (foundLatLng) {
             map.setView(foundLatLng, 18);
-            if (foundLayer && foundLayer.openPopup) {
-              foundLayer.openPopup();
-            }
+            if (foundLayer && foundLayer.openPopup) foundLayer.openPopup();
             if (typeof window.navigateToTarget === 'function') {
               window.navigateToTarget(foundLatLng.lat, foundLatLng.lng, foundName);
             }
           } else {
-            alert("⚠️ Objek atau Kode \"" + query + "\" tidak ditemukan di stasiun ID maupun di seluruh layer peta!");
+            alert("⚠️ Objek atau Kode \"" + query + "\" tidak ditemukan!");
           }
           searchInput.blur();
         }
@@ -1797,257 +1786,231 @@
     map.on("mousemove", e => {
       document.getElementById("coord-info").innerHTML = 'Lat: ' + e.latlng.lat.toFixed(5) + ' | Lng: ' + e.latlng.lng.toFixed(5);
     });
-
   });
+
   // ==========================================
-    // KONTROL PANEL MENU NAVIGASI & PENGUKURAN
-    // ==========================================
-    const navMenuPanel = document.getElementById("navMenuPanel");
-    const btnCloseNav = document.getElementById("btn-close-nav-panel");
-    const navResultBox = document.getElementById("navResultBox");
-    const navResultText = document.getElementById("navResultText");
-    const navModeSelect = document.getElementById("navModeSelect");
-
-    // 1. Tombol Tutup Panel (X)
-    if (btnCloseNav && navMenuPanel) {
-      btnCloseNav.addEventListener("click", () => {
-        navMenuPanel.style.display = "none";
-      });
-    }
-
-   // 2. Tombol: Mulai dari Lokasi Saya ke Stasiun / Objek (Menggunakan Master Gabung Data)
-   const btnStartNav = document.getElementById("btn-start-nav");
-    if (btnStartNav) {
-      btnStartNav.addEventListener("click", () => {
-        const targetQuery = prompt("Masukkan Kode Tujuan Navigasi (Contoh: FieldCamp TUB, 1101860vib):");
-        if (!targetQuery) return;
-
-        const queryLower = targetQuery.toLowerCase().trim();
-
-        // Pastikan data master gabungan sudah siap di memori global
-        const geojson = window._masterGabungData;
-        if (!geojson || !geojson.features) {
-          alert("⚠️ Data peta master sedang dimuat, mohon tunggu sebentar lalu coba lagi.");
-          return;
-        }
-
-        let destLatLng = null;
-        let destName = targetQuery;
-
-        // Cari langsung di data master gabung_leaflet.geojson
-        for (let f of geojson.features) {
-          const p = f.properties || {};
-          const kodeVal = String(p.kode || p.KODE || p.Kode || "").toLowerCase().trim();
-          const ketVal  = String(p.Keterangan || p.KETERANGAN || p.Name || "").toLowerCase().trim();
-
-          if (kodeVal === queryLower || kodeVal.includes(queryLower) || ketVal.includes(queryLower)) {
-            if (f.geometry && f.geometry.coordinates) {
-              const coords = f.geometry.coordinates;
-              // Format GeoJSON standar: [longitude, latitude]
-              destLatLng = L.latLng(coords[1], coords[0]);
-              destName = p.kode || p.Keterangan || p.Name || targetQuery;
-              break;
-            }
-          }
-        }
-
-        if (!destLatLng) {
-          alert(`⚠️ Kode atau objek "${targetQuery}" tidak ditemukan di master file!`);
-          return;
-        }
-
-        // Ambil posisi GPS pengguna saat ini
-        if (!navigator.geolocation) {
-          alert("❌ Geolocation tidak didukung oleh browser Anda.");
-          return;
-        }
-
-        navigator.geolocation.getCurrentPosition(position => {
-          const userLat = position.coords.latitude;
-          const userLng = position.coords.longitude;
-          const userLatLng = L.latLng(userLat, userLng);
-
-          const navResultBox = document.getElementById("navResultBox");
-          const navResultText = document.getElementById("navResultText");
-          const navModeSelect = document.getElementById("navModeSelect");
-          const navMenuPanel = document.getElementById("navMenuPanel");
-          const mode = navModeSelect ? navModeSelect.value : "straight";
-
-          if (navResultBox) navResultBox.style.display = "block";
-
-          if (mode === "straight") {
-            const distanceMeters = userLatLng.distanceTo(destLatLng);
-            const distanceKm = (distanceMeters / 1000).toFixed(2);
-            
-            if (navResultText) {
-              navResultText.innerHTML = `<b>📐 Jarak Lurus ke ${destName}:</b> ${distanceKm} km (${distanceMeters.toFixed(0)} meter)`;
-            }
-
-            if (window.activeNavLine) map.removeLayer(window.activeNavLine);
-            window.activeNavLine = L.polyline([userLatLng, destLatLng], { color: '#ff00ff', weight: 4, dashArray: '5, 10' }).addTo(map);
-            map.fitBounds(window.activeNavLine.getBounds(), { padding: [50, 50] });
-
-          } else {
-            if (typeof L.Routing !== 'undefined') {
-              if (window.activeRoutingControl) map.removeControl(window.activeRoutingControl);
-              window.activeRoutingControl = L.Routing.control({
-                waypoints: [userLatLng, destLatLng],
-                routeWhileDragging: false,
-                language: 'id'
-              }).addTo(map);
-              if (navResultText) navResultText.innerHTML = `<b>🚗 Routing Jalan ke ${destName}</b> diaktifkan.`;
-            } else {
-              alert("⚠️ Modul Routing Jalan belum dimuat. Menggunakan garis lurus sebagai alternatif.");
-            }
-          }
-
-          if (navMenuPanel) navMenuPanel.style.display = "none";
-        }, error => {
-          alert("⚠️ Gagal mendeteksi lokasi GPS Anda. Pastikan izin lokasi aktif.");
-        });
-      });
-    }
-
-    // 3. Tombol: Klik 2 Titik Manual di Peta untuk Ukur Jarak
-    const btnPickMapNav = document.getElementById("btn-pick-map-nav");
-    if (btnPickMapNav) {
-      btnPickMapNav.addEventListener("click", () => {
-        alert("👆 Silakan klik Titik PERTAMA di atas peta.");
-        if (navMenuPanel) navMenuPanel.style.display = "none";
-        
-        window.tempClickPoints = [];
-        
-        // Buat event klik sementara pada peta
-        map.once("click", e => {
-          window.tempClickPoints.push(e.latlng);
-          L.circleMarker(e.latlng, { radius: 6, color: '#00ffcc', fillOpacity: 1 }).addTo(map);
-          
-          alert("👆 Titik pertama terpilih! Sekarang klik Titik KEDUA di peta.");
-          
-          map.once("click", e2 => {
-            window.tempClickPoints.push(e2.latlng);
-            L.circleMarker(e2.latlng, { radius: 6, color: '#800080', fillOpacity: 1 }).addTo(map);
-
-            const pt1 = window.tempClickPoints[0];
-            const pt2 = window.tempClickPoints[1];
-            const distMeters = pt1.distanceTo(pt2);
-            const distKm = (distMeters / 1000).toFixed(2);
-
-            // Tampilkan hasil jarak manual
-            if (navResultBox) navResultBox.style.display = "block";
-            if (navResultText) {
-              navResultText.innerHTML = `<b>📏 Jarak Manual 2 Titik:</b> ${distKm} km (${distMeters.toFixed(0)} meter)`;
-            }
-
-            // Gambar garis penghubung
-            if (window.activeNavLine) map.removeLayer(window.activeNavLine);
-            window.activeNavLine = L.polyline([pt1, pt2], { color: '#00ffcc', weight: 4 }).addTo(map);
-            map.fitBounds(window.activeNavLine.getBounds(), { padding: [50, 50] });
-          });
-        });
-      });
-    }
-
-    // 4. Tombol: Hapus Garis Navigasi / Pengukuran
-    const btnClearNav = document.getElementById("btn-clear-nav");
-    if (btnClearNav) {
-      btnClearNav.addEventListener("click", () => {
-        // Hapus garis peta
-        if (window.activeNavLine) {
-          map.removeLayer(window.activeNavLine);
-          window.activeNavLine = null;
-        }
-        // Hapus routing jika ada
-        if (typeof window.activeRoutingControl !== 'undefined' && window.activeRoutingControl) {
-          map.removeControl(window.activeRoutingControl);
-          window.activeRoutingControl = null;
-        }
-        // Sembunyikan kotak hasil
-        if (navResultBox) navResultBox.style.display = "none";
-        if (navResultText) navResultText.innerHTML = "Jarak: -";
-
-        alert("🗑️ Garis navigasi & pengukuran berhasil dibersihkan.");
-      });
-    }
-    window.exportExcelData = async function() {
-    // 1. Proteksi Password
-    const password = prompt("🔒 Masukkan Password Keamanan untuk Export Laporan Produksi:");
-    if (password === null) return; // Jika dibatalkan
+  // 10. FUNGSI DASHBOARD & EXPORT
+  // ==========================================
+  function renderChartsAndStats(selectedBlock) {
+    let featuresS = [], featuresR = [];
+    const blocks = selectedBlock === "ALL" ? ["East_Block", "Central_Block", "West_Block"] : [selectedBlock];
     
-    const PASSWORD_RAHASIA = "lamturo9721"; // Sesuaikan password jika ingin diganti
-    if (password !== PASSWORD_RAHASIA) {
-        alert("❌ Password salah! Akses export ditolak.");
-        return;
+    blocks.forEach(b => {
+      if (rawData[b] && Array.isArray(rawData[b].features)) {
+        rawData[b].features.forEach(f => {
+          const desc = String(f.properties?.Desc_ || f.properties?.Type || f.properties?.Point_Type || "").trim().toUpperCase();
+          if (desc === "S") featuresS.push(f);
+          else if (desc === "R") featuresR.push(f);
+        });
+      }
+    });
+
+    let statS = calculateProgress({ features: featuresS });
+    let statR = calculateProgress({ features: featuresR });
+    const totalKmOverall = getOverallCumulativeKm(selectedBlock);
+
+    document.getElementById("modal-stats-summary").innerHTML = `
+      <div class="stat-card" style="border-left-color: #ffffff !important;">
+        <h4>Total Source (S): ${statS.total.toLocaleString('id-ID')} Poin</h4>
+        <div style="font-size:10px; color:#aaa; margin-top:3px;">
+          Topo: ${statS.topo.toLocaleString('id-ID')} | Rintis: ${statS.rintis.toLocaleString('id-ID')} | Bridge: ${statS.bridging.toLocaleString('id-ID')} | <b>Drill: ${statS.drilling.toLocaleString('id-ID')}</b> | Belum: ${statS.uncompleted.toLocaleString('id-ID')}
+        </div>
+      </div>
+      <div class="stat-card" style="border-left-color: #0055ff !important;">
+        <h4>Total Receiver (R): ${statR.total.toLocaleString('id-ID')} Poin</h4>
+        <div style="font-size:10px; color:#aaa; margin-top:3px;">
+          Topo: ${statR.topo.toLocaleString('id-ID')} | Rintis: ${statR.rintis.toLocaleString('id-ID')} | Bridge: ${statR.bridging.toLocaleString('id-ID')} | <b>Rec: ${statR.recording.toLocaleString('id-ID')}</b> | Belum: ${statR.uncompleted.toLocaleString('id-ID')}
+        </div>
+      </div>
+    `;
+
+    const ctxSource = document.getElementById('sourceChart').getContext('2d');
+    if (chartSourceInstance) chartSourceInstance.destroy();
+    chartSourceInstance = new Chart(ctxSource, {
+      type: 'doughnut',
+      data: {
+        labels: ['Topo (1)', 'Rintis (2)', 'Bridge (3)', 'Drilling (4)', 'Belum (0)'],
+        datasets: [{
+          data: [statS.topo, statS.rintis, statS.bridging, statS.drilling, statS.uncompleted],
+          backgroundColor: ['#00ff00', '#28a745', '#343a40', '#8b0000', '#D2B48C']
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, customCumulativeKm: totalKmOverall,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, font: { size: 10 } } },
+          datalabels: { formatter: (value, ctx) => { let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0); return (sum === 0 || value === 0) ? '' : (value * 100 / sum).toFixed(1) + "%"; }, color: '#000000', font: { weight: 'bold', size: 14 } }
+        }
+      },
+      plugins: [centerTextPlugin]
+    });
+
+    const ctxReceiver = document.getElementById('receiverChart').getContext('2d');
+    if (chartReceiverInstance) chartReceiverInstance.destroy();
+    chartReceiverInstance = new Chart(ctxReceiver, {
+      type: 'doughnut',
+      data: {
+        labels: ['Topo (1)', 'Rintis (2)', 'Bridge (3)', 'Recording (5)', 'Belum (0)'],
+        datasets: [{
+          data: [statR.topo, statR.rintis, statR.bridging, statR.recording, statR.uncompleted],
+          backgroundColor: ['#00ff00', '#28a745', '#343a40', '#00008b', '#A9A9A9']
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, customCumulativeKm: totalKmOverall,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, font: { size: 10 } } },
+          datalabels: { formatter: (value, ctx) => { let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0); return (sum === 0 || value === 0) ? '' : (value * 100 / sum).toFixed(1) + "%"; }, color: '#000000', font: { weight: 'bold', size: 14 } }
+        }
+      },
+      plugins: [centerTextPlugin]
+    });
+  }
+
+  function renderCrewSummaryTable(selectedBlock, filterType = currentDashboardTab) {
+    const tbody = document.getElementById("crewSummaryTableBody");
+    const badge = document.getElementById("rowCounterBadge");
+    const dbData = window.cachedProgressData || [];
+
+    if (dbData.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#888;">Belum ada data progress tercatat.</td></tr>`;
+      if (badge) badge.innerText = `Total Baris: 0 / 1805`;
+      return;
     }
+
+    let groupedList = [];
+    const normSelectedBlock = normalizeBlockName(selectedBlock);
+    let rawGroupMap = {};
+
+    dbData.forEach(row => {
+      const normRowBlock = normalizeBlockName(row.block);
+      if (selectedBlock !== "ALL" && normRowBlock !== normSelectedBlock) return;
+
+      if (filterType === 'topo' && String(row.topo) !== "1") return;
+      if (filterType === 'drilling' && String(row.drilling) !== "4" && String(row.drilling) !== "1") return;
+      if (filterType === 'recording' && String(row.recording) !== "5" && String(row.recording) !== "1") return;
+
+      let kru = row.kru ? String(row.kru).trim() : "Kru Undefined";
+      let line = row.line ? String(row.line).trim() : "-";
+      let tgl = row.tanggal ? String(row.tanggal).trim() : "1970-01-01";
+      let trVal = parseFloat(row.tr);
+
+      let groupKey = `${tgl}_${kru}_${line}`;
+      if (!rawGroupMap[groupKey]) rawGroupMap[groupKey] = { tanggal: tgl, kru: kru, line: line, trSet: new Set() };
+      if (!isNaN(trVal)) rawGroupMap[groupKey].trSet.add(trVal);
+    });
+
+    Object.keys(rawGroupMap).forEach(key => groupedList.push(rawGroupMap[key]));
+
+    // Update Counter Baris & Indikator Target 1805
+    const totalBarisAktif = groupedList.length;
+    if (badge) {
+      badge.innerText = `Total Baris: ${totalBarisAktif} / 1805`;
+      badge.style.color = (totalBarisAktif >= 1805) ? "#38ef7d" : "#ff9800";
+    }
+
+    if (groupedList.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#888;">Tidak ada data produksi untuk kategori ${filterType.toUpperCase()} pada blok ini.</td></tr>`;
+      return;
+    }
+
+    groupedList.sort((a, b) => {
+      if (a.tanggal !== b.tanggal) return a.tanggal.localeCompare(b.tanggal);
+      if (a.kru !== b.kru) return a.kru.localeCompare(b.kru);
+      return a.line.localeCompare(b.line);
+    });
+
+    let rowsHtml = "";
+    const trIntervalMeter = 12.5; 
+    const spIntervalMeter = 50.0; 
+    let totalCumulativeMeter = 0;
+
+    groupedList.forEach(item => {
+      let minTr = "-", maxTr = "-", totalSpCount = "0.00", dailyMeter = 0, dailyKm = "0.000";
+
+      if (item.trSet.size > 0) {
+        let trArray = Array.from(item.trSet).sort((a, b) => a - b);
+        minTr = trArray[0];
+        maxTr = trArray[trArray.length - 1];
+        let deltaTr = maxTr - minTr;
+        dailyMeter = deltaTr * trIntervalMeter;
+        dailyKm = (dailyMeter / 1000).toFixed(3);
+        totalSpCount = (dailyMeter / spIntervalMeter).toFixed(2);
+      }
+
+      totalCumulativeMeter += dailyMeter;
+      let cumulativeKm = (totalCumulativeMeter / 1000).toFixed(3);
+
+      rowsHtml += `
+        <tr>
+          <td><span style="background: #2a2a2a; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #38ef7d;">${item.tanggal}</span></td>
+          <td><b>${item.kru}</b></td>
+          <td>Line ${item.line}</td>
+          <td style="text-align: center;">${minTr}</td>
+          <td style="text-align: center;">${maxTr}</td>
+          <td style="text-align: center;"><b>${totalSpCount} SP</b></td>
+          <td style="text-align: right;">${dailyKm} km</td>
+          <td style="text-align: right; font-weight: bold; color: #ffffff; background: #000000;">${cumulativeKm} km</td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = rowsHtml;
+  }
+
+  window.exportExcelData = async function() {
+    const password = prompt("🔒 Masukkan Password Keamanan untuk Export Laporan Produksi:");
+    if (password === null) return;
+    if (password !== "lamturo9721") { alert("❌ Password salah! Akses export ditolak."); return; }
 
     alert("⏳ Mengunduh Data Rekapitulasi...");
-
     try {
-        const dbData = window.cachedProgressData || [];
+      const dbData = window.cachedProgressData || [];
+      if (dbData.length === 0) { alert("⚠️ Belum ada data progress harian!"); return; }
 
-        if (dbData.length === 0) {
-            alert("⚠️ Belum ada data progress harian yang tercatat di database!");
-            return;
-        }
+      let grouped = {};
+      dbData.forEach(row => {
+        let tgl = row.tanggal || "-", kru = row.kru || "-", line = row.line || "-", block = row.block || "-";
+        let key = `${tgl}_${kru}_${line}_${block}`;
+        if (!grouped[key]) grouped[key] = { tanggal: tgl, kru, line, block, trs: [] };
+        if (row.tr !== undefined && row.tr !== null) grouped[key].trs.push(parseFloat(row.tr));
+      });
 
-        let grouped = {};
-        dbData.forEach(row => {
-            let tgl = row.tanggal ? String(row.tanggal).trim() : "-";
-            let kru = row.kru ? String(row.kru).trim() : "-";
-            let line = row.line ? String(row.line).trim() : "-";
-            let block = row.block ? String(row.block).trim() : "-";
+      let csvContent = "No,Tanggal,Kru,Blok,Line,Dari_Stasiun,Sampai_Stasiun,Total_Point,Panjang_KM\n";
+      const stationIntervalKm = 0.0125;
+      let no = 1;
 
-            let key = `${tgl}_${kru}_${line}_${block}`;
+      const sortedKeys = Object.keys(grouped).sort((a, b) => grouped[a].tanggal.localeCompare(grouped[b].tanggal));
+      sortedKeys.forEach(k => {
+        let item = grouped[k];
+        item.trs.sort((a, b) => a - b);
+        let minTr = item.trs.length > 0 ? item.trs[0] : "-";
+        let maxTr = item.trs.length > 0 ? item.trs[item.trs.length - 1] : "-";
+        let totalPoint = item.trs.length;
+        let panjangKm = (totalPoint * stationIntervalKm).toFixed(3);
 
-            if (!grouped[key]) {
-                grouped[key] = { tanggal: tgl, kru: kru, line: line, block: block, trs: [] };
-            }
-            if (row.tr !== undefined && row.tr !== null) {
-                grouped[key].trs.push(parseFloat(row.tr));
-            }
-        });
+        csvContent += `${no},"${item.tanggal}","${item.kru}","${item.block}","${item.line}","STP ${minTr}","STP ${maxTr}",${totalPoint},${panjangKm}\n`;
+        no++;
+      });
 
-        let csvContent = "No,Tanggal,Kru,Blok,Line,Dari_Stasiun,Sampai_Stasiun,Total_Point,Panjang_KM\n";
-        const stationIntervalKm = 0.0125;
-        let no = 1;
+      const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Laporan_Produksi_Seismik_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
 
-        const sortedKeys = Object.keys(grouped).sort((a, b) => grouped[a].tanggal.localeCompare(grouped[b].tanggal));
-
-        sortedKeys.forEach(k => {
-            let item = grouped[k];
-            item.trs.sort((a, b) => a - b);
-
-            let minTr = item.trs.length > 0 ? item.trs[0] : "-";
-            let maxTr = item.trs.length > 0 ? item.trs[item.trs.length - 1] : "-";
-            let totalPoint = item.trs.length;
-            let panjangKm = (totalPoint * stationIntervalKm).toFixed(3);
-
-            csvContent += `${no},"${item.tanggal}","${item.kru}","${item.block}","${item.line}","STP ${minTr}","STP ${maxTr}",${totalPoint},${panjangKm}\n`;
-            no++;
-        });
-
-        const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", `Laporan_Produksi_Seismik_${new Date().toISOString().slice(0,10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        alert("✅ Laporan produksi berhasil di-export!");
-
-        const exportMenuPopup = document.getElementById("exportMenuPopup");
-        if (exportMenuPopup) exportMenuPopup.style.display = "none";
-
+      alert("✅ Laporan produksi berhasil di-export!");
+      const exportMenuPopup = document.getElementById("exportMenuPopup");
+      if (exportMenuPopup) exportMenuPopup.style.display = "none";
     } catch (err) {
-        console.error("Gagal export excel:", err);
-        alert("⚠️ Terjadi kesalahan saat memproses data export.");
+      console.error("Gagal export:", err);
+      alert("⚠️ Terjadi kesalahan saat export.");
     }
-};
+  };
 </script>
 
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
 </body>
 </html>
-  
