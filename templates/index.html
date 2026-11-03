@@ -26,6 +26,12 @@
   <!-- Geoman Leaflet Plugin -->
   <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
   <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
+
+  <!-- Leaflet PolylineMeasure CSS -->
+<link rel="stylesheet" href="https://unpkg.com/@ppete2/leaflet-polyline-measure/L.PolylineMeasure.css" />
+
+<!-- Leaflet PolylineMeasure JS -->
+<script src="https://unpkg.com/@ppete2/leaflet-polyline-measure/L.PolylineMeasure.js"></script>
 </head>
 <body>
 
@@ -55,6 +61,10 @@
       <button class="btn-action btn-nav" id="btn-toggle-nav-panel" onclick="toggleNavMenu()" title="Menu Navigasi & Jarak">🧭 Navigasi</button>
       <button class="btn-action btn-export" id="btn-toggle-export">💾 Export ▾</button>
       <button class="btn-action btn-hse" onclick="toggleHseBoard()">🛡️ HSE Board</button>
+      <!-- Tombol Kustom Ukur Jarak -->
+      <button type="button" onclick="mulaiUkurJarak(event)" style="background-color: #ff9800; color: white; border: none; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); margin-bottom: 5px;">
+        📏 Ukur Jarak
+      </button>
     </div>
   </div>
 
@@ -230,15 +240,21 @@
     <!-- 4. UPLOAD KHUSUS OFFSET & COMPEN -->
     <div class="form-card" style="border-left: 6px solid #9c27b0 !important; margin-top: 15px; padding: 12px; background: #222; border-radius: 4px;">
       <h3 style="margin-top: 0; font-size: 13px; color: #ff9800;">🔒 4. Upload Khusus Offset & Compen (.csv)</h3>
-      <p style="font-size: 10px; color: #aaa; line-height: 1.4; margin-bottom: 8px;">
-        Urutan Kolom CSV: <code style="background: #333; color: #00ff00; padding: 2px 4px;">id_teoritik, newx, newy, newz, newid</code>
-      </p>
-      <!--<div style="margin-bottom: 8px;">
-        <input type="password" id="offsetPassword" placeholder="Masukkan Password Admin" style="width: 100%; padding: 6px; font-size: 11px; background: #111; color: #fff; border: 1px solid #444; border-radius: 4px;">
-      </div> -->
+  
+      <!-- PILIH BLOK TERLEBIH DAHULU -->
+      <div style="margin-bottom: 8px;">
+        <label style="font-size: 10px; color: #aaa; display: block; margin-bottom: 3px;">Pilih Blok Target:</label>
+        <select id="offsetTargetBlock" style="width: 100%; padding: 6px; font-size: 11px; background: #111; color: #fff; border: 1px solid #444; border-radius: 4px;">
+          <option value="Central_Block">Central Block</option>
+          <option value="East_Block_leaflet">East Block</option>
+          <option value="West_Block">West Block</option>
+        </select>
+      </div>
+
       <div style="margin-bottom: 8px;">
         <input type="file" id="offsetCsvFile" accept=".csv" style="font-size: 11px; color: #fff;">
       </div>
+  
       <button onclick="processOffsetUpload()" style="width: 100%; background: #9c27b0; color: #ffffff; border: none; padding: 8px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">
         🚀 Proses & Update Data Offset ke Supabase
       </button>
@@ -405,7 +421,7 @@
           markerColor = "#007bff"; markerRadius = 4;
         } else if (st === 4) {
           if (isSpPoint) {
-            markerColor = "#ff0000"; markerRadius = 6.5;      
+            markerColor = "#ff0000"; markerRadius = 2.5;      
           } else {
             markerColor = "#00ff00"; markerRadius = 3.5;
           }
@@ -670,10 +686,8 @@
           const normB1 = normalizeBlockName(blockKey);
           let cp = cloudProgressMap[`${normB1}_${geoLine}_${geoTr}`] || 
                    cloudProgressMap[`${blockKey}_${geoLine}_${geoTr}`] ||
-                   cloudProgressMap[`easta_block_leaflet_${geoLine}_${geoTr}`] ||
-                   cloudProgressMap[`eastb_block_leaflet_${geoLine}_${geoTr}`] ||
-                   cloudProgressMap[`EastA_Block_leaflet_${geoLine}_${geoTr}`] ||
-                   cloudProgressMap[`EastB_Block_leaflet_${geoLine}_${geoTr}`];
+                   cloudProgressMap[`east_block_leaflet_${geoLine}_${geoTr}`] ||
+                   cloudProgressMap[`East_Block_leaflet_${geoLine}_${geoTr}`];
 
           if (cp) {
             matchCount++;
@@ -1132,7 +1146,7 @@
             const p = f.properties || {};
             l.bindPopup(`<b>Partes ${labelPrefix}:</b> ${p.ID || p.Line || 'Titik Partes'}`);
           }
-        }).addTo(groupPartes);
+        })//.addTo(groupPartes);
       };
       renderPartes(eastPartes, "East");
       renderPartes(centPartes, "Central");
@@ -1333,7 +1347,7 @@
             const p = f.properties || {};
             l.bindPopup(`<b>📍 SP Partes:</b> ${p.Nama || p.ID || p.Line || 'SP Partes'}`);
           }
-        }).addTo(groupSpPartes);
+        })// .addTo(groupSpPartes);
       }
     });
          
@@ -1388,11 +1402,15 @@
     groupKeterangan = L.layerGroup().addTo(map);
     groupCamp = L.layerGroup().addTo(map);
     groupHazard = L.layerGroup();
-    groupPartes = L.layerGroup().addTo(map);
-    groupRepeater = L.layerGroup().addTo(map);
-    groupLaboPartes = L.layerGroup().addTo(map);
-    groupVibro = L.layerGroup().addTo(map);
-    groupSpPartes = L.layerGroup().addTo(map);
+    
+    // --- 5 LAYER YANG DINONAKTIFKAN SAAT AWAL ---
+    groupPartes = L.layerGroup();       // 5. Partes Area (dihapus .addTo(map))
+    groupRepeater = L.layerGroup();     // 4. Repeater (dihapus .addTo(map))
+    groupLaboPartes = L.layerGroup();   // 2. Labo Partes & 3. Posisi Labo (dihapus .addTo(map))
+    groupVibro = L.layerGroup();       // .addTo(map); // Tetap aktif jika diperlukan
+    groupSpPartes = L.layerGroup();     // 1. SP Partes (dihapus .addTo(map))
+    // -------------------------------------------
+
     groupPPVEast = L.layerGroup();
     offsetLayerGroup = L.layerGroup().addTo(map);
 
