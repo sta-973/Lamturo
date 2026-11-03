@@ -1,13 +1,21 @@
 /* ==========================================================================
-   WEBGIS SEISMIK - MAIN JAVASCRIPT (NAVIGASI LENGKAP, CRUD & SAFE)
+   WEBGIS SEISMIK - MAIN JAVASCRIPT (NAVIGASI LENGKAP, CRUD & MEASURE CLEAN)
    ========================================================================== */
 
    const HSE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZa0Yw0Jjcg0dVWp6yQIoqvb5OaxpMmsFH9c7hizyN9hBLLVO9VT9u_BrnJ3AQu9WsempAjxDZQ9JL/pub?gid=0&single=true&output=csv";
 
-   // Variabel global untuk menampung data master gabung_leaflet.geojson di latar belakang
+   // Variabel global master data
    window._masterGabungData = null;
+   window._masterOffsetData = null;
    
-   // Otomatis download file gabung_leaflet.geojson sejak awal main.js dimuat
+   // Helper Referensi Peta Aktif
+   function getActiveMap() {
+       return window.currentMap || window.map || null;
+   }
+   
+   // --------------------------------------------------------------------------
+   // 0. PRELOAD MASTER DATA GEOJSON
+   // --------------------------------------------------------------------------
    (function preloadGabungData() {
        fetch('/static/gabung_leaflet.geojson')
            .then(res => {
@@ -18,16 +26,119 @@
                window._masterGabungData = data;
                console.log("Master file gabung_leaflet.geojson berhasil dimuat di background!");
            })
-           .catch(err => console.warn("Peringatan master file:", err));
+           .catch(err => console.warn("Peringatan master file gabung:", err));
    })();
    
-   // Helper Referensi Peta Aktif dari index.html
-   function getActiveMap() {
-       return window.currentMap || window.map || null;
-   }
+   // --------------------------------------------------------------------------
+// 1. PEMUATAN & RENDER LAYER OFFSET & COMPEN (FIXED TOTAL LABEL)
+// --------------------------------------------------------------------------
+window.loadOffsetAndCompenLayer = function() {
+    fetch('/static/Offset_kompen_leaflet.geojson')
+        .then(res => {
+            if (!res.ok) throw new Error("Gagal meload Offset_kompen_leaflet.geojson");
+            return res.json();
+        })
+        .then(data => {
+            window._masterOffsetData = data;
+            const totalPoin = data.features ? data.features.length : 0;
+            console.log(`Master file Offset_kompen_leaflet.geojson berhasil dimuat! Total: ${totalPoin} titik`);
+
+            // Fungsi untuk mengganti teks dan memasang total secara presisi
+            const updateLayerLabel = () => {
+                const labels = document.querySelectorAll('.leaflet-control-layers-overlays label');
+                labels.forEach(lbl => {
+                    // Cari label yang di dalamnya ada teks Offset & Kompen atau Total Bor
+                    if (lbl.textContent.includes('Offset & Kompen') || lbl.textContent.includes('Total Bor')) {
+                        // Ambil elemen input checkbox yang ada di dalam label tersebut
+                        const checkbox = lbl.querySelector('input[type="checkbox"]');
+                        const isChecked = checkbox ? checkbox.checked : true;
+
+                        // Kosongkan label dan susun ulang isinya dengan rapi
+                        lbl.innerHTML = '';
+                        
+                        // Pasang kembali checkbox-nya
+                        const newCheckbox = document.createElement('input');
+                        newCheckbox.type = 'checkbox';
+                        newCheckbox.className = 'leaflet-control-layers-selector';
+                        newCheckbox.checked = isChecked;
+                        
+                        // Event untuk mengontrol layer peta saat dicentang/uncentang
+                        newCheckbox.onchange = function() {
+                            if (newCheckbox.checked) {
+                                if (typeof offsetLayerGroup !== 'undefined' && offsetLayerGroup && activeMap) {
+                                    offsetLayerGroup.addTo(activeMap);
+                                }
+                            } else {
+                                if (typeof offsetLayerGroup !== 'undefined' && offsetLayerGroup && activeMap) {
+                                    activeMap.removeLayer(offsetLayerGroup);
+                                }
+                            }
+                        };
+
+                        lbl.appendChild(newCheckbox);
+
+                        // Buat teks dan angka totalnya
+                        const spanTeks = document.createElement('span');
+                        spanTeks.innerHTML = ` Total Bor <span style="color:#d32f2f; font-weight:bold;">(${totalPoin})</span>`;
+                        lbl.appendChild(spanTeks);
+                    }
+                });
+            };
+
+            // Jalankan langsung dan beri interval singkat jika menu layer belum sempat dirender Leaflet
+            updateLayerLabel();
+            setTimeout(updateLayerLabel, 400);
+            setTimeout(updateLayerLabel, 1000);
+
+            const activeMap = getActiveMap();
+
+            if (typeof offsetLayerGroup !== 'undefined' && offsetLayerGroup) {
+                offsetLayerGroup.clearLayers();
+            }
+
+            if (activeMap && typeof L !== 'undefined') {
+                if (typeof offsetLayerGroup !== 'undefined' && offsetLayerGroup) {
+                    const geoJsonLayer = L.geoJSON(data, {
+                        pointToLayer: function (feature, latlng) {
+                            return L.circleMarker(latlng, {
+                                radius: 4.5,
+                                fillColor: "#ff0000",
+                                color: "#ff0000",
+                                weight: 0,
+                                fillOpacity: 1.0
+                            });
+                        },
+                        onEachFeature: function (feature, layer) {
+                            const props = feature.properties || {};
+                            const idTeoritik = props.id_teoritik || props.id_teoriti || props.FID || "-";
+                            const offsetText = props.Offset || "Normal";
+                            const jarakVal = props.Jarak_Offset || "0";
+                            const compenVal = props.Compen || "0";
+
+                            const infoJarak = (jarakVal !== "0" && jarakVal !== "") ? ` (${jarakVal} m)` : "";
+
+                            layer.bindPopup(`
+                                <div style="font-size:11px; font-family:sans-serif; line-height: 1.5;">
+                                    <b>📍 Info Offset & Compen</b><br>
+                                    <b>Id_teoritik :</b> <span style="color:#d32f2f; font-weight:bold;">${idTeoritik}</span><br>
+                                    <b>Offset :</b> ${offsetText}${infoJarak}<br>
+                                    <b>Kompen ke:</b> ${compenVal}
+                                </div>
+                            `);
+                        }
+                    });
+
+                    offsetLayerGroup.addLayer(geoJsonLayer);
+                }
+
+                console.log(`Berhasil merender ${totalPoin} titik offset & compen ke layer utama.`);
+            }
+        })
+        .catch(err => console.warn("Peringatan load offset layer:", err));
+};
    
    // --------------------------------------------------------------------------
-   // 1. LOGIKA HSE BOARD (GOOGLE SHEETS INTEGRATION)
+   // 2. LOGIKA HSE BOARD (GOOGLE SHEETS INTEGRATION)
    // --------------------------------------------------------------------------
    function renderDigits(value) {
        if (value === undefined || value === null || value === "") {
@@ -86,7 +197,7 @@
    };
    
    // --------------------------------------------------------------------------
-   // 2. TOGGLE MODAL PANELS (HSE BOARD & NAVIGASI)
+   // 3. TOGGLE MODAL PANELS
    // --------------------------------------------------------------------------
    window.toggleHseBoard = function() {
        const hsePanel = document.getElementById("hse-board") || 
@@ -97,9 +208,7 @@
            const isHidden = window.getComputedStyle(hsePanel).display === "none";
            if (isHidden) {
                hsePanel.style.display = "block";
-               if (typeof window.loadHseData === 'function') {
-                   window.loadHseData();
-               }
+               if (typeof window.loadHseData === 'function') window.loadHseData();
            } else {
                hsePanel.style.display = "none";
            }
@@ -114,8 +223,16 @@
        }
    };
    
+   window.togglePanelPoin = function() {
+       const panel = document.getElementById('panel-edit-data');
+       if (panel) {
+           const isHidden = panel.style.display === 'none' || panel.style.display === '';
+           panel.style.display = isHidden ? 'block' : 'none';
+       }
+   };
+   
    // --------------------------------------------------------------------------
-   // 3. FUNGSI NAVIGASI & GARIS
+   // 4. FUNGSI NAVIGASI & GARIS
    // --------------------------------------------------------------------------
    window.drawNavigationLine = function (targetLat, targetLng, pointName) {
        const activeMap = getActiveMap();
@@ -206,67 +323,8 @@
        activeMap.fitBounds(window.navigationLine.getBounds(), { padding: [80, 80] });
    }
    
-   // Inisialisasi DOM & Binding Event Panel Navigasi
-   document.addEventListener("DOMContentLoaded", function () {
-       console.log("JavaScript main.js (Safe Nav & CRUD Version) berhasil dimuat!");
-       window.loadHseData();
-   
-       const btnClose = document.getElementById("btn-close-nav-panel");
-       const navPanel = document.getElementById("navMenuPanel");
-       const btnStartNav = document.getElementById("btn-start-nav");
-   
-       if (btnClose && navPanel) {
-           btnClose.onclick = () => navPanel.style.display = "none";
-       }
-   
-       if (btnStartNav) {
-           btnStartNav.addEventListener("click", () => {
-               const targetQuery = prompt("Masukkan Kode Tujuan Navigasi (Contoh: FieldCamp JMS, 1101860vib):");
-               if (!targetQuery) return;
-   
-               if (!window._masterGabungData || !window._masterGabungData.features) {
-                   alert("⚠️ Data peta sedang dimuat, mohon tunggu sebentar lalu coba lagi.");
-                   return;
-               }
-   
-               let destLatLng = null;
-               let destName = targetQuery;
-               const geojson = window._masterGabungData;
-               const cleanQuery = targetQuery.toLowerCase().replace(/[^a-z0-9]/g, "");
-   
-               if (!cleanQuery) {
-                   alert("⚠️ Masukkan kata kunci yang valid!");
-                   return;
-               }
-   
-               for (let f of geojson.features) {
-                   const p = f.properties || {};
-                   const rawKode = String(p.kode || p.KODE || "");
-                   const rawKet  = String(p.Keterangan || p.KETERANGAN || "");
-                   const cleanKode = rawKode.toLowerCase().replace(/[^a-z0-9]/g, "");
-                   const cleanKet  = rawKet.toLowerCase().replace(/[^a-z0-9]/g, "");
-   
-                   if (cleanKode.includes(cleanQuery) || cleanKet.includes(cleanQuery)) {
-                       if (f.geometry && f.geometry.coordinates) {
-                           const coords = f.geometry.coordinates;
-                           destLatLng = L.latLng(coords[1], coords[0]);
-                           destName = rawKode || rawKet || targetQuery;
-                           break;
-                       }
-                   }
-               }
-   
-               if (destLatLng) {
-                   proceedNavigation(destLatLng, destName);
-               } else {
-                   alert(`⚠️ Kode atau objek "${targetQuery}" tidak ditemukan di master file!`);
-               }
-           });
-       }
-   });
-   
    // --------------------------------------------------------------------------
-   // 4. FUNGSI EXPORT DATA PRODUKSI DENGAN PASSWORD PROTEKSI
+   // 5. EXPORT DATA PRODUKSI DENGAN PASSWORD PROTEKSI
    // --------------------------------------------------------------------------
    window.exportDataProduksi = async function() {
        const password = prompt("🔒 Masukkan Password Keamanan untuk Export Data Produksi:");
@@ -316,157 +374,154 @@
    };
    
    // --------------------------------------------------------------------------
-   // 5. FUNGSI UPLOAD DATA OFFSET & COMPEN DENGAN PASSWORD
+   // 6. UPLOAD DATA OFFSET & COMPEN
    // --------------------------------------------------------------------------
    window.processOffsetUpload = async function() {
-    const fileInput = document.getElementById('offsetCsvFile')?.files[0];
-
-    if (!fileInput) {
-        alert("⚠️ Silakan pilih file CSV offset terlebih dahulu!");
-        return;
-    }
-
-    alert("⏳ Memproses data offset dan compen...");
-    
-    const reader = new FileReader();
-    reader.readAsText(fileInput);
-
-    reader.onload = async function(e) {
-        try {
-            const text = e.target.result;
-            const lines = text.split(/\r\n|\n/);
-            let updateCount = 0;
-
-            for (let lineStr of lines) {
-                const cleanLine = lineStr.trim();
-                if (!cleanLine || cleanLine.startsWith("#") || cleanLine.toLowerCase().includes("id") || cleanLine.toLowerCase().includes("newx")) continue;
-
-                const parts = cleanLine.split(/,|\t|;/).map(item => item.replace(/^"|"$/g, '').trim());
-                if (parts.length < 4) continue; 
-
-                const targetId = String(parts[0]).trim().toLowerCase();
-                const newX = parseFloat(parts[1]);
-                const newY = parseFloat(parts[2]);
-                const newZ = parseFloat(parts[3]);
-                const newId = parts[4] ? parts[4] : parts[0]; 
-
-                if (isNaN(newX) || isNaN(newY)) continue;
-
-                // Cari titik di allFeatures berdasarkan ID
-                let matchedFeature = null;
-                let matchedBlock = "";
-                for (let b of ["EastA_Block_leaflet", "EastB_Block_leaflet", "Central_Block", "West_Block"]) {
-                    if (rawData[b] && Array.isArray(rawData[b].features)) {
-                        let found = rawData[b].features.find(f => {
-                            const p = f.properties || {};
-                            const pName = String(getPointName(p)).trim().toLowerCase();
-                            return pName === targetId;
-                        });
-                        if (found) {
-                            matchedFeature = found;
-                            matchedBlock = b;
-                            break;
-                        }
-                    }
-                }
-
-                if (matchedFeature) {
-                    const geoLine = getFeatureLine(matchedFeature.properties);
-                    const geoTr = getFeatureTr(matchedFeature.properties);
-
-                    // Update data ke Supabase (hanya kolom yang dipastikan ada di database)
-                    const { error } = await supabaseClient
-                        .from("progress_seismik")
-                        .update({
-                            new_x: newX,
-                            new_y: newY,
-                            new_z: newZ,
-                            new_id: newId
-                        })
-                        .eq("block", matchedBlock)
-                        .eq("line", String(geoLine))
-                        .eq("tr", geoTr);
-
-                    if (!error) {
-                        updateCount++;
-                    } else {
-                        console.warn(`Gagal update offset untuk ${targetId}:`, error.message);
-                    }
-                }
-            }
-
-            alert(`✅ Berhasil memperbarui ${updateCount} data offset ke Supabase!`);
-            document.getElementById('offsetCsvFile').value = "";
-            
-            if (typeof loadOffsetAndCompenLayer === 'function') {
-                await loadOffsetAndCompenLayer();
-            }
-
-        } catch (err) {
-            console.error("Error parsing offset CSV:", err);
-            alert("⚠️ Terjadi kesalahan saat membaca file CSV offset.");
-        }
-    };
-};
+       const targetBlock = document.getElementById('offsetTargetBlock')?.value;
+       const fileInput = document.getElementById('offsetCsvFile')?.files[0];
+   
+       if (!targetBlock) {
+           alert("⚠️ Silakan pilih blok terlebih dahulu!");
+           return;
+       }
+   
+       if (!fileInput) {
+           alert("⚠️ Silakan pilih file CSV offset terlebih dahulu!");
+           return;
+       }
+   
+       alert(`⏳ Memproses file CSV untuk ${targetBlock}...`);
+       
+       const reader = new FileReader();
+       reader.readAsText(fileInput);
+   
+       reader.onload = async function(e) {
+           try {
+               const text = e.target.result;
+               const lines = text.split(/\r\n|\n/);
+               let features = [];
+   
+               for (let lineStr of lines) {
+                   const cleanLine = lineStr.trim();
+                   if (!cleanLine || cleanLine.startsWith("#") || cleanLine.toLowerCase().includes("id") || cleanLine.toLowerCase().includes("newx")) continue;
+   
+                   const parts = cleanLine.split(/,|\t|;/).map(item => item.replace(/^"|"$/g, '').trim());
+                   if (parts.length < 4) continue; 
+   
+                   const rawId = parseFloat(parts[0]);
+                   const newX = parseFloat(parts[1]);
+                   const newY = parseFloat(parts[2]);
+                   const newZ = parseFloat(parts[3]);
+                   const newId = parts[4] ? parts[4] : parts[0];
+                   const offsetVal = parts[5] || "Normal";
+                   const jarakOffsetVal = parts[6] || "0";
+                   const compenVal = parts[7] || "0";
+   
+                   if (isNaN(rawId) || isNaN(newX) || isNaN(newY)) continue;
+   
+                   features.push({
+                       "type": "Feature",
+                       "geometry": { "type": "Point", "coordinates": [newX, newY] },
+                       "properties": {
+                           "id_teoritik": rawId,
+                           "new_id": String(newId),
+                           "z": newZ,
+                           "Offset": offsetVal,
+                           "Jarak_Offset": jarakOffsetVal,
+                           "Compen": compenVal,
+                           "block": targetBlock
+                       }
+                   });
+               }
+   
+               if (features.length === 0) {
+                   alert("⚠️ Tidak ada data koordinat valid yang terbaca dari file CSV!");
+                   return;
+               }
+   
+               const geojsonObj = { "type": "FeatureCollection", "features": features };
+   
+               const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(geojsonObj, null, 2));
+               const downloadAnchor = document.createElement('a');
+               downloadAnchor.setAttribute("href", dataStr);
+               downloadAnchor.setAttribute("download", `offset_leaflet_${targetBlock}.geojson`);
+               document.body.appendChild(downloadAnchor);
+               downloadAnchor.click();
+               downloadAnchor.remove();
+   
+               alert(`✅ Berhasil! Memproses ${features.length} titik dan file GeoJSON telah diunduh otomatis.`);
+               document.getElementById('offsetCsvFile').value = "";
+   
+               const activeMap = getActiveMap();
+               if (typeof L !== 'undefined' && activeMap) {
+                   L.geoJSON(geojsonObj, {
+                       pointToLayer: function (feature, latlng) {
+                           return L.circleMarker(latlng, {
+                               radius: 4.5,
+                               fillColor: "#ff0000",
+                               color: "#ff0000",
+                               weight: 0,
+                               fillOpacity: 1.0
+                           });
+                       },
+                       onEachFeature: function (feature, layer) {
+                           const props = feature.properties || {};
+                           const idTeoritik = props.id_teoritik || "-";
+                           const offsetText = props.Offset || "Normal";
+                           const jarakVal = props.Jarak_Offset || "0";
+                           const compenVal = props.Compen || "0";
+                           const infoJarak = (jarakVal !== "0" && jarakVal !== "") ? ` (${jarakVal} m)` : "";
+   
+                           layer.bindPopup(`
+                               <div style="font-size:11px; font-family:sans-serif; line-height: 1.5;">
+                                 <b>📍 Info Offset & Compen</b><br>
+                                 <b>Id_teoritik :</b> <span style="color:#d32f2f; font-weight:bold;">${idTeoritik}</span><br>
+                                 <b>Offset :</b> ${offsetText}${infoJarak}<br>
+                                 <b>Kompen ke:</b> ${compenVal}
+                               </div>
+                           `);
+                       }
+                   }).addTo(activeMap);
+               }
+   
+           } catch (err) {
+               console.error("Error parsing CSV:", err);
+               alert("⚠️ Terjadi kesalahan saat memproses file CSV.");
+           }
+       };
+   };
    
    // --------------------------------------------------------------------------
-   // 6. FUNGSI KELOLA POIN DRILLING (TAMBAH / UPDATE / HAPUS) & TOGGLE
+   // 7. KELOLA DATA POIN SUPABASE
    // --------------------------------------------------------------------------
+   window.simpanPoinData = async function() {
+       const tanggal = document.getElementById('input-tanggal')?.value;
+       const line = document.getElementById('input-line')?.value;
+       const tr = document.getElementById('input-tr')?.value;
+       const statusInput = document.getElementById('input-status')?.value;
    
-   // Toggle Tampilan Panel Kelola Poin (Bisa Dipanggil Langsung dari Tombol Update Peta)
-   window.togglePanelPoin = function() {
-       const panel = document.getElementById('panel-edit-data');
-       if (panel) {
-           const isHidden = panel.style.display === 'none' || panel.style.display === '';
-           panel.style.display = isHidden ? 'block' : 'none';
+       if (!line || !tr) {
+           alert('⚠️ Mohon lengkapi Nomor Line dan Nomor TR!');
+           return;
+       }
+   
+       const updatePayload = { 'drilling': statusInput };
+       if (tanggal) updatePayload['tanggal'] = tanggal;
+   
+       const { error } = await supabaseClient
+           .from('progress_seismik')
+           .update(updatePayload)
+           .match({ line: String(line), tr: Number(tr) });
+           
+       if (error) {
+           alert('❌ Gagal memperbarui: ' + error.message);
+       } else {
+           alert(`✅ Progress Line ${line} TR ${tr} berhasil diperbarui!`);
+           if (typeof muatDataPeta === 'function') muatDataPeta();
+           if (typeof fetchCloudProgress === 'function') await fetchCloudProgress();
        }
    };
    
-   // Simpan / Upsert Data Poin Ke Supabase
-   // Simpan / Update Kolom Spesifik Tanpa Mengganggu Kolom Lain
-   window.simpanPoinData = async function() {
-    const tanggal = document.getElementById('input-tanggal')?.value;
-    const line = document.getElementById('input-line')?.value;
-    const tr = document.getElementById('input-tr')?.value;
-    const statusInput = document.getElementById('input-status')?.value; // Nilai status/progress
-
-    if (!line || !tr) {
-        alert('⚠️ Mohon lengkapi Nomor Line dan Nomor TR!');
-        return;
-    }
-
-    // Tentukan kolom mana yang sedang di-update berdasarkan pilihan form atau menu aktif
-    // Contoh: Kita asumsikan ada pilihan atau variabel untuk menentukan kolom target (misal: 'drilling', 'topo', dll)
-    // Atau jika form ini khusus untuk Drilling:
-    const targetKolom = 'drilling'; // Bisa disesuaikan dengan kolom yang sedang diinput
-
-    // Lakukan perintah .update() HANYA pada kolom dan baris yang dimaksud (berdasarkan line & tr)
-    const updateData = {};
-    updateData[targetKolom] = statusInput;
-    if (tanggal) {
-        updateData['tanggal'] = tanggal; // Jika ada kolom tanggal umum atau spesifik
-    }
-
-    const { data, error } = await supabaseClient
-        .from('progress_seismik')
-        .update(updateData)
-        .eq('line', String(line))
-        .eq('tr', Number(tr));
-
-    if (error) {
-        alert('❌ Gagal memperbarui: ' + error.message);
-    } else {
-        alert(`✅ Kolom ${targetKolom} pada Line ${line} TR ${tr} berhasil diperbarui tanpa mengganggu kolom lainnya!`);
-        if (typeof muatDataPeta === 'function') {
-            muatDataPeta();
-        }
-        if (typeof fetchCloudProgress === 'function') {
-            await fetchCloudProgress();
-        }
-    }
-};
-   
-   // Hapus Data Poin Berdasarkan Input di Form
    window.jalankanHapusPoin = async function() {
        const lineTarget = document.getElementById('input-line')?.value;
        const trTarget = document.getElementById('input-tr')?.value;
@@ -478,17 +533,175 @@
    
        if (!confirm(`Yakin ingin menghapus data Line ${lineTarget} TR ${trTarget} dari database?`)) return;
    
-       const { data, error } = await supabaseClient
+       const { error } = await supabaseClient
            .from('progress_seismik')
            .delete()
-           .match({ line: lineTarget, tr: trTarget });
+           .match({ line: String(lineTarget), tr: Number(trTarget) });
    
        if (error) {
            alert('❌ Gagal menghapus: ' + error.message);
        } else {
            alert('✅ Poin berhasil dihapus dari database!');
-           if (typeof muatDataPeta === 'function') {
-               muatDataPeta();
-           }
+           if (typeof muatDataPeta === 'function') muatDataPeta();
        }
    };
+   
+   // --------------------------------------------------------------------------
+// 8. FITUR UKUR JARAK (FIX: ANTI-TEMBUS KLIK PANEL)
+// --------------------------------------------------------------------------
+let measureActive = false;
+let measurePoints = [];
+let measureLayerGroup = null;
+
+window.mulaiUkurJarak = function(event) {
+    // Mencegah klik tombol merembes ke peta di bawahnya
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    const activeMap = getActiveMap();
+    if (!activeMap) return;
+
+    if (!measureLayerGroup) {
+        measureLayerGroup = L.layerGroup().addTo(activeMap);
+    }
+
+    measureActive = !measureActive;
+    const btn = document.querySelector("button[onclick*='mulaiUkurJarak']");
+
+    if (measureActive) {
+        if (btn) {
+            btn.style.backgroundColor = "#e65100";
+            btn.innerHTML = "🛑 Hentikan Ukur";
+        }
+        
+        measurePoints = [];
+        measureLayerGroup.clearLayers();
+        
+        // Hapus dulu event lama agar bersih
+        activeMap.off('click', onMapClickMeasure);
+        
+        // Beri jeda 100 milidetik agar klik mouse di tombol benar-benar selesai dulu
+        setTimeout(() => {
+            if (measureActive) {
+                activeMap.on('click', onMapClickMeasure);
+            }
+        }, 100);
+
+    } else {
+        if (btn) {
+            btn.style.backgroundColor = "#ff9800";
+            btn.innerHTML = "📏 Ukur Jarak";
+        }
+        
+        activeMap.off('click', onMapClickMeasure);
+        measureLayerGroup.clearLayers();
+        measurePoints = [];
+    }
+};
+
+function onMapClickMeasure(e) {
+    if (!measureActive) return;
+
+    if (e.originalEvent) {
+        e.originalEvent.stopPropagation();
+    }
+    
+    measurePoints.push(e.latlng);
+    measureLayerGroup.clearLayers();
+    
+    // Render titik-titik lingkaran hijau di setiap lokasi klik
+    measurePoints.forEach((latlng) => {
+        L.circleMarker(latlng, { 
+            radius: 5, 
+            color: '#00e676', 
+            fillColor: '#00e676', 
+            fillOpacity: 1 
+        }).addTo(measureLayerGroup);
+    });
+
+    // Garis dan jarak HANYA muncul jika titik sudah 2 atau lebih
+    if (measurePoints.length > 1) {
+        const polyline = L.polyline(measurePoints, { 
+            color: '#ff9800', 
+            weight: 4, 
+            dashArray: '5, 5' 
+        }).addTo(measureLayerGroup);
+        
+        let totalDistance = 0;
+        for (let i = 0; i < measurePoints.length - 1; i++) {
+            totalDistance += measurePoints[i].distanceTo(measurePoints[i+1]);
+        }
+        
+        let jarakStr = totalDistance >= 1000 ? 
+            (totalDistance / 1000).toFixed(3) + " km" : 
+            totalDistance.toFixed(1) + " meter";
+        
+        polyline.bindPopup(`<b>📏 Total Jarak:</b> <span style="color:#d32f2f; font-weight:bold; font-size:13px;">${jarakStr}</span>`).openPopup();
+    }
+}
+   
+   // --------------------------------------------------------------------------
+   // 9. INISIALISASI DOM & EVENT LISTENERS
+   // --------------------------------------------------------------------------
+   document.addEventListener("DOMContentLoaded", function () {
+       console.log("JavaScript main.js (Safe Nav & Cleaned Version) berhasil dimuat!");
+       
+       // Muat data HSE dan Layer Offset saat pertama kali buka
+       window.loadHseData();
+       window.loadOffsetAndCompenLayer();
+   
+       const btnClose = document.getElementById("btn-close-nav-panel");
+       const navPanel = document.getElementById("navMenuPanel");
+       const btnStartNav = document.getElementById("btn-start-nav");
+   
+       if (btnClose && navPanel) {
+           btnClose.onclick = () => navPanel.style.display = "none";
+       }
+   
+       if (btnStartNav) {
+           btnStartNav.addEventListener("click", () => {
+               const targetQuery = prompt("Masukkan Kode Tujuan Navigasi (Contoh: FieldCamp JMS, 1101860vib):");
+               if (!targetQuery) return;
+   
+               if (!window._masterGabungData || !window._masterGabungData.features) {
+                   alert("⚠️ Data peta sedang dimuat, mohon tunggu sebentar lalu coba lagi.");
+                   return;
+               }
+   
+               let destLatLng = null;
+               let destName = targetQuery;
+               const geojson = window._masterGabungData;
+               const cleanQuery = targetQuery.toLowerCase().replace(/[^a-z0-9]/g, "");
+   
+               if (!cleanQuery) {
+                   alert("⚠️ Masukkan kata kunci yang valid!");
+                   return;
+               }
+   
+               for (let f of geojson.features) {
+                   const p = f.properties || {};
+                   const rawKode = String(p.kode || p.KODE || "");
+                   const rawKet  = String(p.Keterangan || p.KETERANGAN || "");
+                   const cleanKode = rawKode.toLowerCase().replace(/[^a-z0-9]/g, "");
+                   const cleanKet  = rawKet.toLowerCase().replace(/[^a-z0-9]/g, "");
+   
+                   if (cleanKode.includes(cleanQuery) || cleanKet.includes(cleanQuery)) {
+                       if (f.geometry && f.geometry.coordinates) {
+                           const coords = f.geometry.coordinates;
+                           destLatLng = L.latLng(coords[1], coords[0]);
+                           destName = rawKode || rawKet || targetQuery;
+                           break;
+                       }
+                   }
+               }
+   
+               if (destLatLng) {
+                   window.drawNavigationLine(destLatLng.lat, destLatLng.lng, destName);
+               } else {
+                   alert(`⚠️ Kode atau objek "${targetQuery}" tidak ditemukan di master file!`);
+               }
+           });
+       }
+   });
