@@ -3,14 +3,16 @@
 "name": "Camp_leaflet",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
-{ "type": "Feature", "properties": { "FID": 0, "code": 1, "X": 641165.0, "Y": 9215402.0, "Desc_": "Stagging BGP", "KODE": "A" }, "geometry": { "type": "Point", "coordinates": [ 112.278238333650876, -7.096380740674864 ] } },
-{ "type": "Feature", "properties": { "FID": 1, "code": 2, "X": 647831.0, "Y": 9218366.0, "Desc_": "FieldCamp TUB", "KODE": "B" }, "geometry": { "type": "Point", "coordinates": [ 112.338510178295422, -7.069405862163327 ] } },
-{ "type": "Feature", "properties": { "FID": 2, "code": 3, "X": 648186.415, "Y": 9225272.686000001, "Desc_": "FieldCamp JMS", "KODE": "C" }, "geometry": { "type": "Point", "coordinates": [ 112.341548208810835, -7.006936313494522 ] } },
-{ "type": "Feature", "properties": { "FID": 3, "code": 4, "X": 599533.343, "Y": 9209098.168, "Desc_": "BaseCamp", "KODE": "D" }, "geometry": { "type": "Point", "coordinates": [ 111.901416667583248, -7.154282473520189 ] } },
-{ "type": "Feature", "properties": { "FID": 4, "code": 5, "X": 598556.734, "Y": 9209935.261, "Desc_": "MesClient", "KODE": "E" }, "geometry": { "type": "Point", "coordinates": [ 111.892558111776736, -7.146728357799608 ] } },
-{ "type": "Feature", "properties": { "FID": 5, "code": 6, "X": 569288.745, "Y": 9203998.303, "Desc_": "G.Handak1", "KODE": "F" }, "geometry": { "type": "Point", "coordinates": [ 111.627585458563118, -7.200867158345004 ] } },
-{ "type": "Feature", "properties": { "FID": 6, "code": 7, "X": 587279.789, "Y": 9197522.249, "Desc_": "Kayangan Api", "KODE": "G" }, "geometry": { "type": "Point", "coordinates": [ 111.79062, -7.25919 ] } },
-{ "type": "Feature", "properties": { "FID": 7, "kode": 8, "X": 598287.0, "Y": 9195358.0, "Desc_": "Camp.TUB2", "KODE": "I" }, "geometry": { "type": "Point", "coordinates": [ 111.890373097333267, -7.278581236211277 ] } },
-{ "type": "Feature", "properties": { "FID": 8, "kode": 9, "X": 621091.029, "Y": 9205351.319, "Desc_": "G.Handak Transit", "KODE": "J" }, "geometry": { "type": "Point", "coordinates": [ 112.096711202427215, -7.187746403283099 ] } }
-]
-}
+    { "type": "Feature", "properties": { "FID": 0, "code": 1, "X": 599515.0, "Y": 9209137.0, "Desc_": "BGP Basecamp", "KODE": "A" }, "geometry": { "type": "Point", "coordinates": [ 111.901249870581253, -7.153931571763453 ] } },
+    { "type": "Feature", "properties": { "FID": 1, "code": 2, "X": 598550.98156800005, "Y": 9209961.7519840002, "Desc_": "Mess Client", "KODE": "B" }, "geometry": { "type": "Point", "coordinates": [ 111.892505555476347, -7.146488852913299 ] } },
+    { "type": "Feature", "properties": { "FID": 2, "code": 3, "X": 641172.0, "Y": 9215379.0, "Desc_": "BGP Staging#1", "KODE": "C" }, "geometry": { "type": "Point", "coordinates": [ 112.278302281400485, -7.096588570372594 ] } },
+    { "type": "Feature", "properties": { "FID": 3, "code": 4, "X": 647877.0, "Y": 9218331.0, "Desc_": "FC PT. TUB#1", "KODE": "D" }, "geometry": { "type": "Point", "coordinates": [ 112.338927511313244, -7.069721186512611 ] } },
+    { "type": "Feature", "properties": { "FID": 4, "code": 5, "X": 648157.80513800005, "Y": 9225286.6162940003, "Desc_": "FC PT. JMS#1", "KODE": "E" }, "geometry": { "type": "Point", "coordinates": [ 112.341288888711389, -7.006811074424312 ] } },
+    { "type": "Feature", "properties": { "FID": 5, "code": 6, "X": 569273.0, "Y": 9204114.0, "Desc_": "Gudang Handak", "KODE": "F" }, "geometry": { "type": "Point", "coordinates": [ 111.627441415084633, -7.19982083510428 ] } },
+    { "type": "Feature", "properties": { "FID": 6, "code": 7, "X": 600948.14508299995, "Y": 9189094.4580170009, "Desc_": "BGP Staging#2", "KODE": "G" }, "geometry": { "type": "Point", "coordinates": [ 111.914593299914173, -7.335184963079419 ] } },
+    { "type": "Feature", "properties": { "FID": 7, "code": 8, "X": 598294.83978000004, "Y": 9195339.3298659995, "Desc_": "FC PT. TUB#2", "KODE": "H" }, "geometry": { "type": "Point", "coordinates": [ 111.890444444363041, -7.27874996339025 ] } },
+    { "type": "Feature", "properties": { "FID": 8, "code": 9, "X": 587268.17305999994, "Y": 9197485.3107600007, "Desc_": "Kayangan Api", "KODE": "I" }, "geometry": { "type": "Point", "coordinates": [ 111.790527777709144, -7.259524963613365 ] } },
+    { "type": "Feature", "properties": { "FID": 9, "code": 10, "X": 606177.266833, "Y": 9192405.2792070005, "Desc_": "FC PT. JMS#2", "KODE": "J" }, "geometry": { "type": "Point", "coordinates": [ 111.961900699907702, -7.305141163137691 ] } },
+    { "type": "Feature", "properties": { "FID": 10, "code": 11, "X": 621091.029, "Y": 9205351.319, "Desc_": "G.Handak Transit", "KODE": "K" }, "geometry": { "type": "Point", "coordinates": [ 112.096711202427215, -7.187746403283099 ] } }
+    ]
+    }
