@@ -12,7 +12,6 @@
     { "type": "Feature", "properties": { "FID": 6, "code": 7, "X": 600948.14508299995, "Y": 9189094.4580170009, "Desc_": "BGP Staging#2", "KODE": "G" }, "geometry": { "type": "Point", "coordinates": [ 111.914593299914173, -7.335184963079419 ] } },
     { "type": "Feature", "properties": { "FID": 7, "code": 8, "X": 598294.83978000004, "Y": 9195339.3298659995, "Desc_": "FC PT. TUB#2", "KODE": "H" }, "geometry": { "type": "Point", "coordinates": [ 111.890444444363041, -7.27874996339025 ] } },
     { "type": "Feature", "properties": { "FID": 8, "code": 9, "X": 587268.17305999994, "Y": 9197485.3107600007, "Desc_": "Kayangan Api", "KODE": "I" }, "geometry": { "type": "Point", "coordinates": [ 111.790527777709144, -7.259524963613365 ] } },
-    { "type": "Feature", "properties": { "FID": 9, "code": 10, "X": 606177.266833, "Y": 9192405.2792070005, "Desc_": "FC PT. JMS#2", "KODE": "J" }, "geometry": { "type": "Point", "coordinates": [ 111.961900699907702, -7.305141163137691 ] } },
-    { "type": "Feature", "properties": { "FID": 10, "code": 11, "X": 621091.029, "Y": 9205351.319, "Desc_": "G.Handak Transit", "KODE": "K" }, "geometry": { "type": "Point", "coordinates": [ 112.096711202427215, -7.187746403283099 ] } }
+    { "type": "Feature", "properties": { "FID": 9, "code": 10, "X": 606177.266833, "Y": 9192405.2792070005, "Desc_": "FC PT. JMS#2", "KODE": "J" }, "geometry": { "type": "Point", "coordinates": [ 111.961900699907702, -7.305141163137691 ] } }
     ]
     }
