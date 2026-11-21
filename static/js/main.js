@@ -30,112 +30,162 @@
    })();
    
    // --------------------------------------------------------------------------
-// 1. PEMUATAN & RENDER LAYER OFFSET & COMPEN (FIXED TOTAL LABEL)
-// --------------------------------------------------------------------------
-window.loadOffsetAndCompenLayer = function() {
-    fetch('/static/Offset_kompen_leaflet.geojson')
-        .then(res => {
-            if (!res.ok) throw new Error("Gagal meload Offset_kompen_leaflet.geojson");
-            return res.json();
-        })
-        .then(data => {
-            window._masterOffsetData = data;
-            const totalPoin = data.features ? data.features.length : 0;
-            console.log(`Master file Offset_kompen_leaflet.geojson berhasil dimuat! Total: ${totalPoin} titik`);
-
-            // Fungsi untuk mengganti teks dan memasang total secara presisi
-            const updateLayerLabel = () => {
-                const labels = document.querySelectorAll('.leaflet-control-layers-overlays label');
-                labels.forEach(lbl => {
-                    // Cari label yang di dalamnya ada teks Offset & Kompen atau Total Bor
-                    if (lbl.textContent.includes('Offset & Kompen') || lbl.textContent.includes('Total Bor')) {
-                        // Ambil elemen input checkbox yang ada di dalam label tersebut
-                        const checkbox = lbl.querySelector('input[type="checkbox"]');
-                        const isChecked = checkbox ? checkbox.checked : true;
-
-                        // Kosongkan label dan susun ulang isinya dengan rapi
-                        lbl.innerHTML = '';
-                        
-                        // Pasang kembali checkbox-nya
-                        const newCheckbox = document.createElement('input');
-                        newCheckbox.type = 'checkbox';
-                        newCheckbox.className = 'leaflet-control-layers-selector';
-                        newCheckbox.checked = isChecked;
-                        
-                        // Event untuk mengontrol layer peta saat dicentang/uncentang
-                        newCheckbox.onchange = function() {
-                            if (newCheckbox.checked) {
-                                if (typeof offsetLayerGroup !== 'undefined' && offsetLayerGroup && activeMap) {
-                                    offsetLayerGroup.addTo(activeMap);
-                                }
-                            } else {
-                                if (typeof offsetLayerGroup !== 'undefined' && offsetLayerGroup && activeMap) {
-                                    activeMap.removeLayer(offsetLayerGroup);
-                                }
-                            }
-                        };
-
-                        lbl.appendChild(newCheckbox);
-
-                        // Buat teks dan angka totalnya
-                        const spanTeks = document.createElement('span');
-                        spanTeks.innerHTML = ` Total Bor <span style="color:#d32f2f; font-weight:bold;">(${totalPoin})</span>`;
-                        lbl.appendChild(spanTeks);
-                    }
-                });
-            };
-
-            // Jalankan langsung dan beri interval singkat jika menu layer belum sempat dirender Leaflet
-            updateLayerLabel();
-            setTimeout(updateLayerLabel, 400);
-            setTimeout(updateLayerLabel, 1000);
-
-            const activeMap = getActiveMap();
-
-            if (typeof offsetLayerGroup !== 'undefined' && offsetLayerGroup) {
-                offsetLayerGroup.clearLayers();
-            }
-
-            if (activeMap && typeof L !== 'undefined') {
-                if (typeof offsetLayerGroup !== 'undefined' && offsetLayerGroup) {
-                    const geoJsonLayer = L.geoJSON(data, {
-                        pointToLayer: function (feature, latlng) {
-                            return L.circleMarker(latlng, {
-                                radius: 4.5,
-                                fillColor: "#ff0000",
-                                color: "#ff0000",
-                                weight: 0,
-                                fillOpacity: 1.0
-                            });
-                        },
-                        onEachFeature: function (feature, layer) {
-                            const props = feature.properties || {};
-                            const idTeoritik = props.id_teoritik || props.id_teoriti || props.FID || "-";
-                            const offsetText = props.Offset || "Normal";
-                            const jarakVal = props.Jarak_Offset || "0";
-                            const compenVal = props.Compen || "0";
-
-                            const infoJarak = (jarakVal !== "0" && jarakVal !== "") ? ` (${jarakVal} m)` : "";
-
-                            layer.bindPopup(`
-                                <div style="font-size:11px; font-family:sans-serif; line-height: 1.5;">
-                                    <b>📍 Info Offset & Compen</b><br>
-                                    <b>Id_teoritik :</b> <span style="color:#d32f2f; font-weight:bold;">${idTeoritik}</span><br>
-                                    <b>Offset :</b> ${offsetText}${infoJarak}<br>
-                                    <b>Kompen ke:</b> ${compenVal}
-                                </div>
-                            `);
-                        }
-                    });
-
-                    offsetLayerGroup.addLayer(geoJsonLayer);
-                }
-
-                console.log(`Berhasil merender ${totalPoin} titik offset & compen ke layer utama.`);
-            }
-        })
-        .catch(err => console.warn("Peringatan load offset layer:", err));
-};
+   // 1. PEMUATAN & RENDER LAYER OFFSET & COMPEN (FIXED TOTAL LABEL)
+   // --------------------------------------------------------------------------
+   window.loadOffsetAndCompenLayer = function () {
+       fetch('/static/Offset_kompen_leaflet.geojson')
+           .then(res => {
+               if (!res.ok) throw new Error("Gagal meload Offset_kompen_leaflet.geojson");
+               return res.json();
+           })
+           .then(data => {
+               window._masterOffsetData = data;
+               const totalPoin = data.features ? data.features.length : 0;
+               console.log(`Master file Offset_kompen_leaflet.geojson berhasil dimuat! Total: ${totalPoin} titik`);
+   
+               const activeMap = getActiveMap();
+   
+               // Fungsi untuk mengganti teks dan memasang total secara presisi
+               const updateLayerLabel = () => {
+                   const labels = document.querySelectorAll('.leaflet-control-layers-overlays label');
+                   labels.forEach(lbl => {
+                       if (lbl.textContent.includes('Offset & Kompen') || lbl.textContent.includes('Total Bor')) {
+                           const checkbox = lbl.querySelector('input[type="checkbox"]');
+                           const isChecked = checkbox ? checkbox.checked : true;
+   
+                           lbl.innerHTML = '';
+   
+                           const newCheckbox = document.createElement('input');
+                           newCheckbox.type = 'checkbox';
+                           newCheckbox.className = 'leaflet-control-layers-selector';
+                           newCheckbox.checked = isChecked;
+   
+                           newCheckbox.onchange = function () {
+                               if (newCheckbox.checked) {
+                                   if (typeof offsetLayerGroup !== 'undefined' && offsetLayerGroup && activeMap) {
+                                       offsetLayerGroup.addTo(activeMap);
+                                   }
+                               } else {
+                                   if (typeof offsetLayerGroup !== 'undefined' && offsetLayerGroup && activeMap) {
+                                       activeMap.removeLayer(offsetLayerGroup);
+                                   }
+                               }
+                           };
+   
+                           lbl.appendChild(newCheckbox);
+   
+                           const spanTeks = document.createElement('span');
+                           spanTeks.innerHTML = ` Total Bor <span style="color:#d32f2f; font-weight:bold;">(${totalPoin})</span>`;
+                           lbl.appendChild(spanTeks);
+                       }
+                   });
+               };
+   
+               updateLayerLabel();
+               setTimeout(updateLayerLabel, 400);
+               setTimeout(updateLayerLabel, 1000);
+   
+               if (typeof offsetLayerGroup !== 'undefined' && offsetLayerGroup) {
+                   offsetLayerGroup.clearLayers();
+               }
+   
+               if (activeMap && typeof L !== 'undefined') {
+                   if (typeof offsetLayerGroup !== 'undefined' && offsetLayerGroup) {
+                       const geoJsonLayer = L.geoJSON(data, {
+                           pointToLayer: function (feature, latlng) {
+                               return L.circleMarker(latlng, {
+                                   radius: 4.5,
+                                   fillColor: "#ff0000",
+                                   color: "#ff0000",
+                                   weight: 0,
+                                   fillOpacity: 1.0
+                               });
+                           },
+                           onEachFeature: function (feature, layer) {
+                               const props = feature.properties || {};
+                               const idTeoritik = props.id_teoritik || props.id_teoriti || props.FID || "-";
+                               const offsetText = props.Offset || "Normal";
+                               const jarakVal = props.Jarak_Offset || "0";
+                               const compenVal = props.Compen || "0";
+                               const infoJarak = (jarakVal !== "0" && jarakVal !== "") ? ` (${jarakVal} m)` : "";
+   
+                               layer.bindPopup(`
+                                   <div style="font-size:11px; font-family:sans-serif; line-height: 1.5;">
+                                       <b>📍 Info Offset & Compen</b><br>
+                                       <b>Id_teoritik :</b> <span style="color:#d32f2f; font-weight:bold;">${idTeoritik}</span><br>
+                                       <b>Offset :</b> ${offsetText}${infoJarak}<br>
+                                       <b>Kompen ke:</b> ${compenVal}
+                                   </div>
+                               `);
+                           }
+                       });
+   
+                       offsetLayerGroup.addLayer(geoJsonLayer);
+                   }
+   
+                   console.log(`Berhasil merender ${totalPoin} titik offset & compen ke layer utama.`);
+               }
+           })
+           .catch(err => console.warn("Peringatan load offset layer:", err));
+   };
+   
+   // --------------------------------------------------------------------------
+   // 1B. PEMUATAN & RENDER LAYER JALUR PIPA (/static/Jalur_Pipa_leaflet.geojson)
+   // --------------------------------------------------------------------------
+   window.loadJalurPipaLayer = function () {
+       if (typeof groupJalurPipa === 'undefined' || !groupJalurPipa) {
+           console.warn("groupJalurPipa belum terdefinisi di index.html");
+           return;
+       }
+   
+       fetch('/static/Jalur_Pipa_leaflet.geojson')
+           .then(res => {
+               if (!res.ok) throw new Error(`Gagal memuat Jalur_Pipa_leaflet.geojson (HTTP ${res.status})`);
+               return res.json();
+           })
+           .then(data => {
+               groupJalurPipa.clearLayers();
+   
+               const geoJsonLayer = L.geoJSON(data, {
+                   style: function () {
+                       return {
+                           color: "#ff5722",
+                           weight: 3,
+                           opacity: 0.95,
+                           fillColor: "#ff7043",
+                           fillOpacity: 0.3
+                       };
+                   },
+                   pointToLayer: function (feature, latlng) {
+                       return L.circleMarker(latlng, {
+                           radius: 5,
+                           fillColor: "#ff5722",
+                           color: "#ffffff",
+                           weight: 1,
+                           fillOpacity: 0.95
+                       });
+                   },
+                   onEachFeature: function (feature, layer) {
+                       const props = feature.properties || {};
+                       const judul = props.nama || props.name || props.keterangan || props.KML_FOLDER || "Jalur Pipa";
+                       const detailProps = Object.entries(props)
+                           .map(([key, val]) => `<b>${key}:</b> ${val ?? '-'}`)
+                           .join("<br>");
+   
+                       layer.bindPopup(`
+                           <div style="font-size:11px; font-family:sans-serif; line-height:1.5;">
+                               <b>🔧 ${judul}</b><br>
+                               ${detailProps || "Tidak ada atribut"}
+                           </div>
+                       `);
+                   }
+               });
+   
+               groupJalurPipa.addLayer(geoJsonLayer);
+               console.log(`Layer Jalur Pipa termuat: ${data.features ? data.features.length : 0} fitur.`);
+           })
+           .catch(err => console.warn("Peringatan load Jalur_Pipa_leaflet.geojson:", err));
+   };
    
    // --------------------------------------------------------------------------
    // 2. LOGIKA HSE BOARD (GOOGLE SHEETS INTEGRATION)
@@ -199,9 +249,9 @@ window.loadOffsetAndCompenLayer = function() {
    // --------------------------------------------------------------------------
    // 3. TOGGLE MODAL PANELS
    // --------------------------------------------------------------------------
-   window.toggleHseBoard = function() {
-       const hsePanel = document.getElementById("hse-board") || 
-                        document.getElementById("hseBoardModal") || 
+   window.toggleHseBoard = function () {
+       const hsePanel = document.getElementById("hse-board") ||
+                        document.getElementById("hseBoardModal") ||
                         document.querySelector(".hse-board-modal");
    
        if (hsePanel) {
@@ -215,7 +265,7 @@ window.loadOffsetAndCompenLayer = function() {
        }
    };
    
-   window.toggleNavMenu = function() {
+   window.toggleNavMenu = function () {
        const navPanel = document.getElementById("navMenuPanel") || document.querySelector(".nav-menu-panel");
        if (navPanel) {
            const isHidden = window.getComputedStyle(navPanel).display === "none";
@@ -223,7 +273,7 @@ window.loadOffsetAndCompenLayer = function() {
        }
    };
    
-   window.togglePanelPoin = function() {
+   window.togglePanelPoin = function () {
        const panel = document.getElementById('panel-edit-data');
        if (panel) {
            const isHidden = panel.style.display === 'none' || panel.style.display === '';
@@ -265,7 +315,7 @@ window.loadOffsetAndCompenLayer = function() {
                    addWaypoints: false,
                    draggableWaypoints: false,
                    fitSelectedRoutes: true,
-                   createLine: function(router, routes) {
+                   createLine: function (router, routes) {
                        return L.Routing.line(router, routes, {
                            styles: [{ color: '#ff1493', opacity: 0.9, weight: 6 }]
                        });
@@ -307,9 +357,9 @@ window.loadOffsetAndCompenLayer = function() {
    
        window.navigationLine.bindPopup(`
            <div style="font-size:11px; font-family:sans-serif;">
-             <b>🧭 Garis Lurus Ke Target</b><br>
-             <b>ID Poin:</b> ${pointName}<br>
-             <b>Jarak Direct:</b> <span style="color:#ff00ff; font-weight:bold;">${distanceText}</span>
+               <b>🧭 Garis Lurus Ke Target</b><br>
+               <b>ID Poin:</b> ${pointName}<br>
+               <b>Jarak Direct:</b> <span style="color:#ff00ff; font-weight:bold;">${distanceText}</span>
            </div>
        `).openPopup();
    
@@ -326,11 +376,11 @@ window.loadOffsetAndCompenLayer = function() {
    // --------------------------------------------------------------------------
    // 5. EXPORT DATA PRODUKSI DENGAN PASSWORD PROTEKSI
    // --------------------------------------------------------------------------
-   window.exportDataProduksi = async function() {
+   window.exportDataProduksi = async function () {
        const password = prompt("🔒 Masukkan Password Keamanan untuk Export Data Produksi:");
        if (password === null) return;
    
-       const PASSWORD_RAHASIA = "lamturo9721"; 
+       const PASSWORD_RAHASIA = "lamturo9721";
    
        if (password !== PASSWORD_RAHASIA) {
            alert("❌ Password salah! Akses export ditolak.");
@@ -338,7 +388,7 @@ window.loadOffsetAndCompenLayer = function() {
        }
    
        alert("✅ Password benar! Mengambil data produksi dari database...");
-       
+   
        try {
            const { data, error } = await supabaseClient
                .from('nama_tabel_produksi')
@@ -360,13 +410,12 @@ window.loadOffsetAndCompenLayer = function() {
            const encodedUri = encodeURI(csvContent);
            const link = document.createElement("a");
            link.setAttribute("href", encodedUri);
-           link.setAttribute("download", `Laporan_Produksi_${new Date().toISOString().slice(0,10)}.csv`);
+           link.setAttribute("download", `Laporan_Produksi_${new Date().toISOString().slice(0, 10)}.csv`);
            document.body.appendChild(link);
            link.click();
            document.body.removeChild(link);
    
            alert(`✅ Berhasil meng-export ${data.length} baris data produksi!`);
-   
        } catch (err) {
            console.error("Gagal export data:", err);
            alert("⚠️ Terjadi kesalahan saat menarik data dari database.");
@@ -376,7 +425,7 @@ window.loadOffsetAndCompenLayer = function() {
    // --------------------------------------------------------------------------
    // 6. UPLOAD DATA OFFSET & COMPEN
    // --------------------------------------------------------------------------
-   window.processOffsetUpload = async function() {
+   window.processOffsetUpload = async function () {
        const targetBlock = document.getElementById('offsetTargetBlock')?.value;
        const fileInput = document.getElementById('offsetCsvFile')?.files[0];
    
@@ -391,11 +440,11 @@ window.loadOffsetAndCompenLayer = function() {
        }
    
        alert(`⏳ Memproses file CSV untuk ${targetBlock}...`);
-       
+   
        const reader = new FileReader();
        reader.readAsText(fileInput);
    
-       reader.onload = async function(e) {
+       reader.onload = async function (e) {
            try {
                const text = e.target.result;
                const lines = text.split(/\r\n|\n/);
@@ -406,7 +455,7 @@ window.loadOffsetAndCompenLayer = function() {
                    if (!cleanLine || cleanLine.startsWith("#") || cleanLine.toLowerCase().includes("id") || cleanLine.toLowerCase().includes("newx")) continue;
    
                    const parts = cleanLine.split(/,|\t|;/).map(item => item.replace(/^"|"$/g, '').trim());
-                   if (parts.length < 4) continue; 
+                   if (parts.length < 4) continue;
    
                    const rawId = parseFloat(parts[0]);
                    const newX = parseFloat(parts[1]);
@@ -474,16 +523,15 @@ window.loadOffsetAndCompenLayer = function() {
    
                            layer.bindPopup(`
                                <div style="font-size:11px; font-family:sans-serif; line-height: 1.5;">
-                                 <b>📍 Info Offset & Compen</b><br>
-                                 <b>Id_teoritik :</b> <span style="color:#d32f2f; font-weight:bold;">${idTeoritik}</span><br>
-                                 <b>Offset :</b> ${offsetText}${infoJarak}<br>
-                                 <b>Kompen ke:</b> ${compenVal}
+                                   <b>📍 Info Offset & Compen</b><br>
+                                   <b>Id_teoritik :</b> <span style="color:#d32f2f; font-weight:bold;">${idTeoritik}</span><br>
+                                   <b>Offset :</b> ${offsetText}${infoJarak}<br>
+                                   <b>Kompen ke:</b> ${compenVal}
                                </div>
                            `);
                        }
                    }).addTo(activeMap);
                }
-   
            } catch (err) {
                console.error("Error parsing CSV:", err);
                alert("⚠️ Terjadi kesalahan saat memproses file CSV.");
@@ -494,7 +542,7 @@ window.loadOffsetAndCompenLayer = function() {
    // --------------------------------------------------------------------------
    // 7. KELOLA DATA POIN SUPABASE
    // --------------------------------------------------------------------------
-   window.simpanPoinData = async function() {
+   window.simpanPoinData = async function () {
        const tanggal = document.getElementById('input-tanggal')?.value;
        const line = document.getElementById('input-line')?.value;
        const tr = document.getElementById('input-tr')?.value;
@@ -512,7 +560,7 @@ window.loadOffsetAndCompenLayer = function() {
            .from('progress_seismik')
            .update(updatePayload)
            .match({ line: String(line), tr: Number(tr) });
-           
+   
        if (error) {
            alert('❌ Gagal memperbarui: ' + error.message);
        } else {
@@ -522,7 +570,7 @@ window.loadOffsetAndCompenLayer = function() {
        }
    };
    
-   window.jalankanHapusPoin = async function() {
+   window.jalankanHapusPoin = async function () {
        const lineTarget = document.getElementById('input-line')?.value;
        const trTarget = document.getElementById('input-tr')?.value;
    
@@ -547,110 +595,107 @@ window.loadOffsetAndCompenLayer = function() {
    };
    
    // --------------------------------------------------------------------------
-// 8. FITUR UKUR JARAK (FIX: ANTI-TEMBUS KLIK PANEL)
-// --------------------------------------------------------------------------
-let measureActive = false;
-let measurePoints = [];
-let measureLayerGroup = null;
-
-window.mulaiUkurJarak = function(event) {
-    // Mencegah klik tombol merembes ke peta di bawahnya
-    if (event) {
-        event.stopPropagation();
-        event.preventDefault();
-    }
-
-    const activeMap = getActiveMap();
-    if (!activeMap) return;
-
-    if (!measureLayerGroup) {
-        measureLayerGroup = L.layerGroup().addTo(activeMap);
-    }
-
-    measureActive = !measureActive;
-    const btn = document.querySelector("button[onclick*='mulaiUkurJarak']");
-
-    if (measureActive) {
-        if (btn) {
-            btn.style.backgroundColor = "#e65100";
-            btn.innerHTML = "🛑 Hentikan Ukur";
-        }
-        
-        measurePoints = [];
-        measureLayerGroup.clearLayers();
-        
-        // Hapus dulu event lama agar bersih
-        activeMap.off('click', onMapClickMeasure);
-        
-        // Beri jeda 100 milidetik agar klik mouse di tombol benar-benar selesai dulu
-        setTimeout(() => {
-            if (measureActive) {
-                activeMap.on('click', onMapClickMeasure);
-            }
-        }, 100);
-
-    } else {
-        if (btn) {
-            btn.style.backgroundColor = "#ff9800";
-            btn.innerHTML = "📏 Ukur Jarak";
-        }
-        
-        activeMap.off('click', onMapClickMeasure);
-        measureLayerGroup.clearLayers();
-        measurePoints = [];
-    }
-};
-
-function onMapClickMeasure(e) {
-    if (!measureActive) return;
-
-    if (e.originalEvent) {
-        e.originalEvent.stopPropagation();
-    }
-    
-    measurePoints.push(e.latlng);
-    measureLayerGroup.clearLayers();
-    
-    // Render titik-titik lingkaran hijau di setiap lokasi klik
-    measurePoints.forEach((latlng) => {
-        L.circleMarker(latlng, { 
-            radius: 5, 
-            color: '#00e676', 
-            fillColor: '#00e676', 
-            fillOpacity: 1 
-        }).addTo(measureLayerGroup);
-    });
-
-    // Garis dan jarak HANYA muncul jika titik sudah 2 atau lebih
-    if (measurePoints.length > 1) {
-        const polyline = L.polyline(measurePoints, { 
-            color: '#ff9800', 
-            weight: 4, 
-            dashArray: '5, 5' 
-        }).addTo(measureLayerGroup);
-        
-        let totalDistance = 0;
-        for (let i = 0; i < measurePoints.length - 1; i++) {
-            totalDistance += measurePoints[i].distanceTo(measurePoints[i+1]);
-        }
-        
-        let jarakStr = totalDistance >= 1000 ? 
-            (totalDistance / 1000).toFixed(3) + " km" : 
-            totalDistance.toFixed(1) + " meter";
-        
-        polyline.bindPopup(`<b>📏 Total Jarak:</b> <span style="color:#d32f2f; font-weight:bold; font-size:13px;">${jarakStr}</span>`).openPopup();
-    }
-}
+   // 8. FITUR UKUR JARAK (FIX: ANTI-TEMBUS KLIK PANEL)
+   // --------------------------------------------------------------------------
+   let measureActive = false;
+   let measurePoints = [];
+   let measureLayerGroup = null;
+   
+   window.mulaiUkurJarak = function (event) {
+       if (event) {
+           event.stopPropagation();
+           event.preventDefault();
+       }
+   
+       const activeMap = getActiveMap();
+       if (!activeMap) return;
+   
+       if (!measureLayerGroup) {
+           measureLayerGroup = L.layerGroup().addTo(activeMap);
+       }
+   
+       measureActive = !measureActive;
+       const btn = document.querySelector("button[onclick*='mulaiUkurJarak']");
+   
+       if (measureActive) {
+           if (btn) {
+               btn.style.backgroundColor = "#e65100";
+               btn.innerHTML = "🛑 Hentikan Ukur";
+           }
+   
+           measurePoints = [];
+           measureLayerGroup.clearLayers();
+   
+           activeMap.off('click', onMapClickMeasure);
+   
+           setTimeout(() => {
+               if (measureActive) {
+                   activeMap.on('click', onMapClickMeasure);
+               }
+           }, 100);
+       } else {
+           if (btn) {
+               btn.style.backgroundColor = "#ff9800";
+               btn.innerHTML = "📏 Ukur Jarak";
+           }
+   
+           activeMap.off('click', onMapClickMeasure);
+           measureLayerGroup.clearLayers();
+           measurePoints = [];
+       }
+   };
+   
+   function onMapClickMeasure(e) {
+       if (!measureActive) return;
+   
+       if (e.originalEvent) {
+           e.originalEvent.stopPropagation();
+       }
+   
+       measurePoints.push(e.latlng);
+       measureLayerGroup.clearLayers();
+   
+       measurePoints.forEach((latlng) => {
+           L.circleMarker(latlng, {
+               radius: 5,
+               color: '#00e676',
+               fillColor: '#00e676',
+               fillOpacity: 1
+           }).addTo(measureLayerGroup);
+       });
+   
+       if (measurePoints.length > 1) {
+           const polyline = L.polyline(measurePoints, {
+               color: '#ff9800',
+               weight: 4,
+               dashArray: '5, 5'
+           }).addTo(measureLayerGroup);
+   
+           let totalDistance = 0;
+           for (let i = 0; i < measurePoints.length - 1; i++) {
+               totalDistance += measurePoints[i].distanceTo(measurePoints[i + 1]);
+           }
+   
+           let jarakStr = totalDistance >= 1000
+               ? (totalDistance / 1000).toFixed(3) + " km"
+               : totalDistance.toFixed(1) + " meter";
+   
+           polyline.bindPopup(`<b>📏 Total Jarak:</b> <span style="color:#d32f2f; font-weight:bold; font-size:13px;">${jarakStr}</span>`).openPopup();
+       }
+   }
    
    // --------------------------------------------------------------------------
    // 9. INISIALISASI DOM & EVENT LISTENERS
    // --------------------------------------------------------------------------
    document.addEventListener("DOMContentLoaded", function () {
        console.log("JavaScript main.js (Safe Nav & Cleaned Version) berhasil dimuat!");
-       
-       // Muat data HSE dan Layer Offset saat pertama kali buka
+   
+       // Muat data HSE, Layer Offset, dan Layer Jalur Pipa saat pertama kali buka
        window.loadHseData();
        window.loadOffsetAndCompenLayer();
+       setTimeout(() => {
+           window.loadJalurPipaLayer();
+       }, 200);
    
        const btnClose = document.getElementById("btn-close-nav-panel");
        const navPanel = document.getElementById("navMenuPanel");
