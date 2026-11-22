@@ -750,3 +750,267 @@
            });
        }
    });
+  // --------------------------------------------------------------------------
+// REKAP INVENTORY POIN (TEORITIK "ID" .5 VS OFFSET "id_teoritik" .5)
+// --------------------------------------------------------------------------
+window._inventorySourceCache = {
+    loaded: false,
+    blocks: { east: {}, central: {}, west: {} }
+};
+
+function normalizeInvLine(rawLine) {
+    if (rawLine === undefined || rawLine === null) return "-";
+    const s = String(rawLine).trim().replace(/^0+/, "");
+    return s || "-";
+}
+
+function extractInvLineFromProps(props) {
+    if (!props) return "-";
+    const raw = props.Line ?? props.line ?? props.LINE ?? props.Line_Name ?? props.LINE_NAME ?? props.LINE_NO ?? "";
+    return normalizeInvLine(raw);
+}
+
+function isExactDotFive(val) {
+    if (val === undefined || val === null || val === "") return false;
+    const str = String(val).trim().replace(",", ".");
+    if (!str) return false;
+
+    // Pastikan tepat berakhiran .5 (bukan .0 atau angka bulat)
+    if (/^\d+\.5$/.test(str)) return true;
+
+    const num = Number(str);
+    if (!isNaN(num) && Number.isFinite(num)) {
+        return Math.abs(Math.abs(num % 1) - 0.5) < 1e-6;
+    }
+    return false;
+}
+
+function normalizeDotFiveToken(val) {
+    if (!isExactDotFive(val)) return "";
+    const str = String(val).trim().replace(",", ".");
+    const num = Number(str);
+    if (!isNaN(num) && Number.isFinite(num)) {
+        return num.toFixed(1);
+    }
+    return str;
+}
+
+// Ambil token .5 dari file teoritik (prioritas "ID", lalu fallback field lain jika ada)
+function getTheoSpIdToken(props) {
+    if (!props) return "";
+    if (isExactDotFive(props.ID)) return normalizeDotFiveToken(props.ID);
+    if (isExactDotFive(props.id)) return normalizeDotFiveToken(props.id);
+    if (isExactDotFive(props.NEWID)) return normalizeDotFiveToken(props.NEWID);
+    if (isExactDotFive(props.Tr)) return normalizeDotFiveToken(props.Tr);
+    if (isExactDotFive(props.tr)) return normalizeDotFiveToken(props.tr);
+    return "";
+}
+
+// Ambil token .5 dari Offset_kompen_leaflet.geojson (prioritas "id_teoritik")
+function getOffsetSpToken(props) {
+    if (!props) return "";
+    if (isExactDotFive(props.id_teoritik)) return normalizeDotFiveToken(props.id_teoritik);
+    if (isExactDotFive(props.id_teoriti)) return normalizeDotFiveToken(props.id_teoriti);
+    if (isExactDotFive(props.ID)) return normalizeDotFiveToken(props.ID);
+    if (isExactDotFive(props.id)) return normalizeDotFiveToken(props.id);
+    if (isExactDotFive(props.Tr)) return normalizeDotFiveToken(props.Tr);
+    return "";
+}
+
+async function fetchInventoryJsonOptional(url) {
+    try {
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch (_) {
+        return null;
+    }
+}
+
+async function loadInventoryDataset() {
+    try {
+        const [eastMain, eastA, eastB, central, west, offsetData] = await Promise.all([
+            fetchInventoryJsonOptional('/static/East_Block_leaflet.geojson'),
+            fetchInventoryJsonOptional('/static/EastA_Block_leaflet.geojson'),
+            fetchInventoryJsonOptional('/static/EastB_Block_leaflet.geojson'),
+            fetchInventoryJsonOptional('/static/Central_Block.geojson'),
+            fetchInventoryJsonOptional('/static/West_Block.geojson'),
+            fetchInventoryJsonOptional('/static/Offset_kompen_leaflet.geojson')
+        ]);
+
+        const blocks = { east: {}, central: {}, west: {} };
+        const spTokenLocations = new Map();
+
+        const scanTheoreticalFile = (geojson, blockKey) => {
+            if (!geojson || !Array.isArray(geojson.features)) return;
+
+            geojson.features.forEach(feat => {
+                const p = feat.properties || {};
+                const spToken = getTheoSpIdToken(p);
+                // Hanya proses titik berakhiran .5 (abaikan .0 / TR)
+                if (!spToken) return;
+
+                const line = extractInvLineFromProps(p);
+                if (line === "-") return;
+
+                if (!blocks[blockKey][line]) {
+                    blocks[blockKey][line] = { total: 0, sudahBor: 0, belumBor: 0, shot: "" };
+                }
+
+                blocks[blockKey][line].total += 1;
+
+                if (!spTokenLocations.has(spToken)) {
+                    spTokenLocations.set(spToken, []);
+                }
+                spTokenLocations.get(spToken).push({ blockKey, line });
+            });
+        };
+
+        // 1. Block East (dukung East_Block_leaflet, EastA, dan EastB)
+        scanTheoreticalFile(eastMain, 'east');
+        scanTheoreticalFile(eastA, 'east');
+        scanTheoreticalFile(eastB, 'east');
+        // 2. Block Central
+        scanTheoreticalFile(central, 'central');
+        // 3. Block West
+        scanTheoreticalFile(west, 'west');
+
+        // 4. Cocokkan id_teoritik (.5) dari Offset_kompen_leaflet.geojson ke "ID" teoritik
+        const matchedSpByBlockLine = { east: {}, central: {}, west: {} };
+        let offsetReadCount = 0;
+        let offsetMatchedCount = 0;
+
+        if (offsetData && Array.isArray(offsetData.features)) {
+            offsetData.features.forEach(feat => {
+                const p = feat.properties || {};
+                const spToken = getOffsetSpToken(p);
+                if (!spToken) return;
+                offsetReadCount += 1;
+
+                const locs = spTokenLocations.get(spToken);
+                if (locs && locs.length > 0) {
+                    offsetMatchedCount += 1;
+                    locs.forEach(loc => {
+                        if (!matchedSpByBlockLine[loc.blockKey][loc.line]) {
+                            matchedSpByBlockLine[loc.blockKey][loc.line] = new Set();
+                        }
+                        matchedSpByBlockLine[loc.blockKey][loc.line].add(spToken);
+                    });
+                }
+            });
+        }
+
+        // 5. Hitung Sudah Bor & Belum Bor (sisa) per line
+        ['east', 'central', 'west'].forEach(bKey => {
+            Object.keys(blocks[bKey]).forEach(line => {
+                const totalSp = blocks[bKey][line].total;
+                const matchedSet = matchedSpByBlockLine[bKey]?.[line] || new Set();
+                const sudahBor = Math.min(totalSp, matchedSet.size);
+                const belumBor = Math.max(0, totalSp - sudahBor);
+
+                blocks[bKey][line].sudahBor = sudahBor;
+                blocks[bKey][line].belumBor = belumBor;
+            });
+        });
+
+        window._inventorySourceCache = {
+            loaded: true,
+            blocks
+        };
+
+        console.log(`✅ Inventory (.5): offset terbaca=${offsetReadCount}, cocok ke ID teoritik=${offsetMatchedCount}`);
+        renderInventoryRekap();
+    } catch (err) {
+        console.warn("Peringatan muat data inventory:", err);
+    }
+}
+
+window.renderInventoryRekap = function () {
+    const selectEl = document.getElementById("inventoryBlockSelect");
+    const tbody = document.getElementById("inventoryTableBody");
+    const dateLabel = document.getElementById("inventoryTanggalLabel");
+    if (!selectEl || !tbody) return;
+
+    const selectedBlock = selectEl.value || 'east';
+    const lineMap = window._inventorySourceCache.blocks[selectedBlock] || {};
+
+    const now = new Date();
+    if (dateLabel) {
+        dateLabel.textContent = now.toLocaleDateString('id-ID', {
+            day: '2-digit', month: 'short', year: 'numeric'
+        });
+    }
+
+    const linesSorted = Object.keys(lineMap).sort((a, b) => {
+        const numA = parseFloat(a);
+        const numB = parseFloat(b);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return a.localeCompare(b);
+    });
+
+    let grandTotal = 0;
+    let grandSudah = 0;
+    let grandBelum = 0;
+    let grandSisa = 0;
+    let htmlRows = "";
+
+    linesSorted.forEach((line, idx) => {
+        const item = lineMap[line];
+        const total = item.total || 0;
+        const sudah = Math.min(total, item.sudahBor || 0);
+        const belum = Math.max(0, total - sudah);
+        const sisa = belum;
+        const pctTase = total > 0 ? ((sudah / total) * 100).toFixed(2) + "%" : "0.00%";
+        const shot = "";
+
+        grandTotal += total;
+        grandSudah += sudah;
+        grandBelum += belum;
+        grandSisa += sisa;
+
+        const rowBg = idx % 2 === 0 ? "#1e293b" : "#172033";
+        htmlRows += `
+            <tr style="background: ${rowBg}; color: #f8fafc;">
+                <td style="padding: 6px; border: 1px solid #334155; font-weight: bold;">${line}</td>
+                <td style="padding: 6px; border: 1px solid #334155;">${total.toLocaleString('id-ID')}</td>
+                <td style="padding: 6px; border: 1px solid #334155; color: #4ade80; font-weight: bold;">${sudah.toLocaleString('id-ID')}</td>
+                <td style="padding: 6px; border: 1px solid #334155; color: #facc15;">${belum.toLocaleString('id-ID')}</td>
+                <td style="padding: 6px; border: 1px solid #334155;">${sisa.toLocaleString('id-ID')}</td>
+                <td style="padding: 6px; border: 1px solid #334155; font-weight: bold;">${pctTase}</td>
+                <td style="padding: 6px; border: 1px solid #334155; color: #64748b;">${shot}</td>
+            </tr>
+        `;
+    });
+
+    const grandPct = grandTotal > 0 ? ((grandSudah / grandTotal) * 100).toFixed(2) + "%" : "0.00%";
+
+    const elTotal = document.getElementById("inv-total-teoritik");
+    const elVibro = document.getElementById("inv-vibro-shot");
+    const elSudah = document.getElementById("inv-sudah-bor");
+    const elBelum = document.getElementById("inv-belum-bor");
+    const elPct = document.getElementById("inv-progress-pct");
+
+    if (elTotal) elTotal.textContent = grandTotal.toLocaleString('id-ID');
+    if (elVibro) elVibro.textContent = grandSisa.toLocaleString('id-ID');
+    if (elSudah) elSudah.textContent = grandSudah.toLocaleString('id-ID');
+    if (elBelum) elBelum.textContent = grandBelum.toLocaleString('id-ID');
+    if (elPct) elPct.textContent = grandPct;
+
+    tbody.innerHTML = htmlRows || `<tr><td colspan="7" style="padding: 12px; color: #94a3b8;">Tidak ada data poin (.5) pada blok ini.</td></tr>`;
+};
+
+window.toggleInventoryModal = function () {
+    const modal = document.getElementById("inventory-modal");
+    if (!modal) return;
+    const isHidden = window.getComputedStyle(modal).display === "none";
+    if (isHidden) {
+        modal.style.display = "flex";
+        loadInventoryDataset();
+    } else {
+        modal.style.display = "none";
+    }
+};
+
+document.addEventListener("DOMContentLoaded", function () {
+    loadInventoryDataset();
+});
